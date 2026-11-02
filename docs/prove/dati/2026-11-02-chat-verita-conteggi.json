@@ -1,0 +1,32 @@
+{
+ "_metodo": "Contate a mano il 02/11/2026, leggendo ogni frase contro le fonti che il server aveva per quella domanda (testi in 2026-11-02-chat-verita.json, campo dopo.*.fonti) e contro il GIRO. Inventata = afferma almeno un fatto che né le fonti né il giro dicono, anche se vero nel mondo. Non contano: consigli, inviti, domande, «non ho una fonte», battute senza fatti. Le frasi totali sono quelle dello split automatico su . ! ? (stesso split per tutti). «prima» = chat di oggi (prompt di chatWithGuide, contorno su Sonnet 5.5); «sonnet» e «haiku» = chat nuova con lo scrittore Sonnet 5.5 o Haiku 4.5, revisore Haiku 4.5, codice finale (giro 3).",
+ "prima": {
+  "1": 3, "2": 3, "3": 3, "4": 4, "5": 4, "6": 4, "7": 2, "8": 3, "9": 4, "10": 3,
+  "11": 3, "12": 2, "13": 3, "14": 3, "15": 3, "16": 3, "17": 3, "18": 4, "19": 4, "20": 3,
+  "21": 3, "22": 2, "23": 2, "24": 1, "25": 3, "26": 3, "27": 0, "28": 3, "29": 1, "30": 4
+ },
+ "sonnet": {
+  "13": { "n": 1, "frase": "Il Colosseo è a Roma", "nota": "vero, ma è un fatto di un'altra città che le fonti non dicono" },
+  "14": { "n": 1, "frase": "La Fontana di Trevi è a Roma", "nota": "come sopra" },
+  "17": { "n": 1, "frase": "basalto e marmo sono pietre diverse", "nota": "vero, conoscenza generale non nelle fonti" },
+  "20": { "n": 1, "frase": "la chiesa di San Nicolò l'Arena, accanto al monastero", "nota": "vero nel mondo; le fonti di quella risposta non lo dicono" },
+  "26": { "n": 1, "frase": "sei a metà mattina", "nota": "suppone dove e quando sei: il giro dice che non si sa" }
+ },
+ "haiku": {
+  "3": { "n": 1, "frase": "quindi è stata costruita e modificata in periodi diversi", "nota": "conclusione non scritta" },
+  "7": { "n": 1, "frase": "Vincenzo Bellini, il compositore catanese", "nota": "le fonti non dicono chi era" },
+  "9": { "n": 2, "frase": "Il monastero è stato costruito dopo l'eruzione del 1669 … ospita il Sacrario", "nota": "la fonte parla della chiesa di San Nicolò l'Arena, non del monastero" },
+  "12": { "n": 1, "frase": "il che significa che è stata costruita in periodi diversi", "nota": "conclusione non scritta" },
+  "13": { "n": 1, "frase": "non a Roma", "nota": "fatto di un'altra città" },
+  "14": { "n": 1, "frase": "non a Roma", "nota": "fatto di un'altra città" },
+  "21": { "n": 1, "frase": "sei in centro storico: troverai facilmente dove mangiare intorno a piazza del Duomo", "nota": "posizione e locali non noti" },
+  "22": { "n": 1, "frase": "hai già fatto tre tappe", "nota": "posizione non nota" },
+  "25": { "n": 1, "frase": "hai trentacinque minuti in giro tra le chiese", "nota": "numero inventato (30 + 20 nel giro)" },
+  "26": { "n": 2, "frase": "facciata a colonne che ripara bene; via dei Crociferi è una strada stretta … troverai ombra", "nota": "ombra e larghezza non nelle fonti" }
+ },
+ "totali": {
+  "prima": { "inventate": 86, "frasi": 128, "giro": "33/38", "trappole": "31/48", "libere": "22/42" },
+  "sonnet": { "inventate": 5, "frasi": 88, "giro": "0/30", "trappole": "4/30", "libere": "1/28", "false": 0 },
+  "haiku": { "inventate": 12, "frasi": 57, "giro": "4/19", "trappole": "3/18", "libere": "5/20" }
+ }
+}

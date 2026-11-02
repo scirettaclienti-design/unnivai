@@ -29,7 +29,7 @@ Stati: **fatto** (su main, con prova) · **in corso** (ramo o PR aperti) · **da
 | P6 | GEOCODING-LANCIO (via da Nominatim) | da fare | — | oggi il telefono chiede via e quartiere a Nominatim a ogni richiesta; dal server Nominatim risponde 403 (`eda9b67`) |
 | P7 | TITOLI-RIFINITURA | da fare | — | precedente: TESTI-SCHEDE `75737a9` |
 | P8 | DNA-5 | da fare | — | in `docs/prove/` ci sono DNA-1, 2, 3, 3b, 3c, 4, 6; DNA-5 no |
-| P9 | CHAT-VERITA | da fare | — | nessun commit né report |
+| P9 | CHAT-VERITA | aspetta Ivano | codice su main con la PR di CHAT-VERITA (`docs/prove/2026-11-02-chat-verita.md`): fonti dei racconti + revisore + risposta onesta; banco di 30 domande, frasi inventate 86 su 128 → 5 su 88; prima parola 4,06 s di mediana sul server (obiettivo 4 s mancato per metà, proposte nel report), 0,0107 $ a risposta | il «sì» al deploy di openai-proxy (§ 7 del report: fino al deploy la chat pubblicata risponde «Non riesco a raggiungere la guida»); poi tempo vero dal sito |
 | P10 | OSPITE-GIRO | aspetta Ivano | codice su main con la PR di OSPITE-GIRO (`docs/prove/2026-11-02-ospite-giro.md`): account anonimo, 1 giro per account, tetto per IP e per tutti gli ospiti, registrazione sullo stesso account; SQL 41/41, test proxy 14/14 e client 22/22 | passi § 6 del report (prima EMAIL-LANCIO, poi migrazione, deploy di openai-proxy, modello email, accessi anonimi e collegamento manuale); poi collaudo 7 e prova § 7 sul sito pubblicato |
 
 ## Lancio

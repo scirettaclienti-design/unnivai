@@ -1,0 +1,1882 @@
+{
+ "citta": "Catania",
+ "righe": {
+  "1": {
+   "n": 1,
+   "tipo": "giro",
+   "q": "Chi ha fatto la Fontana dell'Elefante?",
+   "prima": {
+    "testo": "La Fontana dell'Elefante, in Piazza Duomo, è opera di Giovan Battista Vaccarini, che la progettò nel 1736 durante la ricostruzione post-terremoto del 1693. L'elefante di lava, il \"Liotru\", è molto più antico: forse romano o bizantino, e secondo la leggenda il mago Eliodoro ci viaggiava a cavallo. Sopra c'è un obelisco egizio, e il bello è che i catanesi giurano che il Liotru protegga la città dall'Etna. 🐘🌋",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2869,
+    "msServer": 2704,
+    "costoUsd": 0.00239
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "L'ha progettata l'architetto Giovanni Battista Vaccarini, tra il 1735 e il 1737. La trovi al centro di piazza del Duomo. La statua di basalto nero è l'elefante che i catanesi chiamano U'Liotru, l'emblema della città.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00834,
+     "ms": 4063,
+     "msFonti": 577,
+     "msServer": 3594,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2045,
+       "msServer": 1801,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1425,
+       "msServer": 1216,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "2": {
+   "n": 2,
+   "tipo": "giro",
+   "q": "Di che pietra è l'elefante della fontana?",
+   "prima": {
+    "testo": "L'elefante, il celebre \"Liotru\", è scolpito in pietra lavica, nera come la notte, ed è probabilmente molto più antico della piazza: si dice sia un reperto di epoca romana o addirittura bizantina. Regge un obelisco egizio in granito, aggiunto da Vaccarini nel 1736. Una leggenda lo vuole opera del mago Eliodoro, che lo cavalcava per spostarsi da una parte all'altra della Sicilia: da lui il soprannome \"Liotru\".",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2863,
+    "msServer": 2617,
+    "costoUsd": 0.00225
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "L'elefante è scolpito nel basalto, una statua di basalto nero. In città lo chiamano U'Liotru ed è l'emblema di Catania. Prenditi i tuoi quindici minuti per guardarlo con calma.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00814,
+     "ms": 4520,
+     "msFonti": 754,
+     "msServer": 4024,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2335,
+       "msServer": 2072,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1427,
+       "msServer": 1198,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "3": {
+   "n": 3,
+   "tipo": "giro",
+   "q": "Quando è stata costruita la Cattedrale?",
+   "prima": {
+    "testo": "La Cattedrale di Sant'Agata nasce tra il 1078 e il 1093 per volere del conte Ruggero, sopra le rovine di antiche terme romane (i resti si intravedono ancora!). Ma Catania ha la pellaccia dura: il terremoto del 1693 la rase quasi al suolo, e fu ricostruita nel Settecento da Vaccarini, il geniale architetto del barocco catanese. Curiosità: la facciata è un tripudio di marmo bianco e pietra lavica nera, perché qui anche l'Etna dà una mano all'arredamento.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3055,
+    "msServer": 2936,
+    "costoUsd": 0.0025
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su questo non ho una fonte sicura: la data di costruzione della Cattedrale non la ho. Quello che so è che conserva stili diversi, dal Normanno al Barocco fino al Neoclassico. Se ti va, guardane la facciata a colonne e la cupola.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.0083,
+     "ms": 4095,
+     "msFonti": 466,
+     "msServer": 3518,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2056,
+       "msServer": 1780,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1569,
+       "msServer": 1272,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "4": {
+   "n": 4,
+   "tipo": "giro",
+   "q": "Cosa c'è dentro la Cattedrale di Sant'Agata?",
+   "prima": {
+    "testo": "Dentro trovi la tomba di Vincenzo Bellini, il \"Cigno di Catania\", sepolto proprio qui (sì, lo hanno riportato a casa dopo la morte a Parigi). Poi la Cappella di Sant'Agata con il busto-reliquiario e il \"tesoro\" che esce solo a febbraio per la festa. Piccolo segreto: la facciata barocca fu rifatta dopo il terremoto del 1693, ma sotto ci sono ancora pezzi di terme romane. Alza gli occhi: tanto marmo bianco, tanto Vaccarini.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2923,
+    "msServer": 2762,
+    "costoUsd": 0.00254
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Dentro, le fonti parlano di affreschi e dipinti. Sul resto degli interni, per esempio reliquie o cappelle, non ho una fonte sicura. Quello che so è che la cattedrale conserva stili diversi: dal Normanno al Barocco, fino al Neoclassico. Hai 30 minuti di sosta, usali per guardare con calma.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00882,
+     "ms": 4941,
+     "msFonti": 548,
+     "msServer": 4359,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2640,
+       "msServer": 2353,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1751,
+       "msServer": 1458,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "5": {
+   "n": 5,
+   "tipo": "giro",
+   "q": "Perché Via dei Crociferi si chiama così?",
+   "prima": {
+    "testo": "Il nome viene dai Padri Crociferi, un ordine religioso che nel Seicento si stabilì qui con il suo convento (oggi sede di un liceo), accanto alla chiesa di San Camillo. Il loro nome si deve alla croce che portavano sull'abito. Dopo il terremoto del 1693 la via fu ricostruita come un piccolo teatro barocco: quattro chiese e conventi in fila, tutti affacciati sul vostro passo. Pare che sia l'unico posto di Catania dove il barocco sembra quasi un'opera d'arte da camera, non una sfilata. Salite fino al Arco di San Benedetto, poi guardate indietro: l'effetto scenografico è il vero biglietto da visita.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3449,
+    "msServer": 3295,
+    "costoUsd": 0.00302
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su questo non ho una fonte sicura: non so da dove viene il nome. Posso dirti che è una strada monumentale del XVIII secolo, con chiese barocche e palazzi dell'epoca. Parte da piazza San Francesco d'Assisi e ci entri passando sotto l'arco di San Benedetto.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00846,
+     "ms": 5485,
+     "msFonti": 1797,
+     "msServer": 5183,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2264,
+       "msServer": 2119,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1422,
+       "msServer": 1267,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "6": {
+   "n": 6,
+   "tipo": "giro",
+   "q": "Che cosa trovo lungo Via dei Crociferi?",
+   "prima": {
+    "testo": "Via dei Crociferi è il gioiello barocco di Catania: in poche centinaia di metri trovi quattro chiese, tre conventi e un arco di collegamento, tutti ricostruiti dopo il terremoto del 1693. Il pezzo forte è l'Arco di San Benedetto, che univa i due monasteri benedettini permettendo alle monache di passare senza essere viste. Sali dalla scalinata di San Giuliano, la chiesa del Vaccarini, e guarda la strada dall'alto: è tra gli scorci più fotografati della città. Curiosità: il Teatro Greco-Romano è a due passi, ma nascosto dentro palazzi e cortili, come tutta Catania.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3122,
+    "msServer": 2937,
+    "costoUsd": 0.00291
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Qui trovi chiese barocche e palazzi del XVIII secolo. La strada parte da piazza San Francesco d'Assisi e ci entri passando sotto l'arco di San Benedetto. Hai venti minuti di sosta: prenditeli con calma.",
+     "esito": "riscritta",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01565,
+     "ms": 5884,
+     "msFonti": 525,
+     "msServer": 5452,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2263,
+       "msServer": 2106,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1726,
+       "msServer": 1582,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1365,
+       "msServer": 1239,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "7": {
+   "n": 7,
+   "tipo": "giro",
+   "q": "Il Teatro Massimo Bellini è dedicato a chi?",
+   "prima": {
+    "testo": "A Vincenzo Bellini, il genio catanese della \"Norma\" e dei \"Puritani\", morto a soli 33 anni a Parigi. Inaugurato nel 1890 con proprio la \"Norma\", il teatro è famoso per la sua acustica perfetta: pare che il sipario, dipinto con l'ingresso trionfale di Bellini nell'Olimpo, valga da solo il biglietto. 🎭",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2502,
+    "msServer": 2327,
+    "costoUsd": 0.00192
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Il nome completo, dalle fonti, è Teatro Massimo Vincenzo Bellini, ed è il teatro dell'opera di Catania. Su a chi sia dedicato di preciso non ho una fonte sicura. Ti dico quello che so: ha un'orchestra di 105 elementi e un coro di 84. Alle 11:05 ci arrivi.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00883,
+     "ms": 7391,
+     "msFonti": 2721,
+     "msServer": 6863,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2910,
+       "msServer": 2662,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1757,
+       "msServer": 1480,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "wikipedia": "Teatro Massimo Vincenzo Bellini",
+       "google": true
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "8": {
+   "n": 8,
+   "tipo": "giro",
+   "q": "Quando è stato inaugurato il Teatro Massimo Bellini?",
+   "prima": {
+    "testo": "Il Teatro Massimo Bellini ha aperto i battenti il 31 maggio 1890 con \"Norma\", l'opera del concittadino più illustre, Vincenzo Bellini, ovviamente. Ci vollero quasi vent'anni di lavori, a conferma che in Sicilia i cantieri hanno sempre avuto il fascino dell'eternità. Alzate gli occhi in sala: il soffitto affrescato celebra proprio il genio belliniano.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2254,
+    "msServer": 2022,
+    "costoUsd": 0.00211
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Lo vedi alle 11:05, con venti minuti di sosta. Su questo non ho una fonte sicura.",
+     "esito": "ridotta",
+     "motivi": [
+      "verifica: frase 2 non è nelle fonti (La frase afferma che il teatro è 'del 1800' e che ha 'un auditorium a taglio dorato', ma le fonti dicono solo 'Elegante teatro del 1800' sen)"
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01971,
+     "ms": 9582,
+     "msFonti": 498,
+     "msServer": 8685,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 1598,
+       "msServer": 1392,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 3335,
+       "msServer": 3037,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1578,
+       "msServer": 1349,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 2563,
+       "msServer": 2409,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "wikipedia": "Teatro Massimo Vincenzo Bellini",
+       "google": true
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "9": {
+   "n": 9,
+   "tipo": "giro",
+   "q": "Cosa era il Monastero dei Benedettini e cosa c'è oggi?",
+   "prima": {
+    "testo": "Il Monastero dei Benedettini di San Nicolò l'Arena era uno dei più grandi d'Europa: i monaci, nobili di nome e di stomaco, vivevano tra banchetti e lusso. Dopo il terremoto del 1693 fu ricostruito in barocco, e l'Etna con le sue lave fece da muro e da fondamenta. Oggi è sede del Dipartimento di Scienze Umanistiche dell'Università e Patrimonio UNESCO: studenti tra chiostri e giardini, più un museo e visite guidate. Occhio al labirinto di corridoi, ci si perde con stile.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3159,
+    "msServer": 2970,
+    "costoUsd": 0.00266
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Il nome dice che era il Monastero dei Benedettini di San Nicolò l'Arena. Su cosa fosse davvero e su cosa ci sia oggi non ho una fonte sicura. So solo che nella sua area sono state trovate tracce di frequentazione umana preistorica, anche nella zona confinante di via Teatro Greco. Per il giro, tienti libero circa 40 minuti.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00877,
+     "ms": 8584,
+     "msFonti": 4428,
+     "msServer": 8127,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2411,
+       "msServer": 2215,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1744,
+       "msServer": 1484,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+       "wikipedia": "Catania",
+       "google": false
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "10": {
+   "n": 10,
+   "tipo": "giro",
+   "q": "Cosa si vede al Teatro romano?",
+   "prima": {
+    "testo": "Il Teatro Romano di Catania è una sorpresa a scomparsa: spunta quasi per caso tra i palazzi di via Vittorio Emanuele, con la cavea in pietra lavica e bianca che sbuca fra i condomini. Dietro c'è l'Odeon, il \"fratellino\" più piccolo, usato per le prove e i concerti. Il bello? Intorno ci sono case costruite *sopra* l'antica struttura: Catania, con l'Etna come vicino, ha sempre riciclato tutto, perfino i teatri. 😄",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3634,
+    "msServer": 3313,
+    "costoUsd": 0.00239
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Guarda, quello che si vede sono le rovine di un teatro all'aperto del II secolo d.C., con la gradinata e l'orchestra. Il suo aspetto di oggi risale a quel secolo ed è stato messo in luce dalla fine dell'Ottocento. A est confina con l'odeon della città.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00847,
+     "ms": 4241,
+     "msFonti": 584,
+     "msServer": 3782,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2058,
+       "msServer": 1905,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1597,
+       "msServer": 1293,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Teatro romano di Catania",
+       "wikipedia": "Teatro greco-romano di Catania",
+       "google": true
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "11": {
+   "n": 11,
+   "tipo": "trappola",
+   "q": "È vero che la Fontana dell'Elefante l'ha progettata Michelangelo?",
+   "prima": {
+    "testo": "No, Michelangelo non c'entra niente, ma la leggenda è buona! La fontana è opera di Giovanni Battista Vaccarini, che la ideò nel 1736 dopo il terremoto del 1693 che rase al suolo Catania. L'elefante di lava, il *Liotru*, è molto più antico (forse romano o bizantino) ed è il simbolo della città, con tanto di obelisco egizio sulla groppa. Si dice che custodisca Catania dall'Etna... finora ha fatto un lavoro dignitoso.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3208,
+    "msServer": 3064,
+    "costoUsd": 0.00236
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Le fonti dicono che la fontana è stata realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini. L'elefante è una statua di basalto nero, che i catanesi chiamano U Liotru, ed è l'emblema della città. Fermati un attimo a guardarlo da vicino.",
+     "esito": "riscritta",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.016,
+     "ms": 7599,
+     "msFonti": 635,
+     "msServer": 6918,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 3333,
+       "msServer": 3061,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2205,
+       "msServer": 1956,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1420,
+       "msServer": 1266,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "12": {
+   "n": 12,
+   "tipo": "trappola",
+   "q": "La Cattedrale è stata costruita nel 1950, giusto?",
+   "prima": {
+    "testo": "Ahi, qui sbagli di qualche secolo! La Cattedrale di Sant'Agata nasce nel 1078-1094, voluta dai Normanni sopra le terme romane. Poi il terremoto del 1693 la rase quasi al suolo e Vaccarini la ricostruì in barocco: la facciata che vedi è del '700. Il 1950 non c'entra, ma stai tranquillo: a Catania il passato ha il vizio di rinascere dalla cenere... vulcanica!",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3615,
+    "msServer": 3438,
+    "costoUsd": 0.0022
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su una data di costruzione non ho una fonte sicura. Quello che so è che la cattedrale conserva stili diversi, dal Normanno al Barocco fino al Neoclassico, ed è dedicata a Sant'Agata, patrona di Catania. Tra poco la vedi: guarda bene la facciata a colonne.",
+     "esito": "riscritta",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01617,
+     "ms": 6495,
+     "msFonti": 530,
+     "msServer": 5849,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2448,
+       "msServer": 2237,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2102,
+       "msServer": 1883,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1410,
+       "msServer": 1199,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "13": {
+   "n": 13,
+   "tipo": "trappola",
+   "q": "Raccontami del Colosseo.",
+   "prima": {
+    "testo": "Qui siamo a Catania, ma il Colosseo è a Roma: un bel salto, circa 800 km! 😄 Però a Catania hai il suo cugino siciliano: l'Anfiteatro Romano di Piazza Stesicoro, costruito con pietra lavica e oggi mezzo sepolto sotto i palazzi. Ci si entra scendendo sotto il livello della strada, e la sensazione è di scoprire un segreto nascosto. Vuoi che ti guidi lì? Segui la scia arancione!",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2647,
+    "msServer": 2490,
+    "costoUsd": 0.00227
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su quel posto non ho una fonte sicura, e oggi sono qui a Catania con te. Il giro parte dalla Fontana dell'Elefante, in piazza del Duomo, e poi passa dalla Cattedrale di Sant'Agata. Se vuoi, partiamo da lì.",
+     "esito": "riscritta",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01572,
+     "ms": 6178,
+     "msFonti": 501,
+     "msServer": 5561,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2098,
+       "msServer": 1874,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2124,
+       "msServer": 1883,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1451,
+       "msServer": 1303,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Colosseo (536 km)"
+     ]
+    }
+   }
+  },
+  "14": {
+   "n": 14,
+   "tipo": "trappola",
+   "q": "Com'è la Fontana di Trevi rispetto all'Elefante?",
+   "prima": {
+    "testo": "Confronto impari, ma divertente! A Roma, Trevi è l'opera barocca da 3 euro lanciati a testa (l'acqua è finta-povera: le monete vanno ai poveri). A Catania il Liotru, l'elefante di pietra lavica in piazza Duomo, ha il vantaggio di non avere la folla e di portare in groppa un obelisco egizio. La leggenda dice anche che sia un amuleto contro l'Etna: affascinante, no? 🐘🌋",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3265,
+    "msServer": 2941,
+    "costoUsd": 0.00219
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su quella fontana non ho una fonte sicura, e oggi sono qui a Catania. Dell'Elefante invece sì: è una statua di basalto nero, fatta tra il 1735 e il 1737 da Vaccarini, e i catanesi la chiamano U Liotru. Fermati a guardarla, hai quindici minuti.",
+     "esito": "riscritta",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01626,
+     "ms": 7554,
+     "msFonti": 379,
+     "msServer": 6793,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 3081,
+       "msServer": 2820,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2568,
+       "msServer": 2312,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1524,
+       "msServer": 1282,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "15": {
+   "n": 15,
+   "tipo": "trappola",
+   "q": "Il Teatro Bellini ha cinquemila posti, vero?",
+   "prima": {
+    "testo": "Quasi, ma non proprio! Il Teatro Massimo Bellini ha circa 1.200 posti: niente a che vedere con i cinquemila. Inaugurato nel 1890 con la \"Norma\" del maestro catanese, è considerato uno dei teatri lirici più belli d'Italia, con un'acustica da brividi. Piccola curiosità: il sipario storico raffigura i Vespri Siciliani, quindi anche i velluti hanno un passato rivoluzionario.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2900,
+    "msServer": 2736,
+    "costoUsd": 0.00216
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su questo non ho una fonte sicura: i posti non li trovo scritti da nessuna parte. Quello che so è che ha un'orchestra di 105 elementi e un coro di 84. Il tenore Beniamino Gigli la proclamò la migliore sala al mondo per l'acustica.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00842,
+     "ms": 4058,
+     "msFonti": 526,
+     "msServer": 3740,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2094,
+       "msServer": 1951,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1437,
+       "msServer": 1263,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "wikipedia": "Teatro Massimo Vincenzo Bellini",
+       "google": true
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "16": {
+   "n": 16,
+   "tipo": "trappola",
+   "q": "Dimmi qualcosa sulla Torre di Pisa.",
+   "prima": {
+    "testo": "Ci siamo spostati un po' lontano da Catania: la Torre di Pisa sta a oltre 1000 km da qui. 😄\n\nIl campanile pende da sempre: ha iniziato a inclinarsi già durante la costruzione, nel 1173, per un terreno argilloso e instabile. Galileo, secondo la leggenda, ci avrebbe fatto cadere delle sfere per studiare la gravità. 🔭\n\nTu intanto resta qui a Catania: abbiamo un vulcano che fuma e fa lo stesso effetto \"pendenza\" su di noi. 🌋",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2988,
+    "msServer": 2732,
+    "costoUsd": 0.00251
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su questo non ho una fonte sicura, oggi sono qui a Catania. Tra poco sei alla Cattedrale di Sant'Agata, alle 09:50, e lì hai una chiesa che conserva stili diversi, dal normanno al barocco fino al neoclassico.",
+     "esito": "riscritta",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.0157,
+     "ms": 6583,
+     "msFonti": 533,
+     "msServer": 5681,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2492,
+       "msServer": 2161,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2004,
+       "msServer": 1870,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1549,
+       "msServer": 1117,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Pisa (796 km)",
+      "Pisa Sporting Club (senza coordinate)"
+     ]
+    }
+   }
+  },
+  "17": {
+   "n": 17,
+   "tipo": "trappola",
+   "q": "L'elefante è di marmo di Carrara?",
+   "prima": {
+    "testo": "No, niente Carrara! L'elefante di Piazza Duomo, il famoso *Liotru*, è scolpito in pietra lavica dell'Etna, la stessa nera e porosa che regge mezza Catania. Sopra ci sta un obelisco egizio, e secondo la leggenda l'animale sarebbe opera del mago Eliodoro, che ci girava la città a cavallo. Sulla sella trovi i simboli di Sant'Agata, la patrona. Fagli un saluto: è lì dal Settecento e di eruzioni ne ha viste parecchie.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3143,
+    "msServer": 2959,
+    "costoUsd": 0.00244
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "No, l'elefante è scolpito nel basalto nero. Non è marmo. Per la gente di Catania è U Liotru, ed è l'emblema della città.",
+     "esito": "riscritta",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01723,
+     "ms": 7865,
+     "msFonti": 529,
+     "msServer": 7047,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 1901,
+       "msServer": 1683,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 2048,
+       "msServer": 1832,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1900,
+       "msServer": 1669,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1484,
+       "msServer": 1334,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "18": {
+   "n": 18,
+   "tipo": "trappola",
+   "q": "Sant'Agata è sepolta a Palermo, vero?",
+   "prima": {
+    "testo": "No, a Catania! Le reliquie di Sant'Agata riposano nel Duomo, in un busto-reliquiario d'argento coperto di gioielli. Il dubbio non è campato in aria, però: nel 1040 il generale bizantino Giorgio Maniace ne portò via le spoglie a Costantinopoli, e solo nel 1126 due soldati le riportarono a Catania. Palermo, intanto, se la prende con Santa Rosalia. 😉",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2737,
+    "msServer": 2572,
+    "costoUsd": 0.00208
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su dove sia sepolta non ho una fonte sicura. Quello che so è che la cattedrale di Catania è dedicata a lei, vergine e martire e patrona della città. Al Duomo ci arrivi alle 09:50.",
+     "esito": "riscritta",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01537,
+     "ms": 5786,
+     "msFonti": 457,
+     "msServer": 5221,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 1935,
+       "msServer": 1776,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1785,
+       "msServer": 1631,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1606,
+       "msServer": 1357,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Cattedrale di Palermo (166 km)"
+     ]
+    }
+   }
+  },
+  "19": {
+   "n": 19,
+   "tipo": "trappola",
+   "q": "Via dei Crociferi l'hanno costruita i Romani?",
+   "prima": {
+    "testo": "Magari! Via dei Crociferi è un gioiello barocco, ma di romano non ha nulla: nasce dopo il terremoto del 1693, quando Catania venne ricostruita quasi da zero. Il nome viene dai padri Crociferi, che qui avevano il loro convento. Ed è una delle poche strade con ben quattro chiese in fila. Se vuoi i Romani veri, ti serve il Teatro Romano, a due passi: guarda la pietra lavica nera su cui poggiano le gradinate.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3057,
+    "msServer": 2812,
+    "costoUsd": 0.00226
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "No, a quanto dicono le fonti è una via del XVIII secolo, quindi settecentesca, non romana. Parte da piazza San Francesco d'Assisi e ci entri passando sotto l'arco di San Benedetto. Su questo non ho una fonte sicura.",
+     "esito": "ridotta",
+     "motivi": [
+      "verifica: frase 3 non è nelle fonti (La frase afferma che il Teatro romano si trova 'più avanti nel giro', ma il GIRO mostra che Via dei Crociferi è alla tappa 3 (10:30) e Teatr)"
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01892,
+     "ms": 12540,
+     "msFonti": 389,
+     "msServer": 11430,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 3594,
+       "msServer": 3184,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 2571,
+       "msServer": 2364,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1830,
+       "msServer": 1667,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 4153,
+       "msServer": 3826,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      },
+      {
+       "nome": "Teatro romano di Catania",
+       "wikipedia": "Teatro greco-romano di Catania",
+       "google": true
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "20": {
+   "n": 20,
+   "tipo": "trappola",
+   "q": "Il Monastero dei Benedettini è stato distrutto dal terremoto del 2000?",
+   "prima": {
+    "testo": "No, nessun terremoto del 2000 l'ha distrutto: è ancora lì, enorme e splendente, e dal 2002 è Patrimonio UNESCO. A metterlo in ginocchio fu semmai l'eruzione dell'Etna del 1669, che lo sommerse di lava, e poi il terremoto del 1693, dopo cui fu ricostruito in versione barocca. Oggi ospita il Dipartimento di Lettere dell'Università, quindi gli studenti catanesi sfogliano appunti dentro uno dei monasteri più grandi d'Europa. 🌋",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3669,
+    "msServer": 3411,
+    "costoUsd": 0.00254
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su questo non ho una fonte sicura, quindi non te lo confermo. Posso dirti che nell'area dell'ex Monastero sono state trovate tracce di frequentazioni umane preistoriche. Lo vedi alle 11:40, con 40 minuti di sosta.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00818,
+     "ms": 4266,
+     "msFonti": 547,
+     "msServer": 3768,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2087,
+       "msServer": 1923,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1631,
+       "msServer": 1298,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+       "wikipedia": "Catania",
+       "google": false
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "21": {
+   "n": 21,
+   "tipo": "libera",
+   "q": "Ho fame, cosa mi consigli?",
+   "prima": {
+    "testo": "A Catania si mangia bene a ogni angolo! 🍊 Parti da una **arancina** (rigorosamente al femminile, qui è \"arancino\" solo per i forestieri... e il dibattito è ancora acceso!) oppure da un **cartocciu** di pesce fritto alla Pescheria.\n\nSe hai davvero fame, vai di **pasta alla Norma**: il nome nasce dall'opera di Bellini, catanese doc, e un cuoco esclamò \"È una vera Norma!\" al primo assaggio. Per chiudere: granita con brioche.\n\nVuoi che ti segnali un posto vicino a dove sei adesso?",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3444,
+    "msServer": 3263,
+    "costoUsd": 0.00268
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su dove mangiare non ho una fonte sicura, quindi non ti butto lì un nome a caso. Posso dirti come va il giro: dopo la Cattedrale hai 30 minuti di sosta, e il 4° stop, il Teatro Massimo Bellini, è alle 11:05. Se la fame si fa sentire, fermati dove ti ispira e sfrutta una pausa. Poi riparti con calma.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00898,
+     "ms": 7210,
+     "msFonti": 2649,
+     "msServer": 6740,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2902,
+       "msServer": 2658,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1658,
+       "msServer": 1433,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "22": {
+   "n": 22,
+   "tipo": "libera",
+   "q": "Sono stanco, conviene fare una pausa?",
+   "prima": {
+    "testo": "Assolutamente sì, a Catania la pausa è una disciplina quasi sacra! Siediti da *Savia* in via Etnea per una granita alla mandorla con brioche col tuppo, oppure fatti un arancino (rigorosamente \"arancinO\", qui è maschile e guai a sbagliare!). Se hai ancora fiato, i Giardini Bellini sono l'oasi verde perfetta per ricaricare le batterie. Il vulcano ha aspettato millenni, può aspettare un quarto d'ora.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3113,
+    "msServer": 2948,
+    "costoUsd": 0.00227
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Sì, fermati un attimo. Il giro è fatto di soste, e dopo la Cattedrale hai Via dei Crociferi alle 10:30, quindi il momento giusto è adesso. Siediti dieci minuti, bevi qualcosa, poi riparti con calma.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00832,
+     "ms": 3980,
+     "msFonti": 459,
+     "msServer": 3147,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 1950,
+       "msServer": 1558,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1570,
+       "msServer": 1130,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "23": {
+   "n": 23,
+   "tipo": "libera",
+   "q": "Quanto manca alla prossima tappa?",
+   "prima": {
+    "testo": "Da qui non riesco a calcolare la distanza esatta: la scia arancione sulla mappa 3D la segna in tempo reale, quindi tienila d'occhio. 🧭\n\nIn compenso un consiglio da Catania: a piedi le distanze sembrano brevi, ma tra salite lavica e traffico da rotonda creativa i minuti raddoppiano. Se hai fame lungo la strada, un arancino \"a punta\" (quello catanese, a forma di Etna) ti salva la camminata.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2815,
+    "msServer": 2591,
+    "costoUsd": 0.00218
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Non so dove sei in questo momento, quindi non ti dico i minuti di cammino. Nel giro la prossima tappa è la Cattedrale di Sant'Agata, alle 09:50, con una sosta di 30 minuti. Dopo la Fontana dell'Elefante hai tempo fino alle 09:50: goditela con calma.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00853,
+     "ms": 7362,
+     "msFonti": 3586,
+     "msServer": 6910,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2248,
+       "msServer": 2012,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1526,
+       "msServer": 1312,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "24": {
+   "n": 24,
+   "tipo": "libera",
+   "q": "Meglio andare piano o veloce oggi?",
+   "prima": {
+    "testo": "Piano, senza dubbio. Catania è una città che si assapora: l'Etna ti guarda dall'alto da secoli e non ha fretta, quindi nemmeno tu. Prenditi il tempo per una granita con brioche in mezzo (sì, si mangia così) e passeggia sul nero lavico di via Etnea, dove ogni palazzo barocco è stato ricostruito dopo il terremoto del 1693.\n\nSe invece vuoi macinare tappe, la scia arancione sulla mappa ti porta a tutto in poche mosse. Ma qui chi corre perde il meglio.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3452,
+    "msServer": 3164,
+    "costoUsd": 0.00251
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Piano, direi. Il giro ha già i suoi tempi: quindici minuti all'Elefante, mezz'ora in Cattedrale, e le soste più lunghe vengono dopo. Se ti fermi dove ti prende, arrivi comunque alla fine con calma. Tieni un po' di fiato per il Monastero dei Benedettini, che ha quaranta minuti tutti suoi.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.0089,
+     "ms": 4354,
+     "msFonti": 583,
+     "msServer": 3967,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2223,
+       "msServer": 1981,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1546,
+       "msServer": 1403,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Episodi di Squadra antimafia - Palermo oggi (quinta stagione) (senza coordinate)"
+     ]
+    }
+   }
+  },
+  "25": {
+   "n": 25,
+   "tipo": "libera",
+   "q": "Mi piacciono le chiese: quale tappa mi godo di più?",
+   "prima": {
+    "testo": "Se ami le chiese, punta alla **Badia di Sant'Agata**, in via Vittorio Emanuele: la cupola del Vaccarini domina la città e dalla terrazza si vede tutta Catania, con l'Etna di sfondo. Per un colpo di scena, scendi invece al **Monastero dei Benedettini**: il suo chiostro è costruito sopra colate laviche, tra l'altro.\n\nSe vuoi la tappa più \"wow\" al primo sguardo, vai di Badia. Siamo a due passi da Piazza Duomo, quindi segui la scia arancione!",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2987,
+    "msServer": 2779,
+    "costoUsd": 0.00252
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Se ti piacciono le chiese, la Cattedrale di Sant'Agata è la tappa da prenderti con calma: hai 30 minuti, la sosta più lunga prima del monastero. Poi in via dei Crociferi trovi chiese barocche e palazzi del XVIII secolo, quindi tienila d'occhio.",
+     "esito": "riscritta",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01809,
+     "ms": 7965,
+     "msFonti": 524,
+     "msServer": 6812,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2205,
+       "msServer": 1967,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1852,
+       "msServer": 1474,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1994,
+       "msServer": 1734,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1388,
+       "msServer": 1113,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "26": {
+   "n": 26,
+   "tipo": "libera",
+   "q": "Fa caldo, cosa faccio?",
+   "prima": {
+    "testo": "A Catania il caldo si combatte come fanno i locali: granita di mandorla o gelsi neri con brioche col tuppo, rigorosamente a colazione (sì, è legale). Poi rifugiati nel fresco della Pescheria, tra pesce urlato e archi di lava, o scendi nelle gallerie sotto l'Anfiteatro romano, dove l'aria sembra aria condizionata antica. Se resisti al sole, il Teatro Greco-Romano è all'ombra di Via Vittorio Emanuele. 🌋",
+    "modello": "claude-sonnet-5-5",
+    "ms": 4089,
+    "msServer": 3852,
+    "costoUsd": 0.00233
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Con il caldo, vai piano e cerca l'ombra: le soste del giro sono brevi, e quella al Duomo è la più lunga delle prime. Entrare nella cattedrale ti dà una pausa al fresco, ma su temperature e aria dentro non ho una fonte sicura. Porta con te dell'acqua, e alla Fontana dell'Elefante fermati solo il tempo che serve.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00876,
+     "ms": 5272,
+     "msFonti": 544,
+     "msServer": 4799,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 3145,
+       "msServer": 2915,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1580,
+       "msServer": 1340,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Paolo il caldo (film) (senza coordinate)",
+      "Paolo il caldo (senza coordinate)"
+     ]
+    }
+   }
+  },
+  "27": {
+   "n": 27,
+   "tipo": "libera",
+   "q": "Posso saltare una tappa?",
+   "prima": {
+    "testo": "Certo che puoi! Qui non ci sono tornelli né bidelli: la scia arancione è un consiglio, non una condanna. Dimmi quale tappa ti tenta di meno e ti dico se vale la pena di sacrificarla, oppure se nasconde qualche segreto che non conviene perdere. A Catania, anche il salto più innocente può farti perdere una granita al posto giusto!",
+    "modello": "claude-sonnet-5-5",
+    "ms": 2391,
+    "msServer": 2238,
+    "costoUsd": 0.00181
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Certo, il giro è tuo: salta quella che senti meno. Le soste sono lunghe 15, 30, 20, 20, 40 e 25 minuti, quindi se ne togli una recuperi tempo per fermarti dove ti piace di più. Dimmi qual è e ti dico cosa c'è nelle altre.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00846,
+     "ms": 4561,
+     "msFonti": 586,
+     "msServer": 4217,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2534,
+       "msServer": 2341,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1439,
+       "msServer": 1290,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "28": {
+   "n": 28,
+   "tipo": "libera",
+   "q": "Ho un'ora libera dopo il giro, che faccio?",
+   "prima": {
+    "testo": "Un'ora a Catania? Vai alla Pescheria, dietro piazza Duomo: urla, pesce che salta e spremute di arancia rossa a due euro. Poi infilati in una gelateria o in una tavola calda per un arancino (qui è maschio e a punta, come l'Etna: guai a chiamarla \"arancina\"). Se ti resta tempo, entra nel Duomo e cerca le tracce del terremoto del 1693 che rase al suolo tutto, tranne la voglia di ricostruire in barocco.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3506,
+    "msServer": 3161,
+    "costoUsd": 0.00228
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Il giro finisce al Teatro romano verso le 13:00, e da lì ti consiglio di non correre. Siediti da qualche parte con calma, mangia qualcosa e fai due passi senza meta: te li sei guadagnati. Se ti va di rivedere una tappa, torna in piazza del Duomo e guarda l'elefante di basalto con calma, senza orologio.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00869,
+     "ms": 8190,
+     "msFonti": 3801,
+     "msServer": 7653,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2848,
+       "msServer": 2619,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1539,
+       "msServer": 1233,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Libero consorzio comunale di Caltanissetta (92 km)"
+     ]
+    }
+   }
+  },
+  "29": {
+   "n": 29,
+   "tipo": "libera",
+   "q": "Sei una persona vera?",
+   "prima": {
+    "testo": "No, sono un'intelligenza artificiale: la guida virtuale di DoveVai, niente carne e ossa, in compenso non mi stanco mai di camminare per Catania. 🌋\n\nPer esempio: la città è stata distrutta e ricostruita più volte, e la bella pietra nera dei palazzi barocchi è lava dell'Etna. Vivi letteralmente tra i resti di chi ti ha quasi cancellata!\n\nDimmi cosa ti incuriosisce e ti racconto il lato nascosto del posto.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3522,
+    "msServer": 3279,
+    "costoUsd": 0.00228
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Una persona in carne e ossa no, ma il giro qui a Catania lo conosco. Prima tappa la Fontana dell'Elefante alle 09:30, quindici minuti. Chiedimi pure di quella o di una delle altre.",
+     "esito": "riscritta",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01555,
+     "ms": 8590,
+     "msFonti": 2223,
+     "msServer": 7815,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2315,
+       "msServer": 2003,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2478,
+       "msServer": 2256,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1572,
+       "msServer": 1333,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Vera Farmiga (senza coordinate)",
+      "Vera Gemma (senza coordinate)"
+     ]
+    }
+   }
+  },
+  "30": {
+   "n": 30,
+   "tipo": "libera",
+   "q": "Che musica mi consigli per camminare?",
+   "prima": {
+    "testo": "A Catania il passo giusto lo dà Franco Battiato: \"Centro di gravità permanente\" per le salite di via Etnea, \"La cura\" per il Lungomare. Per sentirti davvero un catanese metti Carmen Consoli: \"Confusa e felice\" ti fa camminare più dritto. Se vuoi atmosfera da vicolo, Cesare Basile e un po' di Roy Paci. Pausa musicale consigliata: il Teatro Massimo Bellini, dove Bellini è nato davvero a due passi.",
+    "modello": "claude-sonnet-5-5",
+    "ms": 3404,
+    "msServer": 3194,
+    "costoUsd": 0.00229
+   },
+   "dopo": {
+    "narratore": {
+     "testo": "Su questo non ho una fonte, e di musica non ti so dire nulla di sicuro. Ti dico solo che alle 09:30 parti dalla fontana dell'Elefante: scegli qualcosa a ritmo tranquillo, che di soste ne hai parecchie. Oppure lascia le cuffie in tasca e ascolta la città.",
+     "esito": "verificata",
+     "motivi": [],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00855,
+     "ms": 7084,
+     "msFonti": 3035,
+     "msServer": 6560,
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "ms": 2428,
+       "msServer": 2156,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1621,
+       "msServer": 1369,
+       "modello": "claude-haiku-4-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": true
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": true
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": true
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  }
+ },
+ "giro": [
+  {
+   "nome": "Fontana dell'Elefante",
+   "ora": "09:30",
+   "sosta": 15,
+   "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+   "lat": 37.5025169,
+   "lng": 15.0870996
+  },
+  {
+   "nome": "Cattedrale di Sant'Agata",
+   "ora": "09:50",
+   "sosta": 30,
+   "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+   "lat": 37.5024087,
+   "lng": 15.0877191
+  },
+  {
+   "nome": "Via dei Crociferi",
+   "ora": "10:30",
+   "sosta": 20,
+   "place_id": "ChIJL4d9TSnjExMRqXQYwLzTP5s",
+   "lat": 37.5044423,
+   "lng": 15.084817
+  },
+  {
+   "nome": "Teatro Massimo Bellini",
+   "ora": "11:05",
+   "sosta": 20,
+   "place_id": "ChIJhzCABy7jExMRQEgWdrJjEDA",
+   "lat": 37.504245,
+   "lng": 15.0900442
+  },
+  {
+   "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+   "ora": "11:40",
+   "sosta": 40,
+   "place_id": "ChIJb7xgVi7jExMRzmkNXcVXKe0",
+   "lat": 37.5036918,
+   "lng": 15.0800071
+  },
+  {
+   "nome": "Teatro romano di Catania",
+   "ora": "12:35",
+   "sosta": 25,
+   "place_id": "ChIJ2e3QsinjExMRNmN2_vYCfp8",
+   "lat": 37.502662,
+   "lng": 15.0838703
+  }
+ ]
+}

@@ -23,6 +23,7 @@
  */
 
 import { supabase } from './supabase.js';
+import { VERSIONE_APP } from './versione.js';
 
 const DEDUP_WINDOW_MS = 5 * 60 * 1000; // 5 min: no duplicati stesso message
 const sentHashes = new Map(); // hash -> timestamp
@@ -85,6 +86,29 @@ function hashMessage(msg) {
     return h.toString(36);
 }
 
+
+/** AVVISI (L6) — al massimo questi errori per sessione: un loop non riempie la tabella. */
+export const MAX_ERRORI_PER_SESSIONE = 10;
+let inviatiInSessione = 0;
+/** Solo per i test. */
+export function azzeraSessioneErrori() { inviatiInSessione = 0; sentHashes.clear(); }
+
+/** Il messaggio senza dati personali: via email, indirizzi web con query, numeri lunghi, token. */
+export function pulisciMessaggio(m) {
+    return String(m || '')
+        .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[email]')
+        .replace(/(https?:\/\/[^\s?#"')]+)[?#][^\s"')]*/g, '$1')
+        .replace(/\b(eyJ[\w-]{10,}|[A-Za-z0-9_-]{32,})\b/g, '[token]')
+        .replace(/\d[\d\s().-]{7,}\d/g, '[numero]')
+        .slice(0, 300);
+}
+
+/** Rumore che non è un errore dell'app (estensioni del browser, script di terzi). */
+export function eRumore(m) {
+    const t = String(m || '');
+    return !t || /^script error\.?$/i.test(t) || /ResizeObserver loop/i.test(t) || /chrome-extension:|moz-extension:|safari-extension:/i.test(t);
+}
+
 /**
  * Riporta un errore alla tabella error_logs. Fire-and-forget.
  *
@@ -95,36 +119,31 @@ function hashMessage(msg) {
 export async function reportError(error, context = {}) {
     try {
         if (!error) return;
-        const message = String(error.message || error || 'Unknown error');
-        const stack = error?.stack ? String(error.stack).slice(0, 4000) : null;
+        const message = pulisciMessaggio(error.message || error || 'Unknown error');
+        if (eRumore(message)) return;
+        const stack = error?.stack ? pulisciMessaggio(String(error.stack).slice(0, 1000)) : null;
         const errorType = classifyError(error);
 
-        // Dedup: se stesso hash gia' inviato entro DEDUP_WINDOW_MS, skip.
-        // Pulizia opportunistica delle entry scadute (evita crescita infinita
-        // di sentHashes durante la sessione).
+        // Dedup: se stesso hash gia' inviato entro DEDUP_WINDOW_MS, skip. Tetto per sessione.
         const key = hashMessage(message);
         const now = Date.now();
         for (const [k, ts] of sentHashes.entries()) {
             if (now - ts > DEDUP_WINDOW_MS) sentHashes.delete(k);
         }
         if (sentHashes.has(key)) return;
+        if (inviatiInSessione >= MAX_ERRORI_PER_SESSIONE) return;
         sentHashes.set(key, now);
+        inviatiInSessione += 1;
 
-        // userId opzionale — chiama getSession, non richiede sessione
-        let userId = null;
-        try {
-            const { data } = await supabase.auth.getSession();
-            userId = data?.session?.user?.id ?? null;
-        } catch { /* getSession puo' fallire, non blocchiamo il report */ }
-
+        // AVVISI (L6): niente utente, niente user agent, niente query dell'indirizzo: pagina (solo il percorso), messaggio, versione.
         const payload = {
             error_type: errorType,
-            message: message.slice(0, 1000),
+            message,
             stack,
-            url: typeof window !== 'undefined' ? window.location.href.slice(0, 500) : null,
-            user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : null,
-            user_id: userId,
-            context: Object.keys(context).length ? context : null,
+            url: typeof window !== 'undefined' ? window.location.pathname.slice(0, 200) : null,
+            user_agent: null,
+            user_id: null,
+            context: { versione: VERSIONE_APP, ...(context.errorType ? { tipo: context.errorType } : {}) },
         };
 
         // Fire-and-forget: NON await. Se Supabase e' irraggiungibile, l'errore
@@ -138,4 +157,16 @@ export async function reportError(error, context = {}) {
         // esplode, log-and-swallow. Non rigettiamo mai.
         console.warn('[errorReporting] exception:', String(e));
     }
+}
+
+/**
+ * AVVISI (L6) — raccoglie anche gli errori che l'ErrorBoundary non vede (eventi, promesse rifiutate).
+ * Una volta sola; non mostra mai niente all'utente; se la tabella non c'e' l'insert fallisce in silenzio.
+ */
+let installata = false;
+export function installaRaccoltaErrori(target = typeof window !== 'undefined' ? window : null) {
+    if (installata || !target) return;
+    installata = true;
+    target.addEventListener('error', (ev) => { reportError(ev?.error || ev?.message, {}); });
+    target.addEventListener('unhandledrejection', (ev) => { reportError(ev?.reason, {}); });
 }

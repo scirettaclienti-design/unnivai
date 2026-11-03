@@ -210,3 +210,38 @@ export function emailListaAttesa({ email, citta }: { email: string; citta?: stri
     const testo = [righe.titolo, '', quando, righe.prossima, '', righe.uscita, '', righe.piede, SITO_URL].join('\n');
     return { oggetto: "Sei nella lista d'attesa di Unnivai", html, testo };
 }
+
+// ─── AVVISI — le email che Ivano riceve (riepilogo del giorno, avviso immediato) ─────────────────────────────────────────
+// Voce: dati nudi nel titolo, il motivo nel messaggio. Il calcolo sta in avvisi.ts (puro); qui solo i testi.
+
+export type RigaRiepilogo = { etichetta: string; valore: string };
+
+const tabellaRighe = (righe: RigaRiepilogo[]): string =>
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px;">${righe.map((r) =>
+        `<tr><td class="tenue" style="padding:6px 0;border-bottom:1px solid ${C.bordo};font-family:${FONT};font-size:14px;color:${C.tenue};">${esc(r.etichetta)}</td>` +
+        `<td class="testo" align="right" style="padding:6px 0;border-bottom:1px solid ${C.bordo};font-family:${FONT};font-size:15px;font-weight:700;color:${C.testo};">${esc(r.valore)}</td></tr>`).join('')}</table>`;
+
+/** Il riepilogo del giorno. `giornoEtichetta` es. «2 novembre 2026»; `note` righe in più (limiti dei dati). */
+export function emailRiepilogo(x: { giornoEtichetta: string; titolo: string; righe: RigaRiepilogo[]; note: string[] }): EmailComposta {
+    const html = guscio({
+        titolo: esc(x.titolo),
+        anteprima: esc(x.titolo),
+        paragrafi: [esc(`Giorno: ${x.giornoEtichetta} (fuso Europe/Rome).`), tabellaRighe(x.righe)],
+        dopoPulsante: x.note.map(esc),
+        piede: ['Costi stimati con i prezzi scritti nel codice (supabase/functions/_shared/avvisi.ts). Non sono la fattura.'],
+    });
+    const testo = [x.titolo, `Giorno: ${x.giornoEtichetta}`, '', ...x.righe.map((r) => `${r.etichetta}: ${r.valore}`), '', ...x.note].join('\n');
+    return { oggetto: x.titolo, html, testo };
+}
+
+/** L'avviso immediato: `titolo` = il dato, `messaggio` = il motivo. */
+export function emailAvviso(x: { titolo: string; messaggio: string; righe: RigaRiepilogo[] }): EmailComposta {
+    const html = guscio({
+        titolo: esc(x.titolo),
+        anteprima: esc(x.messaggio),
+        paragrafi: [esc(x.messaggio), tabellaRighe(x.righe)],
+        piede: ['Lo stesso avviso non si ripete nella stessa ora (errori) o nello stesso giorno (costo).'],
+    });
+    const testo = [x.titolo, '', x.messaggio, '', ...x.righe.map((r) => `${r.etichetta}: ${r.valore}`)].join('\n');
+    return { oggetto: x.titolo, html, testo };
+}

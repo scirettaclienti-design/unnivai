@@ -1,0 +1,5 @@
+{
+  "nota": "Dati veri di ieri 2026-11-02 (Europe/Rome), letti in sola lettura il 03/11/2026: conteggi con la stessa SELECT di public.avvisi_conteggi, traffico da query_logs (function_edge_logs, dalle 2026-11-01T23:00Z alle 2026-11-02T23:00Z).",
+  "conteggi": { "giorno": "2026-11-02", "giri": 0, "racconti": { "passati": 29, "scartati": 4, "senzaFonti": 3, "costoUsd": 0.34605 }, "chat": 0, "ospiti": 0, "vociNuove": 190, "erroriApp": { "totale": 0, "top": [] } },
+  "traffico": { "proxyRichieste": 2076, "proxyErrori": 196, "placesChiamate": 674, "placesFoto": 100 }
+}

@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 const M = motion; // (eslint non vede `<M.x>` come uso: lo stesso difetto del resto dell'app)
-import { Check, Play, Pause, X, Share2, Clock, MapPin, ArrowRight, Repeat, Bookmark } from 'lucide-react';
+import { Check, Play, Pause, X, Share2, Clock, MapPin, ArrowRight, Repeat, Bookmark, MessageCircle } from 'lucide-react';
 import { minSec, secondiDiLettura, tracciatoSvg, alNome } from '../../lib/navGuida';
 import { NAV_TESTI } from '../../lib/navMessaggi';
 import { parla, fermaVoce } from '../../lib/voce';
@@ -117,8 +117,8 @@ export function ArrivoTappa({ numero, totale, nome, foto, riga, chicca, racconto
     );
 }
 
-/** SCHERMATA 4 — la scheda della tappa, a tutto schermo. */
-export function SchedaTappa({ numero, categoria, nome, foto, foti = [], pillole = [], perche, racconto, onChiudi, onRiparti, minutiAllaProssima, nomeProssima, onCambia, puoCambiare = false }) {
+/** SCHERMATA 4 — la scheda della tappa, a tutto schermo. `onChiedi` (CHAT-ACCESSO-VELOCE) apre la chat con la guida su questa tappa: il tasto sta sopra «Riparti», mai al suo posto. */
+export function SchedaTappa({ numero, categoria, nome, foto, foti = [], pillole = [], perche, racconto, onChiudi, onRiparti, minutiAllaProssima, nomeProssima, onCambia, puoCambiare = false, onChiedi = null }) {
     const gal = (foti.length ? foti : (foto ? [foto] : [])).slice(0, 6);
     const [i, setI] = useState(0);
     const testoRiparti = nomeProssima ? NAV_TESTI.RIPARTI_VERSO(minutiAllaProssima, alNome(nomeProssima)) : NAV_TESTI.AVANTI;
@@ -167,6 +167,11 @@ export function SchedaTappa({ numero, categoria, nome, foto, foti = [], pillole 
             </div>
             <div className="px-4 pt-3 border-t border-obsidian-border bg-obsidian-bg" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
                 {puoCambiare && onCambia && <div className="mb-2"><TappaModifica puoTogliere={false} nome={nome} onTogli={() => {}} onCambia={onCambia} etichettaCambia="Cambia tappa" /></div>}
+                {onChiedi && (
+                    <button onClick={onChiedi} data-testid="chiedi-guida-scheda" aria-label={NAV_TESTI.CHIEDI_GUIDA_TAPPA(nome)} className={`${SECONDARIO} w-full mb-2`}>
+                        <MessageCircle size={16} aria-hidden="true" /><span>{NAV_TESTI.CHIEDI_GUIDA}</span>
+                    </button>
+                )}
                 <button onClick={onRiparti} className={`${PRIMARIO} w-full`}>
                     <span>{testoRiparti}</span><ArrowRight size={16} aria-hidden="true" />
                 </button>

@@ -87,6 +87,19 @@ test.describe('Smoke E2E — percorsi critici DoveVAI', () => {
         expect(errors, `Errori JS non gestiti:\n${errors.join('\n')}`).toHaveLength(0)
     })
 
+    // PAGAMENTI-SPENTI: in V1 nessuna rotta mostra checkout, Stripe o pulsanti di pagamento.
+    test('2c) PAGAMENTI SPENTI — notifiche e mappa senza checkout né Stripe', async ({ mockedPage: page }) => {
+        const stripe: string[] = []
+        page.on('request', r => { if (/stripe\.com|create-checkout/i.test(r.url())) stripe.push(r.url()) })
+        for (const rotta of ['/notifications', '/map', '/tour-live']) {
+            await page.goto(rotta)
+            await page.waitForLoadState('domcontentloaded')
+            await assertNoErrorBoundary(page)
+            await expect(page.getByText(/accetta e paga|paga con stripe|checkout/i)).toHaveCount(0)
+        }
+        expect(stripe, `Richieste verso Stripe:\n${stripe.join('\n')}`).toHaveLength(0)
+    })
+
     test('3) QUICKPATH — wizard si apre e non si blocca (paywall killed)', async ({ mockedPage: page }) => {
         const errors = await trackConsoleErrors(page)
         await page.goto('/quick-path')

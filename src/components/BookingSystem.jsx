@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, Users, CreditCard, Check, X, ExternalLink } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { pagamentiVisibili } from '../config/pagamenti';
 
 // Genera i prossimi N giorni disponibili a partire da domani
 const generateAvailableDates = (count = 6) => {
@@ -24,7 +25,7 @@ const generateAvailableDates = (count = 6) => {
     return dates;
 };
 
-export default function BookingModal({ tourId, tourTitle, price, guideId, onClose, onConfirm }) {
+function BookingModalInterno({ tourId, tourTitle, price, guideId, onClose, onConfirm }) {
     const [step, setStep] = useState(1);
     const [bookingData, setBookingData] = useState({ guests: 2, paymentMethod: 'card' });
     const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -39,6 +40,7 @@ export default function BookingModal({ tourId, tourTitle, price, guideId, onClos
 
     // Step 3: conferma e avvia pagamento Stripe
     const handleConfirm = async () => {
+        if (!pagamentiVisibili()) return; // PAGAMENTI-SPENTI
         // Gate L: defense-in-depth. Il bottone è disabled quando dati mancano,
         // ma se un giorno il disabled viene rimosso, il toast copre il caso.
         if (!bookingData.date || !bookingData.time || !bookingData.guests) {
@@ -306,4 +308,9 @@ export default function BookingModal({ tourId, tourTitle, price, guideId, onClos
             </motion.div>
         </AnimatePresence>
     );
+}
+
+// PAGAMENTI-SPENTI: con l'interruttore spento la finestra di prenotazione non si apre.
+export default function BookingModal(props) {
+    return pagamentiVisibili() ? <BookingModalInterno {...props} /> : null;
 }

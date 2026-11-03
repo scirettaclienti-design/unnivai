@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import BottomNavigation from '@/components/BottomNavigation';
 import ReviewModal from '@/components/ReviewModal';
+import { pagamentiVisibili } from '../config/pagamenti';
 
 // DVAI-056 — rifinitura estetica notifica meteo.
 // Rimuove emoji dal titolo per lasciare la gerarchia pulita (time·città → titolo → descrizione → CTA).
@@ -238,6 +239,7 @@ export default function NotificationsPage() {
 
     // DVAI-006: collegato a Stripe Checkout reale, rimosso alert()
     const handleAcceptOffer = async () => {
+        if (!pagamentiVisibili()) return; // PAGAMENTI-SPENTI: in V1 nessun checkout
         if (!selectedNotification?.actionData?.guide_id || !selectedNotification?.actionData?.request_id) return;
 
         setIsCheckingOut(true);
@@ -647,7 +649,7 @@ export default function NotificationsPage() {
                                                     >
                                                         <Star className="w-4 h-4" /> RECENSISCI
                                                     </button>
-                                                ) : selectedNotification.type === 'price_offer' ? (
+                                                ) : selectedNotification.type === 'price_offer' && pagamentiVisibili() ? (
                                                     <button
                                                         onClick={handleAcceptOffer}
                                                         disabled={isCheckingOut}

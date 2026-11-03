@@ -105,6 +105,17 @@ if (args.includes('--replay')) {
     const esiti = esitiDaGrezzi([replay]).filter(e => !scelti.length || scelti.includes(e.id));
     const uscite = replay.casi.reduce((n, c) => n + (c.replay?.uscite?.length || 0), 0);
     const veri = salvati.casi.filter(e => e.stato !== 'saltato' && (!scelti.length || scelti.includes(e.id)));
+    // --tappe: l'itinerario di ogni caso rigiocato (ora locale, sosta, tipo, coordinate), per leggere i difetti che i cinque controlli non misurano
+    if (args.includes('--tappe')) {
+        const hm = (d) => new Date(Date.parse(d) + (FUSO_BANCO40 === '+01:00' ? 3600000 : 7200000)).toISOString().slice(11, 16);
+        for (const c of replay.casi) {
+            console.log(`\n## ${c.id} | ${c.luogo} ${c.ora}`);
+            for (const t of c.tours || []) {
+                console.log(` tema: ${t.tema}`);
+                for (const s of t.stops || []) console.log(`  ${s.at ? hm(s.at) : '--'} ${s.tempoLibero ? `[TEMPO LIBERO ${s.stay} min]` : s.title} (${s.stay} min)${s.primaryType ? ' ' + s.primaryType : ''}${Number.isFinite(s.lat) ? ` ${s.lat.toFixed(4)},${s.lng.toFixed(4)}` : ''}`);
+            }
+        }
+    }
     const conf = confrontaEsiti(veri, esiti);
     const diversi = conf.filter(c => !c.uguale);
     console.log(`[banco] riproduzione a 0 $ (nessuna rete, ${replay.casi.length} casi): ${conf.length - diversi.length}/${conf.length} uguali al giro vero, ${uscite} uscite in rete`);

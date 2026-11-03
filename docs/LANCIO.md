@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**10 su 22 fatte** · aggiornato il 04/11/2026 (CODA-RIEPILOGO T12–T16) · fonte dello stato: `docs/prove/` e `git log` di `main` (`4a797ed`)
+**10 su 22 fatte** · aggiornato il 05/11/2026 (SEGRETI-STORIA T17, riga L10) · fonte dello stato: `docs/prove/` e `git log` di `main` (`4a797ed`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.
@@ -45,6 +45,6 @@ Stati: **fatto** (su main, con prova) · **in corso** (ramo o PR aperti) · **da
 | L7 | Banco 40 casi | aspetta Ivano | report `docs/prove/2026-11-04-banco-40.md`: i 40 casi, i 5 controlli e la riproduzione a 0 $ ci sono (`npm run banco`, `npm run banco -- --replay`); giro vero fermato dal tetto di 8 $ dopo **20 casi su 40** (16 passano tutti i controlli, 4 hanno difetti dell'app); guardia 12 + 10 casi del banco | `npm run banco -- --mancanti` (circa 6–7 $) per i 20 casi saltati; difetti per Ivano nel report (Per Te: tappe a più di 1,5 km a piedi, una tappa chiusa alla sosta) |
 | L8 | Collaudo completo | da fare | ultimo collaudo 10/10 il 31/10 (`fc4c4aa`); punti 1–5 ripetuti dopo T6 (`89415a4`) | tutti i punti di `scripts/prova-nav/collaudo-sito.webkit.mjs` sul codice bloccato del 22/11 |
 | L9 | 20 giri reali su iPhone a Roma e Catania | aspetta Ivano | — | voce, audio, GPS reale e rete; cosa provare: tabella di `2026-11-02-coda-riepilogo.md` |
-| L10 | Revoca delle chiavi vecchie (Anthropic …UQAa, Mapbox …QIdA) | aspetta Ivano | nessuna prova di revoca in `docs/prove/` | revoca dalle console Anthropic e Mapbox, poi una riga qui con la data |
+| L10 | Revoca delle chiavi vecchie (Anthropic …UQAa, Mapbox …QIdA) | aspetta Ivano | `docs/prove/2026-11-05-segreti-storia.md` (SEGRETI-STORIA, 05/11): gitleaks su 582 commit e 160 riferimenti + ricerca mirata + 184 file del sito pubblicato; Anthropic …UQAa già non valida (401); Mapbox …QIdA e Google …kQgM valide, senza restrizione per sito osservata; nessuna service_role | ruotare in ordine: Google Maps …kQgM (nel sito e nella storia; nuova chiave con restrizione referrer, `VITE_GOOGLE_MAPS_API_KEY` in Vercel e nuovo deploy), Mapbox …QIdA (eliminare), Anthropic …UQAa (confermare la revoca); poi una riga qui con la data |
 | L11 | Blocco del codice il 22/11 | da fare | — | cosa entra su main dopo il 22/11 lo decide Ivano; la regola va scritta in CLAUDE.md |
 | L12 | PAGAMENTI-SPENTI | fatto | `4eabde0` (PR #30), CI verde e Vercel pronto, report `docs/prove/2026-11-04-pagamenti-spenti.md`: 8 strade verso Stripe o prezzi, 4 visibili prima (Notifiche, mappa, tour live, scheda tour), 0 dopo; interruttore unico `src/config/pagamenti.js`; `create-checkout` e `stripe-webhook` non pubblicate sul server | — |

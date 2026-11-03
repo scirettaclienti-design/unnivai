@@ -44,7 +44,7 @@ DNA forte su cibo/cultura/natura). Giorno dei giri: giovedì 5/11/2026, ora sola
 un'altra città** (centro e raggio in `CENTRI`), **titolo coerente con le tappe**, **nessuna frase ripetuta**. Il giro vero è a pagamento (account di prova, tetto `BANCO_TETTO`, di difetto 7,8 $ a listino
 con le risposte dalla cache del proxy non contate) e scrive nel repo `docs/prove/dati/banco-40-tracciati.json.gz`, `banco-40-esiti.json` (esiti, firma delle tappe, orari di Google) e `banco-40-tabella.md`;
 un giro fermato dal tetto si completa con `npm run banco -- --mancanti` (i casi nuovi si uniscono agli esiti salvati). **`npm run banco -- --replay`**: la riproduzione a 0 $ dai tracciati, senza rete,
-esce con 1 se un esito differisce da quello del giro vero. `npm run banco -- --report`: la tabella dagli esiti. Il vecchio banco da 18 casi con i semafori resta come `npm run banco:nazionale`
+esce con 1 se un esito differisce da quello del giro vero. `npm run banco -- --replay --tappe` stampa anche gli itinerari rigiocati. `npm run banco -- --report`: la tabella dagli esiti. Il vecchio banco da 18 casi con i semafori resta come `npm run banco:nazionale`
 (`scripts/banco/banco.mjs`). Soglie e prezzi in `scripts/banco/banco.config.json`; `BANCO_CASI=a-roma,…` per un sottoinsieme.
 
 **Si lavora solo da `unni <modello>` nell'app Terminale** (`~/bin/unni`, alias `unni` e `dv` in `~/.zshrc`; modelli `sonnet|opus|fable`): apre Claude Code in `~/unnivai-1b` dopo aver mostrato cartella, ramo, stato rispetto a GitHub e commit in produzione su unnivai.vercel.app. La cartella «unnivai ricresa» è archiviata: non si apre più.

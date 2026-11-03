@@ -5,6 +5,7 @@
 //
 //   npm run banco:guardia                      replay dei tracciati salvati (0 $, nessuna rete): da lanciare prima di ogni merge
 //   npm run banco:guardia -- --tracciati <f>   replay di altri tracciati
+//   (BANCO-40: dopo i flussi della home e la pertinenza, i casi del banco da 40 elencati in guardia-banco40.js, dai loro tracciati)
 //   npm run banco:guardia -- --registra        il giro PAGATO con l'account di prova: rifa' i tracciati (dopo una modifica che
 //                                              cambia le richieste ai proxy, quando il replay segna uscite in rete)
 //
@@ -16,6 +17,7 @@ import path from 'node:path';
 import { CASI_HOME, GIORNO_GUARDIA } from './casi-home.js';
 import { CASI_BORGO } from './casi-borgo.js';
 import { controllaGuardia, tabellaGuardia } from './guardia-home.js';
+import { CASI_GUARDIA_BANCO40, controllaGuardiaBanco40, tabellaGuardiaBanco40 } from './guardia-banco40.js';
 import { controllaPertinenzaDi, tabellaPertinenza, rosseNuove } from './pertinenza.js';
 
 const root = process.cwd();
@@ -85,4 +87,13 @@ console.log(tabellaPertinenza(righe, { noti }));
 const nuove = rosseNuove(righe, noti);
 if (process.env.GUARDIA_PERTINENZA_OUT) writeFileSync(process.env.GUARDIA_PERTINENZA_OUT, JSON.stringify({ righe, noti, nuove, grezzi: { guardia: grezzo, borgo } }, null, 1));
 if (nuove.length) console.error(`[guardia] ❌ NUOVI di pertinenza (non in ${path.relative(root, NOTI)}): ${nuove.join(', ')}`);
-process.exit(esito.ok && nuove.length === 0 ? 0 : 1);
+
+// BANCO-40 — i casi del banco da 40 che sono nella guardia (guardia-banco40.js): replay dei loro tracciati, stessi cinque controlli del banco
+const TRACCIATI_BANCO40 = path.join(DATI, 'banco-40-tracciati.json.gz');
+const configBanco = JSON.parse(readFileSync(path.join(root, 'scripts/banco/banco.config.json'), 'utf8'));
+const replay40 = rigioca(TRACCIATI_BANCO40, CASI_GUARDIA_BANCO40.join(','), 'banco40');
+const esito40 = replay40 ? controllaGuardiaBanco40(replay40, configBanco) : { ok: false, righe: CASI_GUARDIA_BANCO40.map(id => ({ id, ok: false, motivo: 'tracciati del banco 40 mancanti', tappe: 0 })) };
+// un replay che prova a uscire in rete non passa
+for (const c of replay40?.casi || []) if (c.replay?.uscite?.length) { const r = esito40.righe.find(x => x.id === c.id); if (r) { r.ok = false; r.motivo = `replay: ${c.replay.uscite.length} uscite in rete`; esito40.ok = false; } }
+console.log(tabellaGuardiaBanco40(esito40));
+process.exit(esito.ok && nuove.length === 0 && esito40.ok ? 0 : 1);

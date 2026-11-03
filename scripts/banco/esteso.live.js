@@ -21,6 +21,7 @@ import { CASI_ESTESI, istanteSimulato } from './casi-esteso.js';
 import { creaLuoghi, annotaRisposta, tappa as tappaDi, genera, registraItinerario, recordCaso, generaPerTe, registraPerTe } from './giro-caso.js';
 import { CASI_HOME } from './casi-home.js';
 import { CASI_BORGO } from './casi-borgo.js';
+import { CASI_BANCO40 } from './casi-banco40.js';
 // NAV-SIM — i due giri della camminata simulata (scripts/prova-nav/casi-nav-sim.js), per nome
 import { CASI_NAV_SIM } from '../prova-nav/casi-nav-sim.js';
 import { FORMATO, creaRegistratore, fattiRegistrati } from './replay/rete.js';
@@ -47,7 +48,11 @@ if (!OUT) throw new Error('BANCO_OUT mancante: lancia il banco esteso con `npm r
 // C10c-replay — il tracciato di ogni caso (risposte dei proxy e fatti), accanto al grezzo: `npm run banco:replay` lo rigioca a 0 $.
 const TRACCIATI = process.env.BANCO_TRACCIATI || OUT.replace(/\.json$/, '-tracciati.json.gz');
 // ORARI-FESTIVI — BANCO_GIORNO=AAAA-MM-GG sposta il giorno simulato (deve stare nei 7 giorni che Google copre).
-const E = { ...config.esteso, ...(process.env.BANCO_GIORNO ? { giornoSimulato: process.env.BANCO_GIORNO } : {}) };
+// BANCO-40 — BANCO_FUSO=+01:00 (ora solare) e BANCO_TETTO_GEN: il tetto delle generazioni di questo giro (il default e' quello del config)
+const E = { ...config.esteso, ...(process.env.BANCO_GIORNO ? { giornoSimulato: process.env.BANCO_GIORNO } : {}),
+    ...(process.env.BANCO_FUSO ? { fusoOffset: process.env.BANCO_FUSO } : {}),
+    ...(process.env.BANCO_TETTO_GEN ? { tettoGenerazioniUsd: Number(process.env.BANCO_TETTO_GEN) } : {}),
+    ...(process.env.BANCO_TETTO_TOT ? { tettoUsd: Number(process.env.BANCO_TETTO_TOT) } : {}) };
 
 // Le scelte del wizard di Veloce sono scritte in casi-esteso.js: se QuickPath.jsx cambia titolo, ci si ferma.
 const quickSrc = readFileSync(path.join(process.cwd(), 'src/pages/QuickPath.jsx'), 'utf8');
@@ -58,10 +63,12 @@ for (const t of new Set([...CASI_ESTESI, ...CASI_HOME].filter(c => c.scelta).fla
 const SCELTI = (process.env.BANCO_CASI || '').split(',').map(s => s.trim()).filter(Boolean);
 // TROINA-FIX — i casi della guardia della home (casi-home.js) si scelgono per nome: BANCO_CASI=home-troina-perte,…
 // BORGO-DIAGNOSI — anche i casi di Ivano a Troina (casi-borgo.js), per nome
-const casi = SCELTI.length ? [...CASI_ESTESI, ...CASI_HOME, ...CASI_BORGO, ...CASI_NAV_SIM].filter(c => SCELTI.includes(c.id)) : CASI_ESTESI;
+const casi = SCELTI.length ? [...CASI_ESTESI, ...CASI_HOME, ...CASI_BORGO, ...CASI_BANCO40, ...CASI_NAV_SIM].filter(c => SCELTI.includes(c.id)) : CASI_ESTESI;
+// BANCO-40 — BANCO_ORDINE=1: i casi girano nell'ordine di BANCO_CASI (le citta' a gruppi: la cache del proxy rende i casi dopo il primo piu' economici)
+if (process.env.BANCO_ORDINE && SCELTI.length) casi.sort((a, b) => SCELTI.indexOf(a.id) - SCELTI.indexOf(b.id));
 const out = { avvio: new Date().toISOString(), identita: null, motore: process.env.BANCO_PLACES === 'new' ? 'new' : 'legacy', giornoSimulato: E.giornoSimulato, casi: [], costo: null };
 const commitGiro = (() => { try { return execSync('git rev-parse --short HEAD').toString().trim(); } catch { return null; } })();
-const tracciati = { formato: FORMATO, registrato: out.avvio, commit: commitGiro, motore: out.motore, giornoSimulato: E.giornoSimulato, casi: [] };
+const tracciati = { formato: FORMATO, registrato: out.avvio, commit: commitGiro, motore: out.motore, giornoSimulato: E.giornoSimulato, fusoOffset: E.fusoOffset, casi: [] };
 const save = () => {
     mkdirSync(path.dirname(OUT), { recursive: true });
     writeFileSync(OUT, JSON.stringify(out, null, 1));
@@ -74,7 +81,7 @@ globalThis.__bancoFatti = (res) => { if (fattiCaso) Object.assign(fattiCaso, fat
 
 // ─── Il fetch che conta e annota (come banco.live.js) ────────────────────────
 const realFetch = globalThis.fetch;
-const cont = { ai: 0, tokenIn: 0, tokenOut: 0, google: {}, googleListaHit: 0, perModello: {}, ripieghi: [] };
+const cont = { ai: 0, tokenIn: 0, tokenOut: 0, google: {}, googleHit: {}, googleListaHit: 0, perModello: {}, ripieghi: [] };
 // C10b2 — i token di ogni modello (il prezzo cambia da un modello all'altro)
 const segnaToken = (modello, usage) => {
     const m = modello || 'gpt-4o-mini';
@@ -111,7 +118,10 @@ globalThis.fetch = vi.fn(async (url, init) => {
         const k = params?.get('path') || 'altro';
         // la ricerca nuova costa un'altra fascia (Enterprise): chiave propria nel listino
         const kc = nuova ? `${k}#new` : k;
-        cont.google[kc] = (cont.google[kc] || 0) + 1;
+        // BANCO-40 — BANCO_SOLO_MISS=1: una risposta dalla cache del proxy (X-Cache: HIT) non e' una chiamata a Google, non si paga:
+        // si conta a parte (`googleHit`). Senza la variabile ogni chiamata e' contata al listino, come sempre.
+        if (process.env.BANCO_SOLO_MISS && res.headers?.get?.('X-Cache') === 'HIT') cont.googleHit[kc] = (cont.googleHit[kc] || 0) + 1;
+        else cont.google[kc] = (cont.google[kc] || 0) + 1;
         if (k !== 'place/photo') {
             try {
                 const j = await res.clone().json();
@@ -175,7 +185,7 @@ beforeAll(async () => {
 });
 afterAll(async () => {
     out.fine = new Date().toISOString();
-    out.costo = { totale: costoOra(), ai: { chiamate: cont.ai, tokenIn: cont.tokenIn, tokenOut: cont.tokenOut, perModello: cont.perModello, ripieghi: cont.ripieghi }, google: cont.google, tettoUsd: E.tettoUsd };
+    out.costo = { totale: costoOra(), ai: { chiamate: cont.ai, tokenIn: cont.tokenIn, tokenOut: cont.tokenOut, perModello: cont.perModello, ripieghi: cont.ripieghi }, google: cont.google, ...(process.env.BANCO_SOLO_MISS ? { googleHit: cont.googleHit } : {}), tettoUsd: E.tettoUsd };
     save();
     await supabase.auth.signOut();
 });
@@ -206,7 +216,7 @@ for (const caso of casi) {
         fattiCaso = {};
         const traccia = { id: caso.id, caso, ora: istanteSimulato(caso, E), rete: registratore.rete, fatti: fattiCaso };
         tracciati.casi.push(traccia);
-        const c0 = { ...cont, google: { ...cont.google }, perModello: JSON.parse(JSON.stringify(cont.perModello)), ripieghi: [...cont.ripieghi] };
+        const c0 = { ...cont, google: { ...cont.google }, googleHit: { ...cont.googleHit }, perModello: JSON.parse(JSON.stringify(cont.perModello)), ripieghi: [...cont.ripieghi] };
         const costo0 = costoOra();
         const delta = () => ({
             ai: { chiamate: cont.ai - c0.ai, tokenIn: cont.tokenIn - c0.tokenIn, tokenOut: cont.tokenOut - c0.tokenOut,
@@ -214,6 +224,7 @@ for (const caso of casi) {
                 ripieghi: cont.ripieghi.slice(c0.ripieghi.length) },
             google: Object.fromEntries(Object.entries(cont.google).map(([k, v]) => [k, v - (c0.google[k] || 0)]).filter(([, v]) => v > 0)),
             googleListaHit: cont.googleListaHit - (c0.googleListaHit || 0),
+            ...(process.env.BANCO_SOLO_MISS ? { googleHit: Object.fromEntries(Object.entries(cont.googleHit).map(([k, v]) => [k, v - (c0.googleHit?.[k] || 0)]).filter(([, v]) => v > 0)) } : {}),
         });
         const t0 = Date.now();
         try {

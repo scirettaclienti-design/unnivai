@@ -116,13 +116,15 @@ const meteoApp = { condition: 'sunny', temperature: 20 }; // il valore di ripieg
 /** La chiamata della pagina del caso (Crea, Veloce, Sorprendimi), con l'ora simulata. */
 export async function genera(caso, E) {
     const now = istanteSimulato(caso, E);
-    const cc = await resolveCityCenter(caso.luogo);
+    // BANCO-40 — `posizione`: dove si trova chi chiede (Troina → «una giornata a Roma»); senza, il giro parte dalla città del caso
+    const sede = caso.posizione || caso.luogo;
+    const cc = await resolveCityCenter(sede);
     const base = { skipUserQuota: true, simulatedNow: now }; // skipUserQuota: solo il preflight del client (vedi memoria test-acc-preflight)
     const onboarding = caso.onboarding || null;
     const food = resolveFoodPrefs({ userPrompt: caso.richiesta || '', wizardBudget: caso.prefs?.budget, onboarding });
     const rec = { vincoli: food.dieta?.length || food.budget ? { dieta: food.dieta, budget: food.budget, maxPriceLevel: food.maxPriceLevel } : null };
     azzeraSonda();
-    const r = await conIntento(() => generaItinerario(caso, { prefs: null, base, onboarding, cc, rec }));
+    const r = await conIntento(() => generaItinerario(caso.posizione ? { ...caso, luogo: caso.posizione } : caso, { prefs: null, base, onboarding, cc, rec }));
     return { r, rec, cc, now, food };
 }
 

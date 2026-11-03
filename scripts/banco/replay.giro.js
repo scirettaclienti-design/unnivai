@@ -38,7 +38,7 @@ const SELETTORE = process.env.REPLAY_SELETTORE === 'vuoto' ? 'vuoto' : 'registra
 const grezzo = readFileSync(IN);
 const tracciati = JSON.parse((IN.endsWith('.gz') ? gunzipSync(grezzo) : grezzo).toString('utf8'));
 if (tracciati.formato !== FORMATO) throw new Error(`formato del tracciato sconosciuto: ${tracciati.formato} (atteso ${FORMATO})`);
-const E = { ...config.esteso, giornoSimulato: tracciati.giornoSimulato };
+const E = { ...config.esteso, giornoSimulato: tracciati.giornoSimulato, ...(tracciati.fusoOffset ? { fusoOffset: tracciati.fusoOffset } : {}) }; // BANCO-40: il fuso del giro registrato (ora solare o legale)
 const SCELTI = (process.env.REPLAY_CASI || '').split(',').map(s => s.trim()).filter(Boolean);
 const casi = (tracciati.casi || []).filter(t => !SCELTI.length || SCELTI.includes(t.id));
 
@@ -85,6 +85,10 @@ for (const traccia of casi) {
             rec.secs = (Date.now() - t0) / 1000;
             rec.errore = e?.code || e?.message || String(e);
         } finally {
+            // BANCO-40 — gli orari di Google dei posti scelti, come li legge il giro vero con la ricerca nuova (periods dalla ricerca): i controlli
+            // delle tappe aperte rigiocano cosi' senza rete
+            rec.orari = Object.fromEntries((rec.tours || []).flatMap(t => t.stops || []).filter(s => s.place_id && !s.tempoLibero)
+                .map(s => [s.place_id, { chiamato: true, periods: registro.luoghi.get(s.place_id)?.periods ?? null, ...(registro.luoghi.get(s.place_id)?.current ? { current: registro.luoghi.get(s.place_id).current } : {}) }]));
             rec.spesaUsd = 0;
             rec.replay = { servite: stato.servite, uscite: stato.uscite, promptDiversi: stato.promptDiversi, raccontoMancante: stato.raccontoMancante,
                 fallimentiRigiocati: stato.fallimentiRigiocati,

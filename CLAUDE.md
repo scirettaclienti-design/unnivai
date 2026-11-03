@@ -37,11 +37,15 @@ etichettate `label = 'test'` in `ai_generation_ticket`; il tetto globale lo ferm
 `.env.local` (ignorato da `*.local`): mai stamparle, mai committarle, mai nei report.
 `PROVA_RICHIESTE=login` controlla solo l'accesso, senza chiamate AI.
 
-**Banco nazionale** (`npm run banco`, `scripts/banco/`): 18 casi fissi (11 luoghi neutri, profili
-A/B a Roma e Catania, Per Te solo tra le 9 e le 19, Troina→"una giornata a Roma") con l'account di
-prova; scrive `docs/prove/AAAA-MM-GG-banco.md` (semafori) e il grezzo in `docs/prove/dati/`.
-Soglie e prezzi in `scripts/banco/banco.config.json`. Si rilancia dopo ogni modifica del motore;
-`BANCO_CASI=a-roma,…` per un sottoinsieme, `npm run banco -- --report <json>` per il solo report.
+**Banco da 40 casi** (`npm run banco`, `scripts/banco/banco40.mjs`, casi in `casi-banco40.js`): i 18 casi di sempre (11 luoghi neutri, profili A/B a Roma e Catania, Per Te a Roma e Catania,
+Troina→"una giornata a Roma") + 22 nuovi che coprono la griglia (grandi città, borghi siciliani, ore mattina/13/sera/notte, richieste generiche e specifiche, ospite, giro lontano, ritmi diversi,
+DNA forte su cibo/cultura/natura). Giorno dei giri: giovedì 5/11/2026, ora solare (`+01:00`), ricerca nuova di Google come in produzione. Cinque controlli per caso (`controlli40.js`, funzioni pure):
+**tappe aperte** all'ora del giro (c5 e orari di Google), **distanze plausibili per il mezzo** (a piedi 1,5 km fra due tappe, ritmo Intenso 5 km, e il tempo fra gli arrivi basta), **nessun luogo di
+un'altra città** (centro e raggio in `CENTRI`), **titolo coerente con le tappe**, **nessuna frase ripetuta**. Il giro vero è a pagamento (account di prova, tetto `BANCO_TETTO`, di difetto 7,8 $ a listino
+con le risposte dalla cache del proxy non contate) e scrive nel repo `docs/prove/dati/banco-40-tracciati.json.gz`, `banco-40-esiti.json` (esiti, firma delle tappe, orari di Google) e `banco-40-tabella.md`;
+un giro fermato dal tetto si completa con `npm run banco -- --mancanti` (i casi nuovi si uniscono agli esiti salvati). **`npm run banco -- --replay`**: la riproduzione a 0 $ dai tracciati, senza rete,
+esce con 1 se un esito differisce da quello del giro vero. `npm run banco -- --report`: la tabella dagli esiti. Il vecchio banco da 18 casi con i semafori resta come `npm run banco:nazionale`
+(`scripts/banco/banco.mjs`). Soglie e prezzi in `scripts/banco/banco.config.json`; `BANCO_CASI=a-roma,…` per un sottoinsieme.
 
 **Si lavora solo da `unni <modello>` nell'app Terminale** (`~/bin/unni`, alias `unni` e `dv` in `~/.zshrc`; modelli `sonnet|opus|fable`): apre Claude Code in `~/unnivai-1b` dopo aver mostrato cartella, ramo, stato rispetto a GitHub e commit in produzione su unnivai.vercel.app. La cartella «unnivai ricresa» è archiviata: non si apre più.
 
@@ -353,7 +357,7 @@ Proxy pubblicato: `openai-proxy` v24 (ramo `c10c`, `7a4426f`). Report: `docs/pro
 - **Stesso nome = stesso posto**: due schede di Google con lo stesso nome contano come lo stesso posto (mai due volte nel giro).
 - **Nucleo del quartiere chiesto = baricentro dei luoghi della sua lista** (raggio fino al luogo più lontano + 150 m, fra 500 m e 1 km).
 - **Ogni correzione al motore si prova prima col replay** (`npm run banco:replay`, 0 $), poi **un solo giro pagato con 2 ripetizioni**.
-- **`npm run banco:guardia` sempre PRIMA del merge, mai dopo** (la guardia di tutti i flussi della home; replay, 0 $): Per Te, Quiz Natura e Storia, Sorprendimi Natura e Arte, Crea il tuo Percorso, a Troina e a Catania; deve dare 12 su 12, nessun flusso vuoto.
+- **`npm run banco:guardia` sempre PRIMA del merge, mai dopo** (la guardia di tutti i flussi della home; replay, 0 $): Per Te, Quiz Natura e Storia, Sorprendimi Natura e Arte, Crea il tuo Percorso, a Troina e a Catania; deve dare 12 su 12, nessun flusso vuoto. Dal BANCO-40 la guardia rigioca anche 10 casi del banco (`CASI_GUARDIA_BANCO40` in `scripts/banco/guardia-banco40.js`: Roma, Napoli, Matera, profili A/B, giro lontano, borghi con DNA natura e cibo, Cefalù alle 13, Troina di sera) dai loro tracciati, con i cinque controlli: tutti e 10 devono passare. Un caso entra nella guardia solo se passa i cinque controlli; uno che fallisce per un difetto dell'app sta nell'elenco del report, non nella guardia.
 - **Prima di ogni merge: guardia 12/12 e pertinenza senza ❌ nuovi.** `npm run banco:guardia` esegue anche i 5 controlli di pertinenza di BORGO-DIAGNOSI (`scripts/banco/pertinenza.js`, mai da cambiare) sui 6 casi del borgo e sui 12 della guardia, a 0 $ dai tracciati; i ❌ già noti stanno in `scripts/banco/pertinenza-noti.json`, un ❌ nuovo fa fallire la guardia.
 - **Deploy di `openai-proxy` sempre con `--use-api`** (`supabase functions deploy openai-proxy --project-ref ahecpiwsdhghkndncejb --no-verify-jwt --use-api`); dopo il deploy si confronta la versione attiva con i file del repo. **Il deploy parte solo da una cartella su `main` aggiornato** (`git fetch` e `main` allineato a `origin/main`): mai da un ramo, mai da una cartella indietro.
 - **Simboli accettati dal banco**: `SIMBOLI_ACCETTATI` in `scripts/banco/asticella-c10.js` (non in `banco.config.json`).

@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**9 su 22 fatte** · aggiornato il 04/11/2026 (T15 BANCO-40) · fonte dello stato: `docs/prove/` e `git log` di `main` (`b1cb3d0`)
+**10 su 22 fatte** · aggiornato il 04/11/2026 (CODA-RIEPILOGO T12–T16) · fonte dello stato: `docs/prove/` e `git log` di `main` (`4a797ed`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.

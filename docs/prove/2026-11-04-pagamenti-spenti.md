@@ -35,4 +35,4 @@ Lato server: da `list_edge_functions` (04/11) `create-checkout` e `stripe-webhoo
 Nessuno. Su iPhone: aprire Notifiche, Mappa e un giro e controllare che non compaia mai un importo in euro.
 
 ## Prova sul sito pubblicato
-Da compilare dopo il merge (seconda PR).
+Merge `4eabde0` (PR #30). CI di main verde, Vercel in stato success. Visitate su https://unnivai.vercel.app, da non loggato, `/notifications`, `/map`, `/tour-live`, `/tour-details`, `/explore`, `/`: nessun testo «accetta e paga», Stripe o checkout, 0 richieste verso stripe.com o create-checkout. Le tre rotte protette rimandano a `/login` perché senza account: la prova con account sta nei test automatici e nel punto iPhone sopra.

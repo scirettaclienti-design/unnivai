@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**8 su 22 fatte** · aggiornato il 04/11/2026 (T12 CHAT-ACCESSO-VELOCE) · fonte dello stato: `docs/prove/` e `git log` di `main` (`b1cb3d0`)
+**9 su 22 fatte** · aggiornato il 04/11/2026 (T12 CHAT-ACCESSO-VELOCE) · fonte dello stato: `docs/prove/` e `git log` di `main` (`b1cb3d0`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.
@@ -47,4 +47,4 @@ Stati: **fatto** (su main, con prova) · **in corso** (ramo o PR aperti) · **da
 | L9 | 20 giri reali su iPhone a Roma e Catania | aspetta Ivano | — | voce, audio, GPS reale e rete; cosa provare: tabella di `2026-11-02-coda-riepilogo.md` |
 | L10 | Revoca delle chiavi vecchie (Anthropic …UQAa, Mapbox …QIdA) | aspetta Ivano | nessuna prova di revoca in `docs/prove/` | revoca dalle console Anthropic e Mapbox, poi una riga qui con la data |
 | L11 | Blocco del codice il 22/11 | da fare | — | cosa entra su main dopo il 22/11 lo decide Ivano; la regola va scritta in CLAUDE.md |
-| L12 | PAGAMENTI-SPENTI | in corso | PR `notte/pagamenti-spenti`, report `docs/prove/2026-11-04-pagamenti-spenti.md`: 8 strade verso Stripe o prezzi, 4 visibili prima (Notifiche, mappa, tour live, scheda tour), 0 dopo; interruttore unico `src/config/pagamenti.js`; `create-checkout` e `stripe-webhook` non pubblicate sul server | prova sul sito pubblicato dopo il merge |
+| L12 | PAGAMENTI-SPENTI | fatto | `4eabde0` (PR #30), CI verde e Vercel pronto, report `docs/prove/2026-11-04-pagamenti-spenti.md`: 8 strade verso Stripe o prezzi, 4 visibili prima (Notifiche, mappa, tour live, scheda tour), 0 dopo; interruttore unico `src/config/pagamenti.js`; `create-checkout` e `stripe-webhook` non pubblicate sul server | — |

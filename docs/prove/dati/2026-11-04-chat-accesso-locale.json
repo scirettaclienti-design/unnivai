@@ -1,0 +1,82 @@
+{
+ "base": "http://localhost:5291",
+ "iniziato": "2026-11-03T09:48:57.910Z",
+ "titolo": "Unnivai | Esplora l'Italia Autentica",
+ "panoramica": {
+  "tasto": "Chiedi alla guida",
+  "boxTasto": {
+   "x": 120,
+   "y": 587,
+   "width": 106,
+   "height": 44
+  },
+  "boxAvvia": {
+   "x": 292,
+   "y": 547,
+   "width": 71,
+   "height": 56
+  },
+  "sopraAvvia": false,
+  "foto": "docs/prove/schermate/chat-accesso/1-panoramica.png",
+  "benvenuto": "Assistente Unnivai\n\nAI GUIDE\n\nUNNIVAI AI\nChiedimi del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nL'assistente AI può commettere errori. Verifica le info sensibili.",
+  "attesa": true,
+  "msSchermo": 4856,
+  "fonti": "Fonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi",
+  "fotoRisposta": "docs/prove/schermate/chat-accesso/2-panoramica-risposta.png"
+ },
+ "scheda": {
+  "inNavigazioneTastiChiedi": 0,
+  "fotoNavigazione": "docs/prove/schermate/chat-accesso/3-navigazione.png",
+  "tasto": "Chiedi alla guida",
+  "boxTasto": {
+   "x": 16,
+   "y": 556,
+   "width": 358,
+   "height": 44
+  },
+  "boxRiparti": {
+   "x": 16,
+   "y": 608,
+   "width": 358,
+   "height": 44
+  },
+  "sopraRiparti": false,
+  "foto": "docs/prove/schermate/chat-accesso/4-scheda.png",
+  "benvenuto": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nSono stanco, conviene fare una pausa?\nUNNIVAI AI\nSì, falla. Il giro ha già le sue soste, e dopo la Cattedrale ne hai trenta minuti: se ti serve fiato, prenditi quelli senza fretta. Siediti, bevi qualcosa, poi riparti con calma verso Via dei Crociferi.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nL'assistente AI può commettere errori. Verifica le info sensibili.",
+  "fotoAperta": "docs/prove/schermate/chat-accesso/5-chat-dalla-scheda.png",
+  "attesa": true,
+  "msSchermo": 5346,
+  "fonti": "Fonti lette: Via dei Crociferi · Fontana dell'Elefante · Cattedrale di Sant'Agata",
+  "fotoRisposta": "docs/prove/schermate/chat-accesso/6-chat-dalla-scheda-risposta.png",
+  "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nSono stanco, conviene fare una pausa?\nUNNIVAI AI\nSì, falla. Il giro ha già le sue soste, e dopo la Cattedrale ne hai trenta minuti: se ti serve fiato, prenditi quelli senza fretta. Siediti, bevi qualcosa, poi riparti con calma verso Via dei Crociferi.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nChi l'ha fatta?\nUNNIVAI AI\nParli della Via dei Crociferi? Su chi l'ha fatta non ho una fonte sicura: so solo che è stata realizzata nel XVIII secolo. Se invece intendi la Fontana dell'Elefante, è opera dell'architetto Giovanni Battista Vaccarini, tra il 1735 e il 1737.\nFonti lette: Via dei Crociferi · Fontana dell'Elefante · Cattedrale di Sant'Agata\nL'assistente AI può commettere errori. Verifica le info sensibili.",
+  "schedaDopoChat": true
+ },
+ "richieste": [
+  {
+   "domanda": "Sono stanco, conviene fare una pausa?",
+   "aperto": null,
+   "apertoPlaceId": null,
+   "luoghi": 6,
+   "prossima": null,
+   "stato": 200,
+   "ms": 4662,
+   "esito": "verificata",
+   "msServer": 4138,
+   "testo": "Sì, falla. Il giro ha già le sue soste, e dopo la Cattedrale ne hai trenta minuti: se ti serve fiato, prenditi quelli senza fretta. Siediti, bevi qualcosa, poi riparti con calma verso Via dei Crociferi."
+  },
+  {
+   "domanda": "Chi l'ha fatta?",
+   "aperto": "Fontana dell'Elefante",
+   "apertoPlaceId": "ChIJV63v_C7jExMRLThjTCcPppk",
+   "luoghi": 6,
+   "prossima": 0,
+   "stato": 200,
+   "ms": 5014,
+   "esito": "verificata",
+   "msServer": 4540,
+   "testo": "Parli della Via dei Crociferi? Su chi l'ha fatta non ho una fonte sicura: so solo che è stata realizzata nel XVIII secolo. Se invece intendi la Fontana dell'Elefante, è opera dell'architetto Giovanni Battista Vaccarini, tra il 1735 e il 1737."
+  }
+ ],
+ "ok": true,
+ "finito": "2026-11-03T09:49:40.322Z"
+}

@@ -4,6 +4,9 @@ import './index.css'
 import App from './App.jsx'
 
 import ErrorBoundary from './components/ErrorBoundary';
+import { installaRaccoltaErrori } from './lib/errorReporting';
+
+installaRaccoltaErrori();
 
 createRoot(document.getElementById('root')).render(
     <ErrorBoundary>

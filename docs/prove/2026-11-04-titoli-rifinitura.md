@@ -57,7 +57,7 @@ Limite: le descrizioni delle tappe nei giri registrati sono quasi tutte frasi di
 
 ## Costo AI
 
-0 $ (rigiocata dai giri registrati, nessuna chiamata a pagamento). Il collaudo del sito pubblicato è nella sezione sotto.
+0 $ per la misura (rigiocata dai giri registrati). Il collaudo del sito pubblicato ha generato giri veri con l'account di prova: circa 0,3 $ (stima: stesso collaudo del 31/10, Per Te senza AI e 4 giri da Claude).
 
 ## Cosa NON risolve
 
@@ -70,3 +70,11 @@ Limite: le descrizioni delle tappe nei giri registrati sono quasi tutte frasi di
 
 - Decisione sopra: genere o «Da A a B» per i titoli generici.
 - Da provare sull'iPhone: un giro generico (richiesta senza tema) e il «Per Te» dopo le 22: i titoli delle card nominano un genere vero?
+
+## Esito dal sito pubblicato (03/11, dopo il merge `02484f6`)
+
+- Merge della PR #34 in `02484f6`: CI di main verde (Lint & Test, E2E Smoke), Vercel pronto (stato `success`), https://unnivai.vercel.app risponde 200. `openai-proxy` non toccato: ultima versione pubblicata invariata, nessun deploy di funzione.
+- `node scripts/prova-nav/collaudo-sito.webkit.mjs`: punti 1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13 ok; punto 7 da ospite non ok come già il 31/10 e il 02/11 (accessi anonimi spenti: attesa di Ivano, riga P10); punto 5 senza errori.
+- **Punto 11 (Per Te a Roma all'1:00), titoli delle card prima → dopo:** «Dove si mangia a Roma» → **«Quattro forni a Roma»** (Antico Forno Santini, Antico Forno Roscioli, Il Fornaio, Forno Monteforte); «Cultura a Roma» → «Quattro musei a Roma»; «Verde a Roma» → «Giardini di Roma» (Albero Monumentale Pioppo Nero, Fontana degli Undici Zampilli, Foresta di bambù, Giardino di Sant'Alessio); «Panorami a Roma» resta.
+- Punto 13, giri generati a Catania: «Chiese, palazzi e musei di Catania», «Palazzi di Catania», «Dalla Fontana dell'Elefante al Lungomare di Catania» (nessun genere chiaro).
+- Titoli falsi nel collaudo: 0 (letti contro le tappe).

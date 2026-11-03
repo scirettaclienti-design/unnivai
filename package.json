@@ -13,6 +13,7 @@
     "banco:esteso": "node scripts/banco/esteso.mjs",
     "banco:replay": "node scripts/banco/replay.mjs",
     "banco:guardia": "node scripts/banco/guardia.mjs",
+    "titoli": "vite-node scripts/titoli/elenco.mjs",
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",

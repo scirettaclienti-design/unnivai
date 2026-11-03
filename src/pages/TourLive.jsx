@@ -7,6 +7,7 @@ import BottomNavigation from "../components/BottomNavigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { dataService } from "../services/dataService";
 import { supabase } from "../lib/supabase";
+import { pagamentiVisibili } from "../config/pagamenti";
 
 // Gate J2: liveToursMock RIMOSSO. Prima serviva 3 tour finti (Maria Benedetti a
 // Roma €18 4.8★, Giuseppe Torrisi a Palermo €22 4.9★, Andrea Morosini a Venezia
@@ -228,8 +229,8 @@ export default function TourLivePage() {
                                         transition={{ duration: 0.6 }}
                                     />
 
-                                    {/* Price Badge */}
-                                    <motion.div
+                                    {/* Price Badge — PAGAMENTI-SPENTI: solo con l'interruttore acceso */}
+                                    {pagamentiVisibili() && <motion.div
                                         className="absolute top-4 right-4 text-obsidian-bg px-4 py-2 rounded-2xl shadow-lg bg-brand-orange"
                                         whileHover={{ scale: 1.1, rotateZ: 5 }}
                                     >
@@ -239,7 +240,7 @@ export default function TourLivePage() {
                                                 <div className="text-xs line-through opacity-70">{tour.originalPrice}€</div>
                                             )}
                                         </div>
-                                    </motion.div>
+                                    </motion.div>}
 
                                     {/* Category Icon */}
                                     <motion.div

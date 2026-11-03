@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { pagamentiVisibili, TIPI_NOTIFICA_PAGAMENTO } from '../config/pagamenti';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2, Award, Crosshair, WifiOff, MessageSquare, Tag } from 'lucide-react';
@@ -97,6 +98,8 @@ const DashboardUser = () => {
                     filter: `user_id=eq.${user.id}`
                 }, (payload) => {
                     const n = payload.new;
+                    // PAGAMENTI-SPENTI: nessun avviso di prezzo con l'interruttore spento
+                    if (!pagamentiVisibili() && TIPI_NOTIFICA_PAGAMENTO.includes(n.type)) return;
                     // Show in-app toast
                     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
                     setToast({ title: n.title, message: n.message, type: n.type });

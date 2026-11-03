@@ -3,6 +3,7 @@ import { TourUISchema, BookingInputSchema, NotificationUISchema, getMoodForTags 
 import { poiService } from './poiService';
 import { aiRecommendationService } from './aiRecommendationService';
 import { isValidAiDbRecord } from '../lib/aiNotificationFactory';
+import { pagamentiVisibili, TIPI_NOTIFICA_PAGAMENTO } from '../config/pagamenti';
 // ---------------------------------------------------------------------------
 // validateData(schema, data, label?)
 //
@@ -490,6 +491,8 @@ class DataService {
                 'guide_offer', 'guide_request', 'guide_response',
                 'business_lead', 'business_promo',
                 'payment_confirmed', // legato a booking guide V2
+                // PAGAMENTI-SPENTI: con l'interruttore spento niente offerte di prezzo
+                ...(pagamentiVisibili() ? [] : TIPI_NOTIFICA_PAGAMENTO),
             ]);
             // Gate Q — I tipi AI-generated devono passare isValidAiDbRecord:
             // signature opaca calcolata dalla fabbrica (aiNotificationFactory).
@@ -562,6 +565,7 @@ class DataService {
                         'guide_offer', 'guide_request', 'guide_response',
                         'business_lead', 'business_promo',
                         'payment_confirmed',
+                        ...(pagamentiVisibili() ? [] : TIPI_NOTIFICA_PAGAMENTO),
                     ]);
                     if (V2_V3_TYPES.has(n.type)) return;
                     const rawText = `${n.title || ''} ${n.message || ''}`;

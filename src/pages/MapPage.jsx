@@ -74,6 +74,7 @@ import { sunTimes } from '../lib/sunTimes';
 import { romeParts } from '../lib/tourWindow';
 import NavDebugPanel from '../components/NavDebugPanel';
 import { useAILearning } from '../hooks/useAILearning';
+import { prezzoDaMostrare } from '../config/pagamenti';
 import './MapPage.css';
 
 // GATE DEBUG PANEL: strumento di calibrazione nav, NON feature di prodotto.
@@ -2021,7 +2022,7 @@ const MapPage = () => {
             riga: rigaTappa({ categoria, stayMinutes: step?.stayMinutes, stop: step, quando: quando || new Date() }),
             // il racconto da insider (fonti verificate) sostituisce la frase breve; senza, restano la frase breve e il «perché adesso»
             chicca: racconti[stop.id] ? null : chiccaDistinta(step, testoRacconto(step)), racconto: racconti[stop.id] || testoRacconto(step), perche: percheAdesso(step, quando || new Date(), new Date()),
-            pillole: [hhmm, Number.isFinite(step?.stayMinutes) ? `~${step.stayMinutes} min` : null, Number(step?.price) > 0 ? `€${step.price}` : null].filter(Boolean),
+            pillole: [hhmm, Number.isFinite(step?.stayMinutes) ? `~${step.stayMinutes} min` : null, prezzoDaMostrare(step?.price) ? `€${step.price}` : null].filter(Boolean),
             minutiAllaProssima: min, nomeProssima: prossima ? (prossima.name || prossima.title) : null,
             completata: completedSteps.includes(id),
         };
@@ -2518,7 +2519,7 @@ const MapPage = () => {
                                     <div className="absolute bottom-3 left-3 text-obsidian-primary">
                                         <h3 className="font-bold text-sm leading-tight mb-0.5 line-clamp-1">{tour.name}</h3>
                                         <p className="text-[10px] font-semibold text-brand-orange bg-obsidian-card/90 border border-brand-orange/30 inline-block px-1.5 py-0.5 rounded-md mt-1">
-                                            €{tour.price} · {tour.duration}
+                                            {prezzoDaMostrare(tour.price) ? `€${tour.price} · ` : ''}{tour.duration}
                                         </p>
                                     </div>
                                 </div>

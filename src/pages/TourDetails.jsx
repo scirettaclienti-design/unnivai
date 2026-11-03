@@ -31,6 +31,7 @@ import { normalizeTour } from "../services/tourShape";
 import { useAILearning } from "../hooks/useAILearning";
 import { useModificaGiro } from "../hooks/useModificaGiro";
 import { TappaModifica } from "../components/TappaModifica";
+import { prezzoDaMostrare } from "../config/pagamenti";
 
 
 // UUID semplice: 8-4-4-4-12 caratteri esadecimali
@@ -1125,7 +1126,7 @@ export default function TourDetailsPage() {
                                                 // TESTI — l'etichetta e' il tipo principale in italiano; senza, la categoria a parole italiane; mai la parola inglese.
                                                 const stepCategory = typeLabelOf(step) || categoryLabelOf(step.category);
                                                 const stepMinutes = formatEstimate(step.stayMinutes);
-                                                const stepPrice = Number.isFinite(step.price) && step.price > 0 ? step.price : null;
+                                                const stepPrice = Number.isFinite(step.price) ? prezzoDaMostrare(step.price) : null;
                                                 const stepDesc = step.description || null;
                                                 const stepRating = Number.isFinite(step.googleRating) && step.googleRating > 0 ? step.googleRating : null;
                                                 // P3d-j (chiusura) — consiglio insider, "momento migliore" e

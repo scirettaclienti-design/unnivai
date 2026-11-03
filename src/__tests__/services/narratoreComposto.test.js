@@ -4,7 +4,7 @@
 // scelte; ogni descrizione e' composta dal codice. "Per Te": una chiamata sola.
 // (7) Niente meteo di riserva; nessun "null"/"undefined"/vuoto a schermo.
 
-import { titoloDaTappe } from '../../lib/titoliGiro';
+import { titoloGiro, titoloDaTappe } from '../../lib/titoliGiro';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { aiRecommendationService } from '../../services/aiRecommendationService';
 import { testoPulito } from '../../lib/stopPhrases';
@@ -124,7 +124,7 @@ describe('P3d-j — itinerario composto', () => {
         vi.stubGlobal('fetch', fn);
         const r = await genera();
         // TESTI-SCHEDE: il titolo viene dalle tappe vere, mai da quello del modello (né dal numero del giorno)
-        expect(r.days[0].title).toBe(titoloDaTappe(r.days[0].stops, 'Roma'));
+        expect(r.days[0].title).toBe(titoloGiro(null, r.days[0].stops, 'Roma'));
         expect(r.days[0].title).not.toMatch(/magica|giorno/i);
     });
 
@@ -134,7 +134,7 @@ describe('P3d-j — itinerario composto', () => {
             const { fn } = routeFetch((t) => ({ place_id: t.place_id, usaFatto: false, gancio: null, interesse: null }), { title });
             vi.stubGlobal('fetch', fn);
             const r = await genera();
-            expect(r.days[0].title, title).toBe(titoloDaTappe(r.days[0].stops, 'Roma'));
+            expect(r.days[0].title, title).toBe(titoloGiro(null, r.days[0].stops, 'Roma'));
             expect(r.days[0].title, title).not.toMatch(/soleggiat|mattina|tramonto|elegante/i);
         }
     });

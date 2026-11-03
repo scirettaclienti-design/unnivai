@@ -8,6 +8,10 @@
 // percorso `chat` farà in una richiesta sola, senza i giri in più fra questo Mac e il proxy. Credenziali dell'account di prova: mai stampate.
 //   SCRITTORE=narratore npx vitest run -c scripts/prova-reale/vitest.prova.config.js scripts/prova-reale/chat-verita.live.js
 //   (FASE=prima | dopo | tutto; DOMANDE=1,2,3 per un sottoinsieme)
+// CHAT-ACCESSO-VELOCE (04/11): REVISORE=traduttore (difetto, Haiku 4.5) | narratore (Sonnet 5.5, come ANTHROPIC_MODEL_REVISORE in produzione);
+// la riga va in `dopo["<scrittore>+<revisore>"]` quando il revisore non è il difetto. MODO=sito: la domanda va al percorso `chat` del proxy
+// pubblicato (come chatGuidaService: prossima null, centro = media delle tappe, storia vuota), riga in `dopo.sito`; le fonti si ricalcolano qui
+// solo per contare le frasi inventate (fuori dal tempo). GIRO_DA=<json> prende il giro (place_id) da un grezzo già fatto.
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import { supabase } from '@/lib/supabase';
@@ -19,6 +23,10 @@ const FASE = process.env.FASE || 'tutto';
 const SCRITTORE = process.env.SCRITTORE || 'narratore';
 const SOLO = (process.env.DOMANDE || '').split(',').filter(Boolean).map(Number);
 const OUT = process.env.CHAT_OUT || 'docs/prove/dati/2026-11-02-chat-verita.json';
+const REVISORE = process.env.REVISORE || 'traduttore';
+const MODO = process.env.MODO || 'banco';
+const CHIAVE = MODO === 'sito' ? 'sito' : REVISORE === 'traduttore' ? SCRITTORE : `${SCRITTORE}+${REVISORE}`;
+const GIRO_DA = process.env.GIRO_DA || '';
 const PREZZO = JSON.parse(fs.readFileSync('scripts/banco/banco.config.json', 'utf8')).prezziUsd.openaiPerModello;
 const base = () => process.env.VITE_SUPABASE_URL;
 const anon = () => process.env.VITE_SUPABASE_ANON_KEY;
@@ -122,7 +130,7 @@ describe('CHAT-VERITA', () => {
     it('banco: prima e dopo', async () => {
         const tok = await token();
         const out = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, 'utf8')) : { citta: CITTA, righe: {} };
-        out.giro = out.giro || await giroVero();
+        out.giro = out.giro || (GIRO_DA ? JSON.parse(fs.readFileSync(GIRO_DA, 'utf8')).giro : await giroVero());
         const giro = out.giro;
         const centro = { lat: giro.reduce((s, g) => s + g.lat, 0) / giro.length, lng: giro.reduce((s, g) => s + g.lng, 0) / giro.length };
         const cacheFonti = new Map();
@@ -134,7 +142,23 @@ describe('CHAT-VERITA', () => {
                 const r = await proxy(tok, { endpoint: '/chat/completions', model: 'gpt-4o-mini', temperature: 0.7, max_tokens: 350, messages: [{ role: 'system', content: promptOggi(CITTA) }, { role: 'user', content: d.q }] });
                 riga.prima = { testo: r.testo, modello: r.modello, ms: r.ms, msServer: r.msServer, costoUsd: +r.costoUsd.toFixed(5) };
             }
-            if (FASE !== 'prima') {
+            if (FASE !== 'prima' && MODO === 'sito') {
+                const t0 = Date.now();
+                const r = await fetch(`${base()}/functions/v1/openai-proxy`, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: anon(), Authorization: `Bearer ${tok}` },
+                    body: JSON.stringify({ dv: { purpose: 'chat', domanda: d.q, storia: [], citta: CITTA, luoghi: giro.map(({ place_id, nome, lat, lng, ora, sosta }) => ({ place_id, nome, lat, lng, ora, sosta })), aperto: null, prossima: null, centro } }) });
+                const j = await r.json().catch(() => ({}));
+                const ms = Date.now() - t0;
+                // le fonti per chi conta a mano (stesse funzioni del proxy), fuori dal tempo misurato
+                const scelti = luoghiDaCercare(giro, d.q, []);
+                const tappe = await Promise.all(scelti.map(async (l) => {
+                    if (!cacheFonti.has(l.place_id)) cacheFonti.set(l.place_id, await fontiDiTappa(l, CITTA, fetchW, google));
+                    return cacheFonti.get(l.place_id);
+                }));
+                const nominati = await luoghiNominati(d.q, CITTA, centro, giro.map((g) => g.nome), fetchW).catch(() => ({ luoghi: [], scartati: [] }));
+                riga.dopo = riga.dopo || {};
+                riga.dopo.sito = { status: r.status, testo: j?.chat?.testo ?? null, esito: j?.chat?.esito ?? null, versione: j?.chat?.versione ?? null, ms, msServer: j?.chat?.ms ?? null, fontiLette: j?.chat?.fonti || [], quando: new Date().toISOString(),
+                    fonti: [...tappe, ...nominati.luoghi].filter((l) => l.wikipedia || l.google).map((l) => ({ nome: l.nome, wikipedia: l.wikipedia?.titolo || null, google: l.google || null, testo: l.wikipedia?.testo?.slice(0, 1100) || null })) };
+            } else if (FASE !== 'prima') {
                 const t0 = Date.now();
                 const scelti = luoghiDaCercare(giro, d.q, []);
                 const [tappe, nominati] = await Promise.all([
@@ -152,10 +176,10 @@ describe('CHAT-VERITA', () => {
                     tempi.push({ passaggio, ms: r.ms, msServer: r.msServer, modello: r.modello });
                     return { testo: r.testo, modello: r.modello, costoUsd: r.costoUsd };
                 };
-                const e = await rispondiInChat(f, chiamata(SCRITTORE, 1500, 0.6), chiamata('traduttore', 700, 0)); // come motoreRacconti nel proxy
+                const e = await rispondiInChat(f, chiamata(SCRITTORE, 1500, 0.6), chiamata(REVISORE, 700, 0)); // come motoreRacconti nel proxy
                 const ms = Date.now() - t0;
                 riga.dopo = riga.dopo || {};
-                riga.dopo[SCRITTORE] = {
+                riga.dopo[CHIAVE] = {
                     testo: e.testo, esito: e.esito, motivi: e.motivi.slice(0, 6), prima: e.prima, modello: e.modello, modelloVerifica: e.modelloVerifica,
                     costoUsd: +e.costoUsd.toFixed(5), ms, msFonti, msServer: msFonti + tempi.reduce((s, x) => s + x.msServer, 0), chiamate: tempi,
                     fonti: [...tappe, ...nominati.luoghi].filter((l) => l.wikipedia || l.google).map((l) => ({ nome: l.nome, wikipedia: l.wikipedia?.titolo || null, google: l.google || null, testo: l.wikipedia?.testo?.slice(0, 1100) || null })),
@@ -164,8 +188,8 @@ describe('CHAT-VERITA', () => {
             }
             out.righe[d.n] = riga;
             salva(out);
-            const dd = riga.dopo?.[SCRITTORE];
-            console.log(`${d.n} [${d.tipo}] prima ${riga.prima?.ms} ms | dopo ${dd ? `${dd.esito} ${dd.ms} ms (server ~${dd.msServer}) ${dd.costoUsd} $` : '-'}`);
+            const dd = riga.dopo?.[CHIAVE];
+            console.log(`${d.n} [${d.tipo}] prima ${riga.prima?.ms} ms | dopo ${CHIAVE} ${dd ? `${dd.esito} ${dd.ms} ms (server ~${dd.msServer}) ${dd.costoUsd ?? '-'} $` : '-'}`);
         }
     }, 1_800_000);
 });

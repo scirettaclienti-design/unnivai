@@ -720,6 +720,9 @@ const MapPage = () => {
     const [routeStats, setRouteStats] = useState(null); // { durationSec, distanceM, mode }
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
     const [isGeminiOpen, setIsGeminiOpen] = useState(false);
+    // CHAT-ACCESSO-VELOCE — il luogo su cui si apre la chat dalla scheda della tappa (null = la chat del giro, dalla panoramica o dal badge del meteo)
+    const [chatLuogo, setChatLuogo] = useState(null);
+    const apriChat = (luogo = null) => { setChatLuogo(luogo); setIsGeminiOpen(true); };
 
     // VOCE-1: la voce umana (OpenAI) arriva da lib/voce.js; se non c'è parla il browser. Testi in lib/vociTesti.js.
     const [voceId, setVoceId] = useState(voceScelta);
@@ -2385,10 +2388,18 @@ const MapPage = () => {
                             {avvisoLontano && (
                                 <p data-testid="avviso-lontano" role="status" className="text-xs text-obsidian-primary font-semibold mt-1.5 leading-snug">{avvisoLontano}</p>
                             )}
-                            <button type="button" onClick={handleStartNavigationClick} data-testid="cambia-mezzo"
-                                className="mt-0 min-h-[44px] min-w-[44px] -mb-2 flex items-center text-[11px] font-semibold text-obsidian-secondary underline underline-offset-2 hover:text-obsidian-primary cursor-pointer">
-                                Cambia mezzo
-                            </button>
+                            {/* CHAT-ACCESSO-VELOCE — «Chiedi alla guida» accanto a «Cambia mezzo», a sinistra: mai sopra «Avvia» */}
+                            <div className="flex items-center gap-4 -mb-2">
+                                <button type="button" onClick={handleStartNavigationClick} data-testid="cambia-mezzo"
+                                    className="mt-0 min-h-[44px] min-w-[44px] flex items-center text-[11px] font-semibold text-obsidian-secondary underline underline-offset-2 hover:text-obsidian-primary cursor-pointer">
+                                    Cambia mezzo
+                                </button>
+                                <button type="button" onClick={() => apriChat(null)} data-testid="chiedi-guida-panoramica"
+                                    className="min-h-[44px] min-w-[44px] flex items-center gap-1.5 text-[11px] font-semibold text-obsidian-primary hover:text-brand-orange cursor-pointer">
+                                    <MessageCircle size={14} className="text-brand-orange" aria-hidden="true" />
+                                    {NAV_TESTI.CHIEDI_GUIDA}
+                                </button>
+                            </div>
                         </div>
                         {/* Contatta Guida rimosso per mantenere il focus sulla mappa e audio */}
                         {/* nav-camera: «Avvia» parte subito (la camera vola su di te, senza il pannello in mezzo); il mezzo si cambia da «Mezzo» */}
@@ -2701,6 +2712,12 @@ const MapPage = () => {
                     perche={scheda.perche} racconto={scheda.racconto}
                     minutiAllaProssima={scheda.minutiAllaProssima} nomeProssima={scheda.nomeProssima}
                     onChiudi={() => setSchedaId(null)} onRiparti={() => { setSchedaId(null); setArrivoId(null); }}
+                    onChiedi={() => {
+                        // la chat si apre sopra la scheda con questa tappa come luogo aperto: il server legge prima le sue fonti
+                        const stop = (activeRoute || []).find(s => s.id === schedaId);
+                        const step = stop ? (tourData?.steps?.[stop.index] || stop) : null;
+                        apriChat(stop ? { ...stop, name: stop.name || stop.title, place_id: step?.place_id || stop.place_id || step?.googlePlaceId || null } : null);
+                    }}
                 />
             )}
             {isSummaryModalOpen && (() => {
@@ -2745,8 +2762,8 @@ const MapPage = () => {
             {/* 12. GEMINI DRAWER */}
             <AIDrawer 
                 isOpen={isGeminiOpen} 
-                onClose={() => setIsGeminiOpen(false)} 
-                selectedPOI={selectedPOI} 
+                onClose={() => { setIsGeminiOpen(false); setChatLuogo(null); }}
+                selectedPOI={chatLuogo || selectedPOI}
                 activeCity={activeCity} 
                 // CHAT-VERITA — la guida riceve le tappe del giro (con ora e sosta) e, in navigazione, la prossima: le fonti le prende il server
                 tappe={(activeRoute || []).map((r) => ({ ...r, scheduledTime: tourData?.steps?.[r.index]?.scheduledTime, stayMinutes: tourData?.steps?.[r.index]?.stayMinutes }))}

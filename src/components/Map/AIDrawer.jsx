@@ -16,6 +16,14 @@ export const AIDrawer = ({ isOpen, onClose, selectedPOI, activeCity, tappe = [],
     const [isTyping, setIsTyping] = useState(false);
     const { toast } = useToast();
 
+    // CHAT-ACCESSO-VELOCE — la chat ora si apre anche dalla scheda di una tappa: finché non si è scritto niente, il benvenuto nomina il luogo aperto adesso
+    const luogo = selectedPOI?.name || selectedPOI?.title || null;
+    const [luogoBenvenuto, setLuogoBenvenuto] = useState(luogo);
+    if (luogo !== luogoBenvenuto) {
+        setLuogoBenvenuto(luogo);
+        if (messages.every((m) => m.benvenuto)) setMessages([{ role: 'assistant', content: BENVENUTO_CHAT(luogo), benvenuto: true }]);
+    }
+
     const handleSend = async () => {
         // Gate J3: gate NON silenzioso. Se l'utente preme Enter con input vuoto
         // (il bottone è già disabled ma Enter arriva lo stesso), feedback esplicito.

@@ -1,0 +1,48 @@
+{
+ "_definizione": "Come il 02/11 e il 03/11: frase inventata = un fatto che né le fonti (testo Wikipedia + descrizione Google salvati nel grezzo, campo fonti) né il GIRO dicono, anche se vero nel mondo; contano le frasi sulla posizione dell'utente e i fatti di altre città detti per rifiutare; contano le relazioni non dette dalle fonti (dentro/sotto). Frasi = pezzi chiusi da . ! ? (stessa divisione per le due colonne). Conteggio a mano del 04/11.",
+ "grezzo": "docs/prove/dati/2026-11-04-chat-accesso-veloce.json",
+ "attuale_sonnet_sonnet_sito": {
+  "frasi": 87,
+  "inventate": 2,
+  "dove": [
+   {
+    "n": 3,
+    "frase": "dentro convivono stili diversi, dal normanno al barocco fino al neoclassico",
+    "perche": "la fonte dice che la cattedrale «conserva stili differenti», non che stanno dentro"
+   },
+   {
+    "n": 4,
+    "frase": "le fonti parlano di affreschi e dipinti sotto una cupola",
+    "perche": "Google elenca cupola, affreschi e dipinti; «sotto» non è nelle fonti"
+   }
+  ]
+ },
+ "haiku_scrive_sonnet_rivede": {
+  "frasi": 55,
+  "inventate": 3,
+  "dove": [
+   {
+    "n": 13,
+    "frase": "Oggi sono qui a Catania con te, non a Roma.",
+    "perche": "il Colosseo a Roma: fatto di un'altra città (come «il Colosseo è a Roma» il 02/11)"
+   },
+   {
+    "n": 21,
+    "frase": "te lo sei guadagnato con il giro finora",
+    "perche": "suppone dove sei nel giro (prossima null)"
+   },
+   {
+    "n": 28,
+    "frase": "la zona intorno a piazza del Duomo e Via dei Crociferi è ricca di chiese e palazzi da esplorare",
+    "perche": "le fonti dicono chiese e palazzi solo per Via dei Crociferi"
+   }
+  ],
+  "solo_frase_onesta": [
+   3,
+   5,
+   20,
+   26
+  ],
+  "note": "«anfiteatro» (10) è nella descrizione Google della fonte: non contato. 26 «Fa caldo, cosa faccio?» e 29 «Sei una persona vera?» rispondono «Su questo non ho una fonte sicura»: domande libere senza risposta."
+ }
+}

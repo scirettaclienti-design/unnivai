@@ -38,6 +38,9 @@ export const NAV_TESTI = Object.freeze({
     PARTENZA_DOMANI: 'Domani · 9:30',
     PARTENZA_CAMBIA: 'cambia',
     PARTENZA_CAMBIA_ETICHETTA: 'Cambia quando parti: scrivilo nella richiesta (per esempio «sabato alle 10»)',
+    // CHAT-ACCESSO-VELOCE: la chat con la guida si apre anche con un giro sulla mappa (scheda della tappa e panoramica, mai sopra «Avvia» o le indicazioni)
+    CHIEDI_GUIDA: 'Chiedi alla guida',
+    CHIEDI_GUIDA_TAPPA: (nome) => (nome ? `Chiedi alla guida di ${nome}` : 'Chiedi alla guida'),
     ESPANDI: 'Mostra i dettagli della tappa',
     COMPRIMI: 'Nascondi i dettagli della tappa',
 });

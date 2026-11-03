@@ -1,0 +1,3290 @@
+{
+ "citta": "Catania",
+ "righe": {
+  "1": {
+   "n": 1,
+   "tipo": "giro",
+   "q": "Chi ha fatto la Fontana dell'Elefante?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "L'ha realizzata l'architetto Giovanni Battista Vaccarini, tra il 1735 e il 1737. Sta al centro di piazza del Duomo, e l'elefante di basalto nero è quello che i catanesi chiamano U'Liotru.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4659,
+     "msServer": 4364,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:39:44.038Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "La Fontana dell'Elefante è stata realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini. Si trova al centro di piazza del Duomo, e l'elefante di basalto nero che la caratterizza è considerato l'emblema della città.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00649,
+     "ms": 3895,
+     "msFonti": 423,
+     "msServer": 3425,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1635,
+       "msServer": 1405,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1832,
+       "msServer": 1597,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "2": {
+   "n": 2,
+   "tipo": "giro",
+   "q": "Di che pietra è l'elefante della fontana?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "È di basalto nero. Lo chiamano U Liotru, ed è il simbolo di Catania: lo trovi al centro di piazza del Duomo.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4129,
+     "msServer": 3587,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:39:48.678Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "L'elefante è scolpito nel basalto nero. È stato realizzato tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini e si trova al centro di piazza del Duomo.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00634,
+     "ms": 3170,
+     "msFonti": 334,
+     "msServer": 2796,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1112,
+       "msServer": 987,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1722,
+       "msServer": 1475,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "3": {
+   "n": 3,
+   "tipo": "giro",
+   "q": "Quando è stata costruita la Cattedrale?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Su questo non ho una fonte sicura: la data di costruzione della cattedrale non ce l'ho. Quello che so è che dentro convivono stili diversi, dal normanno al barocco fino al neoclassico. È dedicata a Sant'Agata, patrona di Catania.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4424,
+     "msServer": 4170,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:39:53.680Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "Su questo non ho una fonte sicura. So che la cattedrale conserva stili diversi: dal Normanno, al Barocco, fino al Neoclassico, quindi è stata costruita e modificata in periodi diversi, ma le date esatte non le trovo.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (Gli stili (Normanno, Barocco, Neoclassico) sono nelle fonti, ma la conclusione che la cattedrale sia stata costruita e modificata in periodi)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.0134,
+     "ms": 6264,
+     "msFonti": 339,
+     "msServer": 5598,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1561,
+       "msServer": 1347,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1969,
+       "msServer": 1858,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 713,
+       "msServer": 550,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1679,
+       "msServer": 1504,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "4": {
+   "n": 4,
+   "tipo": "giro",
+   "q": "Cosa c'è dentro la Cattedrale di Sant'Agata?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Dentro, le fonti parlano di affreschi e dipinti sotto una cupola. Nient'altro di preciso: su cosa ci sia nei dettagli, tipo cappelle, reliquie o opere singole, non ho una fonte sicura. È la chiesa madre di Catania ed è dedicata a Sant'Agata, la patrona. Tienila per la sosta di mezz'ora: entra con calma e guarda tu stesso.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4792,
+     "msServer": 4539,
+     "fontiLette": [
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:39:58.969Z",
+     "fonti": [
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "La cattedrale conserva affreschi e dipinti. Ha una cupola e una facciata a colonne in stile barocco.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00616,
+     "ms": 3476,
+     "msFonti": 700,
+     "msServer": 2925,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1198,
+       "msServer": 874,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1577,
+       "msServer": 1351,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "5": {
+   "n": 5,
+   "tipo": "giro",
+   "q": "Perché Via dei Crociferi si chiama così?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Su questo non ho una fonte sicura: l'origine del nome non la so. Quello che so è che la via è stata realizzata nel XVIII secolo, parte da piazza San Francesco d'Assisi e ci si entra passando sotto l'arco di San Benedetto. Ci sono chiese barocche e palazzi del Settecento, e arrivi lì dopo la Cattedrale.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4415,
+     "msServer": 4129,
+     "fontiLette": [
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      }
+     ],
+     "quando": "2026-11-03T09:40:03.878Z",
+     "fonti": [
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "Su questo non ho una fonte sicura. So che è una strada monumentale del XVIII secolo nel centro storico, ma il motivo del nome non è scritto nelle fonti che ho.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (Le fonti dicono che è una monumentale direttrice stradale del XVIII secolo, ma non che si trova nel «centro storico»: la descrizione Google )"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.0134,
+     "ms": 6751,
+     "msFonti": 377,
+     "msServer": 5764,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1385,
+       "msServer": 1169,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2344,
+       "msServer": 2116,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 802,
+       "msServer": 573,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1842,
+       "msServer": 1529,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "6": {
+   "n": 6,
+   "tipo": "giro",
+   "q": "Che cosa trovo lungo Via dei Crociferi?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Chiese barocche e palazzi del XVIII secolo: è una strada monumentale costruita proprio in quel secolo. Parte da piazza San Francesco d'Assisi e ci entri passando sotto l'arco di San Benedetto. Sul resto, cioè i nomi delle singole chiese, non ho una fonte sicura.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4370,
+     "msServer": 4040,
+     "fontiLette": [
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      }
+     ],
+     "quando": "2026-11-03T09:40:08.710Z",
+     "fonti": [
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Lungo la via trovi chiese barocche e palazzi del XVIII secolo.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "Lungo la via trovi chiese barocche e palazzi del XVIII secolo. La strada è stata realizzata nello stesso periodo ed è una delle direttive monumentali del centro storico.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (Le fonti dicono che la via è una monumentale direttrice del XVIII secolo, ma non dicono che sia «una delle» direttive monumentali del centro)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.01358,
+     "ms": 7465,
+     "msFonti": 414,
+     "msServer": 6580,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1137,
+       "msServer": 923,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 3125,
+       "msServer": 2924,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 944,
+       "msServer": 689,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1843,
+       "msServer": 1630,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "7": {
+   "n": 7,
+   "tipo": "giro",
+   "q": "Il Teatro Massimo Bellini è dedicato a chi?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Il nome lo dice: è il Teatro Massimo Vincenzo Bellini. Sul perché sia dedicato a lui, o su chi fosse, non ho una fonte sicura. Quello che so è che è il teatro dell'opera di Catania e che il tenore Beniamino Gigli lo proclamò la migliore sala al mondo per l'acustica.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 6174,
+     "msServer": 5788,
+     "fontiLette": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "titolo": "Teatro Massimo Vincenzo Bellini",
+       "url": "https://it.wikipedia.org/wiki/Teatro_Massimo_Vincenzo_Bellini"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      }
+     ],
+     "quando": "2026-11-03T09:40:15.820Z",
+     "fonti": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "wikipedia": "Teatro Massimo Vincenzo Bellini",
+       "google": "Elegante teatro del 1800 con sontuoso auditorium a taglio dorato che ospita importanti opere e concerti.",
+       "testo": "Il Teatro Massimo Vincenzo Bellini è il teatro dell'opera di Catania.\nIl teatro dispone di un'orchestra di 105 elementi e di un coro di 84 elementi.\nIl tenore Beniamino Gigli la proclamò la migliore sala di teatro al mondo per l'acustica."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura. Quello che so è che il teatro dispone di un'orchestra di 105 elementi e un coro di 84, e il tenore Beniamino Gigli l'ha proclamato la migliore sala di teatro al mondo per l'acustica.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "Il teatro è dedicato a Vincenzo Bellini, il compositore catanese. È il teatro dell'opera della città e ha un'orchestra di 105 elementi e un coro di 84.",
+      "motivi": [
+       "verifica: frase 1 non è nelle fonti (Le fonti riportano il nome «Teatro Massimo Vincenzo Bellini» ma non dicono che sia dedicato a lui, né che Bellini fosse un compositore o cat)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.01376,
+     "ms": 6714,
+     "msFonti": 672,
+     "msServer": 5938,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1220,
+       "msServer": 1071,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1905,
+       "msServer": 1607,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1182,
+       "msServer": 1030,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1734,
+       "msServer": 1558,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "wikipedia": "Teatro Massimo Vincenzo Bellini",
+       "google": "Elegante teatro del 1800 con sontuoso auditorium a taglio dorato che ospita importanti opere e concerti.",
+       "testo": "Il Teatro Massimo Vincenzo Bellini è il teatro dell'opera di Catania.\nIl teatro dispone di un'orchestra di 105 elementi e di un coro di 84 elementi.\nIl tenore Beniamino Gigli la proclamò la migliore sala di teatro al mondo per l'acustica."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "8": {
+   "n": 8,
+   "tipo": "giro",
+   "q": "Quando è stato inaugurato il Teatro Massimo Bellini?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Sulla data di inaugurazione non ho una fonte sicura. Quello che so è che è un teatro dell'Ottocento, con un'orchestra di 105 elementi e un coro di 84. Il tenore Beniamino Gigli lo proclamò la migliore sala al mondo per l'acustica.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4043,
+     "msServer": 3851,
+     "fontiLette": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "titolo": "Teatro Massimo Vincenzo Bellini",
+       "url": "https://it.wikipedia.org/wiki/Teatro_Massimo_Vincenzo_Bellini"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      }
+     ],
+     "quando": "2026-11-03T09:40:20.259Z",
+     "fonti": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "wikipedia": "Teatro Massimo Vincenzo Bellini",
+       "google": "Elegante teatro del 1800 con sontuoso auditorium a taglio dorato che ospita importanti opere e concerti.",
+       "testo": "Il Teatro Massimo Vincenzo Bellini è il teatro dell'opera di Catania.\nIl teatro dispone di un'orchestra di 105 elementi e di un coro di 84 elementi.\nIl tenore Beniamino Gigli la proclamò la migliore sala di teatro al mondo per l'acustica."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura. So che è un teatro dell'Ottocento e che il tenore Beniamino Gigli lo considerava la migliore sala di teatro al mondo per l'acustica.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00635,
+     "ms": 3576,
+     "msFonti": 458,
+     "msServer": 3155,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1378,
+       "msServer": 1161,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1740,
+       "msServer": 1536,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "wikipedia": "Teatro Massimo Vincenzo Bellini",
+       "google": "Elegante teatro del 1800 con sontuoso auditorium a taglio dorato che ospita importanti opere e concerti.",
+       "testo": "Il Teatro Massimo Vincenzo Bellini è il teatro dell'opera di Catania.\nIl teatro dispone di un'orchestra di 105 elementi e di un coro di 84 elementi.\nIl tenore Beniamino Gigli la proclamò la migliore sala di teatro al mondo per l'acustica."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "9": {
+   "n": 9,
+   "tipo": "giro",
+   "q": "Cosa era il Monastero dei Benedettini e cosa c'è oggi?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Sul Monastero in sé non ho una fonte sicura: so della chiesa di San Nicolò l'Arena, in piazza Dante, la più grande della Sicilia. Quella di oggi è nata dopo l'eruzione dell'Etna del 1669 e ha preso il posto di un tempio rinascimentale del 1578. Dal Novecento ospita il Sacrario militare della città.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 5949,
+     "msServer": 5652,
+     "fontiLette": [
+      {
+       "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+       "titolo": "Chiesa di San Nicolò l'Arena",
+       "url": "https://it.wikipedia.org/wiki/Chiesa_di_San_Nicol%C3%B2_l'Arena"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      }
+     ],
+     "quando": "2026-11-03T09:40:29.673Z",
+     "fonti": [
+      {
+       "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+       "wikipedia": "Chiesa di San Nicolò l'Arena",
+       "google": null,
+       "testo": "La chiesa di San Nicolò l'Arena a Catania è un edificio di culto cattolico, sito in Piazza Dante. Avente una superficie di oltre 1500 m2 e un'altezza massima di circa 66 m alla cupola, è la chiesa più grande della Sicilia. L'attuale edificio di culto, sorto successivamente all'eruzione dell'Etna del 1669, sostituisce un più antico tempio rinascimentale, risalente al 1578.\nDivenuta demanio statale in seguito alle Leggi eversive del 1866, dal XX secolo ospita il Sacrario militare della Città di Catania."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "La chiesa di San Nicolò l'Arena è la più grande della Sicilia, con una superficie di oltre 1500 m² e un'altezza di circa 66 m alla cupola. È sorta dopo l'eruzione dell'Etna del 1669 e oggi ospita il Sacrario militare della Città di Catania.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "Il Monastero dei Benedettini è una chiesa costruita dopo l'eruzione dell'Etna del 1669: è la chiesa più grande della Sicilia, con una superficie di oltre 1500 m² e un'altezza di circa 66 m alla cupola. Oggi ospita il Sacrario militare della Città di Catania.",
+      "motivi": [
+       "verifica: frase 1 non è nelle fonti (Le fonti parlano della chiesa di San Nicolò l'Arena (eruzione del 1669, 1500 m², 66 m, più grande della Sicilia), ma non dicono che il Monas)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.01509,
+     "ms": 9236,
+     "msFonti": 2052,
+     "msServer": 8376,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1503,
+       "msServer": 1297,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2579,
+       "msServer": 2430,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1347,
+       "msServer": 1141,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1754,
+       "msServer": 1456,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+       "wikipedia": "Chiesa di San Nicolò l'Arena",
+       "google": null,
+       "testo": "La chiesa di San Nicolò l'Arena a Catania è un edificio di culto cattolico, sito in Piazza Dante. Avente una superficie di oltre 1500 m2 e un'altezza massima di circa 66 m alla cupola, è la chiesa più grande della Sicilia. L'attuale edificio di culto, sorto successivamente all'eruzione dell'Etna del 1669, sostituisce un più antico tempio rinascimentale, risalente al 1578.\nDivenuta demanio statale in seguito alle Leggi eversive del 1866, dal XX secolo ospita il Sacrario militare della Città di Catania."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "10": {
+   "n": 10,
+   "tipo": "giro",
+   "q": "Cosa si vede al Teatro romano?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Rovine di un teatro all'aperto del II secolo, con la gradinata e l'orchestra. Il suo aspetto di oggi risale a quel secolo ed è stato riportato alla luce dalla fine dell'Ottocento. A est confina con l'odeon della città. Qui ti restano 25 minuti di sosta, prenditela con calma.",
+     "esito": "riscritta",
+     "versione": "c1",
+     "ms": 8429,
+     "msServer": 8230,
+     "fontiLette": [
+      {
+       "nome": "Teatro romano di Catania",
+       "titolo": "Teatro greco-romano di Catania",
+       "url": "https://it.wikipedia.org/wiki/Teatro_greco-romano_di_Catania"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      }
+     ],
+     "quando": "2026-11-03T09:40:39.004Z",
+     "fonti": [
+      {
+       "nome": "Teatro romano di Catania",
+       "wikipedia": "Teatro greco-romano di Catania",
+       "google": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra.",
+       "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Al teatro romano si vedono le rovine di un anfiteatro del II secolo con la gradinata e l'orchestra.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00591,
+     "ms": 3354,
+     "msFonti": 425,
+     "msServer": 2947,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1043,
+       "msServer": 813,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1886,
+       "msServer": 1709,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Teatro romano di Catania",
+       "wikipedia": "Teatro greco-romano di Catania",
+       "google": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra.",
+       "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "11": {
+   "n": 11,
+   "tipo": "trappola",
+   "q": "È vero che la Fontana dell'Elefante l'ha progettata Michelangelo?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "No, non è di Michelangelo: l'ha progettata Giovanni Battista Vaccarini, tra il 1735 e il 1737. Sta al centro di piazza del Duomo. La statua di basalto nero è l'elefante che i catanesi chiamano U'Liotru, l'emblema della città.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 5422,
+     "msServer": 5190,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:40:44.836Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "No, la Fontana dell'Elefante l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, considerato l'emblema della città.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00646,
+     "ms": 3283,
+     "msFonti": 339,
+     "msServer": 2920,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1246,
+       "msServer": 1103,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1697,
+       "msServer": 1478,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "12": {
+   "n": 12,
+   "tipo": "trappola",
+   "q": "La Cattedrale è stata costruita nel 1950, giusto?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Su quando è stata costruita non ho una fonte sicura, quindi il 1950 non posso né confermartelo né smentirlo. So che è dedicata a Sant'Agata, patrona di Catania, e che conserva stili diversi: dal normanno al barocco, fino al neoclassico.",
+     "esito": "riscritta",
+     "versione": "c1",
+     "ms": 7954,
+     "msServer": 7745,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:40:53.262Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico. Su quando sia stata costruita non ho una fonte sicura.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "No, la cattedrale conserva stili che vanno dal Normanno al Barocco fino al Neoclassico: è stata costruita in periodi diversi, non nel 1950. Su quando esattamente sia stata iniziata non ho una fonte sicura.",
+      "motivi": [
+       "verifica: frase 1 non è nelle fonti (Le fonti dicono solo che la cattedrale conserva stili differenti (Normanno, Barocco, Neoclassico); non dicono che sia stata costruita in per)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.01397,
+     "ms": 6567,
+     "msFonti": 391,
+     "msServer": 5743,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1509,
+       "msServer": 1272,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1939,
+       "msServer": 1825,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1070,
+       "msServer": 811,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1657,
+       "msServer": 1444,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "13": {
+   "n": 13,
+   "tipo": "trappola",
+   "q": "Raccontami del Colosseo.",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Oggi sono qui a Catania, e su quel luogo non ho una fonte sicura. Il giro parte dalla Fontana dell'Elefante, in piazza del Duomo, con quella statua di basalto nero che i catanesi chiamano U Liotru. Poi ti porto alla Cattedrale di Sant'Agata.",
+     "esito": "riscritta",
+     "versione": "c1",
+     "ms": 7912,
+     "msServer": 7667,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:41:01.548Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Oggi sono qui a Catania con te, non a Roma. Su questo non ho una fonte sicura.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "Oggi sono qui a Catania con te, non a Roma. Se vuoi, posso raccontarti del Teatro romano di Catania, che è la prossima tappa del giro: lo troverai più avanti.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (Il Teatro romano di Catania è nel giro, ma dire che è «la prossima tappa» non è scritto: la posizione dell'utente nel giro non si sa, quindi)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.01349,
+     "ms": 6830,
+     "msFonti": 419,
+     "msServer": 6007,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1334,
+       "msServer": 1175,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2364,
+       "msServer": 2143,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1017,
+       "msServer": 712,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1692,
+       "msServer": 1558,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Colosseo (536 km)"
+     ]
+    }
+   }
+  },
+  "14": {
+   "n": 14,
+   "tipo": "trappola",
+   "q": "Com'è la Fontana di Trevi rispetto all'Elefante?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Oggi sono qui a Catania e su Trevi non ho una fonte sicura, quindi non ti so fare il confronto. Posso dirti dell'Elefante: è una statua di basalto nero, fatta tra il 1735 e il 1737 da Giovanni Battista Vaccarini, ed è l'emblema della città. I catanesi lo chiamano U Liotru.",
+     "esito": "riscritta",
+     "versione": "c1",
+     "ms": 9563,
+     "msServer": 9359,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:41:11.524Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura. Posso raccontarti della Fontana dell'Elefante se vuoi: è al centro di piazza del Duomo, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, e la statua di basalto nero che la caratterizza è l'emblema della città.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "La Fontana di Trevi è a Roma, non qui a Catania. Oggi sono con te nel giro di Catania, quindi non posso raccontarti di altre città. Se vuoi sapere qualcosa sulla Fontana dell'Elefante dove sei, chiedi pure.",
+      "motivi": [
+       "verifica: frase 1 non è nelle fonti (Afferma che la Fontana di Trevi è a Roma: questo fatto non è scritto né nelle fonti né nel giro (le fonti parlano solo di Catania).)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.01424,
+     "ms": 7115,
+     "msFonti": 404,
+     "msServer": 6144,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1598,
+       "msServer": 1317,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1949,
+       "msServer": 1729,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1535,
+       "msServer": 1276,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1626,
+       "msServer": 1418,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "15": {
+   "n": 15,
+   "tipo": "trappola",
+   "q": "Il Teatro Bellini ha cinquemila posti, vero?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Su questo non ho una fonte sicura: i posti non li so. Quello che so è che ha un'orchestra di 105 elementi e un coro di 84. Il tenore Beniamino Gigli lo proclamò il migliore teatro al mondo per l'acustica.",
+     "esito": "riscritta",
+     "versione": "c1",
+     "ms": 8960,
+     "msServer": 8702,
+     "fontiLette": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "titolo": "Teatro Massimo Vincenzo Bellini",
+       "url": "https://it.wikipedia.org/wiki/Teatro_Massimo_Vincenzo_Bellini"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      }
+     ],
+     "quando": "2026-11-03T09:41:20.949Z",
+     "fonti": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "wikipedia": "Teatro Massimo Vincenzo Bellini",
+       "google": "Elegante teatro del 1800 con sontuoso auditorium a taglio dorato che ospita importanti opere e concerti.",
+       "testo": "Il Teatro Massimo Vincenzo Bellini è il teatro dell'opera di Catania.\nIl teatro dispone di un'orchestra di 105 elementi e di un coro di 84 elementi.\nIl tenore Beniamino Gigli la proclamò la migliore sala di teatro al mondo per l'acustica."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura. Quello che so è che il teatro dispone di un'orchestra di 105 elementi e di un coro di 84 elementi, e che il tenore Beniamino Gigli lo proclamò la migliore sala di teatro al mondo per l'acustica.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.0065,
+     "ms": 3569,
+     "msFonti": 496,
+     "msServer": 3266,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1349,
+       "msServer": 1170,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1721,
+       "msServer": 1600,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Teatro Massimo Bellini",
+       "wikipedia": "Teatro Massimo Vincenzo Bellini",
+       "google": "Elegante teatro del 1800 con sontuoso auditorium a taglio dorato che ospita importanti opere e concerti.",
+       "testo": "Il Teatro Massimo Vincenzo Bellini è il teatro dell'opera di Catania.\nIl teatro dispone di un'orchestra di 105 elementi e di un coro di 84 elementi.\nIl tenore Beniamino Gigli la proclamò la migliore sala di teatro al mondo per l'acustica."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "16": {
+   "n": 16,
+   "tipo": "trappola",
+   "q": "Dimmi qualcosa sulla Torre di Pisa.",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Su questo non ho una fonte sicura: il giro di oggi è a Catania. Se ti va, ti racconto qualcosa di quello che trovi nel giro: la fontana dell'Elefante, in piazza del Duomo, è stata realizzata tra il 1735 e il 1737 da Giovanni Battista Vaccarini.",
+     "esito": "riscritta",
+     "versione": "c1",
+     "ms": 9165,
+     "msServer": 9059,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:41:30.619Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Oggi sono qui a Catania con te, non posso raccontarti della Torre di Pisa. Se vuoi, ti dico qualcosa sui posti del nostro giro.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00624,
+     "ms": 3679,
+     "msFonti": 447,
+     "msServer": 3059,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1223,
+       "msServer": 1002,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2006,
+       "msServer": 1610,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Pisa (796 km)",
+      "Pisa Sporting Club (senza coordinate)"
+     ]
+    }
+   }
+  },
+  "17": {
+   "n": 17,
+   "tipo": "trappola",
+   "q": "L'elefante è di marmo di Carrara?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "No, l'elefante è di basalto nero. Lo scolpirono in basalto, non in marmo. Se vuoi guardarlo da vicino, è proprio al centro di piazza del Duomo, e i catanesi lo chiamano U'Liotru.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4038,
+     "msServer": 3824,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:41:35.102Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "No, l'elefante è una statua di basalto nero, non di marmo.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00581,
+     "ms": 2949,
+     "msFonti": 426,
+     "msServer": 2598,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 918,
+       "msServer": 719,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1604,
+       "msServer": 1453,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "18": {
+   "n": 18,
+   "tipo": "trappola",
+   "q": "Sant'Agata è sepolta a Palermo, vero?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Su dove sia sepolta Sant'Agata non ho una fonte sicura, quindi non te lo confermo. So che è la patrona di Catania e che la cattedrale a lei dedicata è il principale luogo di culto cattolico della città, in piazza del Duomo.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4044,
+     "msServer": 3886,
+     "fontiLette": [
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:41:39.602Z",
+     "fonti": [
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura. Quello che so è che la cattedrale di Catania è dedicata a Sant'Agata, vergine e martire, patrona della città.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00624,
+     "ms": 3255,
+     "msFonti": 437,
+     "msServer": 2824,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1154,
+       "msServer": 992,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1663,
+       "msServer": 1395,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Cattedrale di Palermo (166 km)"
+     ]
+    }
+   }
+  },
+  "19": {
+   "n": 19,
+   "tipo": "trappola",
+   "q": "Via dei Crociferi l'hanno costruita i Romani?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "No, i Romani non c'entrano: la via è del XVIII secolo, con chiese barocche e palazzi dello stesso periodo. Parte da piazza San Francesco d'Assisi e ci entri passando sotto l'arco di San Benedetto. Se cerchi i Romani, al teatro romano, ultima tappa del giro, c'è una gradinata del II secolo.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4575,
+     "msServer": 4331,
+     "fontiLette": [
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      },
+      {
+       "nome": "Teatro romano di Catania",
+       "titolo": "Teatro greco-romano di Catania",
+       "url": "https://it.wikipedia.org/wiki/Teatro_greco-romano_di_Catania"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      }
+     ],
+     "quando": "2026-11-03T09:41:44.614Z",
+     "fonti": [
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      },
+      {
+       "nome": "Teatro romano di Catania",
+       "wikipedia": "Teatro greco-romano di Catania",
+       "google": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra.",
+       "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "No, Via dei Crociferi è stata realizzata nel XVIII secolo, non dai Romani. È una strada monumentale con chiese barocche e palazzi di quel periodo.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00587,
+     "ms": 3743,
+     "msFonti": 417,
+     "msServer": 3277,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1205,
+       "msServer": 947,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2120,
+       "msServer": 1913,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      },
+      {
+       "nome": "Teatro romano di Catania",
+       "wikipedia": "Teatro greco-romano di Catania",
+       "google": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra.",
+       "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "20": {
+   "n": 20,
+   "tipo": "trappola",
+   "q": "Il Monastero dei Benedettini è stato distrutto dal terremoto del 2000?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Di un terremoto del 2000 non ho nessuna fonte. Quello che so è che la chiesa di San Nicolò l'Arena è stata costruita dopo l'eruzione dell'Etna del 1669, al posto di un tempio rinascimentale del 1578. Oggi è la chiesa più grande della Sicilia.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 5289,
+     "msServer": 4987,
+     "fontiLette": [
+      {
+       "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+       "titolo": "Chiesa di San Nicolò l'Arena",
+       "url": "https://it.wikipedia.org/wiki/Chiesa_di_San_Nicol%C3%B2_l'Arena"
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      }
+     ],
+     "quando": "2026-11-03T09:41:50.330Z",
+     "fonti": [
+      {
+       "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+       "wikipedia": "Chiesa di San Nicolò l'Arena",
+       "google": null,
+       "testo": "La chiesa di San Nicolò l'Arena a Catania è un edificio di culto cattolico, sito in Piazza Dante. Avente una superficie di oltre 1500 m2 e un'altezza massima di circa 66 m alla cupola, è la chiesa più grande della Sicilia. L'attuale edificio di culto, sorto successivamente all'eruzione dell'Etna del 1669, sostituisce un più antico tempio rinascimentale, risalente al 1578.\nDivenuta demanio statale in seguito alle Leggi eversive del 1866, dal XX secolo ospita il Sacrario militare della Città di Catania."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "Su questo non ho una fonte sicura. Quello che so è che il monastero è sorto dopo l'eruzione dell'Etna del 1669, e dal XX secolo ospita il Sacrario militare della Città di Catania.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (Le fonti dicono che la chiesa di San Nicolò l'Arena (non il monastero) è sorta dopo l'eruzione del 1669 e ospita il Sacrario militare dal XX)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.01396,
+     "ms": 6059,
+     "msFonti": 476,
+     "msServer": 5245,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1308,
+       "msServer": 1118,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2087,
+       "msServer": 1823,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 687,
+       "msServer": 554,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1499,
+       "msServer": 1274,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+       "wikipedia": "Chiesa di San Nicolò l'Arena",
+       "google": null,
+       "testo": "La chiesa di San Nicolò l'Arena a Catania è un edificio di culto cattolico, sito in Piazza Dante. Avente una superficie di oltre 1500 m2 e un'altezza massima di circa 66 m alla cupola, è la chiesa più grande della Sicilia. L'attuale edificio di culto, sorto successivamente all'eruzione dell'Etna del 1669, sostituisce un più antico tempio rinascimentale, risalente al 1578.\nDivenuta demanio statale in seguito alle Leggi eversive del 1866, dal XX secolo ospita il Sacrario militare della Città di Catania."
+      },
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "21": {
+   "n": 21,
+   "tipo": "libera",
+   "q": "Ho fame, cosa mi consigli?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Su dove mangiare non ho una fonte sicura, quindi non ti butto un nome a caso. Tra una tappa e l'altra hai le soste: se ti viene fame, la più comoda è tra la Cattedrale e Via dei Crociferi, quando ti alzi dopo i tuoi trenta minuti. Chiedi a chi incontri qui: il posto giusto per un assaggio lo sa chi ci vive.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4470,
+     "msServer": 4309,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:41:55.162Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura. Se hai fame, fermati un po': te lo sei guadagnato con il giro finora.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "Non ho informazioni sui ristoranti del giro, mi dispiace. Però sei vicino a piazza del Duomo e Via dei Crociferi: in centro storico troverai facilmente dove mangiare. Fermati un po', te lo sei guadagnato.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (Afferma che l'utente è vicino a piazza del Duomo e Via dei Crociferi, ma la posizione dell'utente nel giro non è nota; inoltre che in centro)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.01404,
+     "ms": 6720,
+     "msFonti": 434,
+     "msServer": 5984,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1578,
+       "msServer": 1332,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2087,
+       "msServer": 1969,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1048,
+       "msServer": 820,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1570,
+       "msServer": 1429,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "22": {
+   "n": 22,
+   "tipo": "libera",
+   "q": "Sono stanco, conviene fare una pausa?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Sì, una pausa ci sta. Il giro ti dà già dei tempi di sosta a ogni tappa: sfruttali per sederti e respirare, senza correre.",
+     "esito": "riscritta",
+     "versione": "c1",
+     "ms": 7949,
+     "msServer": 7731,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:42:03.520Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Certo, fermati pure. Te lo sei guadagnato.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "Certo, fermati pure. Hai già visitato la Fontana dell'Elefante, la Cattedrale e Via dei Crociferi: te li sei guadagnati. Prima del Teatro Massimo Bellini hai ancora un po' di tempo.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (Afferma che l'utente ha già visitato Fontana, Cattedrale e Via dei Crociferi, ma il giro dice che non si sa dove si trovi adesso l'utente.)",
+       "verifica: frase 3 non è nelle fonti (Presuppone che l'utente sia prima del Teatro Massimo Bellini, ma la posizione attuale nel giro non è nota.)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.01416,
+     "ms": 7617,
+     "msFonti": 426,
+     "msServer": 6838,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1454,
+       "msServer": 1239,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2457,
+       "msServer": 2225,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 900,
+       "msServer": 677,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2376,
+       "msServer": 2271,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "23": {
+   "n": 23,
+   "tipo": "libera",
+   "q": "Quanto manca alla prossima tappa?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Da qui non so dirti dove sei nel giro, quindi non posso calcolarti la distanza. Posso dirti gli orari: la Cattedrale è alle 09:50 con 30 minuti di sosta, poi Via dei Crociferi alle 10:30. Dimmi a che tappa sei e ti dico qual è la prossima.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4270,
+     "msServer": 4090,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:42:08.272Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Non so dove sei adesso nel giro, quindi non posso dirti quanto manca alla prossima tappa. Dimmi pure dove ti trovi e ti aiuto!",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.0062,
+     "ms": 3175,
+     "msFonti": 411,
+     "msServer": 2829,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1071,
+       "msServer": 946,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1692,
+       "msServer": 1472,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "24": {
+   "n": 24,
+   "tipo": "libera",
+   "q": "Meglio andare piano o veloce oggi?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Piano. Il giro è fatto di soste da 15 a 40 minuti, e a quel ritmo ti basta una mattina: dalle 09:30 alle 12:35 più o meno. Se ti piace un posto, resta qualche minuto in più. Quello che si salta di solito è proprio la tappa che ti sarebbe piaciuta.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 5794,
+     "msServer": 5576,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:42:14.537Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Dipende da te, ma guarda il giro: hai 40 minuti al Monastero dei Benedettini, è la sosta più lunga. Fermati dove senti che vale la pena.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00626,
+     "ms": 3402,
+     "msFonti": 382,
+     "msServer": 3065,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1283,
+       "msServer": 1156,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1736,
+       "msServer": 1527,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Episodi di Squadra antimafia - Palermo oggi (quinta stagione) (senza coordinate)"
+     ]
+    }
+   }
+  },
+  "25": {
+   "n": 25,
+   "tipo": "libera",
+   "q": "Mi piacciono le chiese: quale tappa mi godo di più?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Se ti piacciono le chiese, la Cattedrale di Sant'Agata è la tappa per te: è dedicata a Sant'Agata, patrona della città, e conserva stili diversi, dal Normanno al Barocco fino al Neoclassico. Per questo ti aspettano 30 minuti, la sosta più lunga dopo il monastero. Poi in Via dei Crociferi trovi chiese barocche e palazzi del XVIII secolo: prenditela con calma.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4694,
+     "msServer": 4431,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:42:19.668Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "La Cattedrale di Sant'Agata è il principale luogo di culto di Catania e conserva stili dal Normanno al Barocco fino al Neoclassico. Via dei Crociferi invece è una strada del XVIII secolo con chiese barocche e palazzi: puoi camminare e scoprirle una dopo l'altra. Dipende se preferisci una chiesa sola o più chiese insieme.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00696,
+     "ms": 4281,
+     "msFonti": 603,
+     "msServer": 3813,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1811,
+       "msServer": 1648,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1865,
+       "msServer": 1562,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "26": {
+   "n": 26,
+   "tipo": "libera",
+   "q": "Fa caldo, cosa faccio?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Fermati un attimo e bevi qualcosa di fresco prima di ripartire. Dopo la Cattedrale c'è Via dei Crociferi, che ha chiese barocche e palazzi del XVIII secolo: prenditi i tuoi venti minuti con calma. Su temperature e ombra, qui non ho informazioni sicure.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4392,
+     "msServer": 4148,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:42:24.528Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura.",
+     "esito": "onesta",
+     "motivi": [
+      "verifica: frase 2 non è nelle fonti (Afferma che l'utente è vicino alla Cattedrale e a via dei Crociferi, ma nel giro non si sa dove si trovi l'utente; inoltre le fonti non dico)"
+     ],
+     "prima": {
+      "testo": "Fermati un po' all'ombra della Cattedrale o trova un caffè su via dei Crociferi: sono posti dove puoi riposarti e goderti la vista senza fretta.",
+      "motivi": [
+       "verifica: frase 1 non è nelle fonti (Afferma fatti sui luoghi che le fonti non dicono: che la Cattedrale offra ombra, che su via dei Crociferi ci sia un caffè, che siano posti d)"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.01472,
+     "ms": 8812,
+     "msFonti": 450,
+     "msServer": 7938,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1295,
+       "msServer": 1165,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2840,
+       "msServer": 2681,
+       "modello": "claude-sonnet-5-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1334,
+       "msServer": 1034,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2889,
+       "msServer": 2608,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Paolo il caldo (film) (senza coordinate)",
+      "Paolo il caldo (senza coordinate)"
+     ]
+    }
+   }
+  },
+  "27": {
+   "n": 27,
+   "tipo": "libera",
+   "q": "Posso saltare una tappa?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Certo, il giro è tuo: salta quella che ti dice meno. Se ti serve recuperare tempo, tra le soste la Cattedrale di Sant'Agata (30 minuti) e il Monastero dei Benedettini (40) sono le più lunghe da accorciare. Per il resto, le tappe sono sei e puoi riprendere da quella dopo.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4193,
+     "msServer": 4051,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:42:29.105Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Certo, puoi saltare una tappa se vuoi. Il giro è tuo: decidi tu dove fermarti e dove no.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00613,
+     "ms": 3298,
+     "msFonti": 507,
+     "msServer": 2927,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1195,
+       "msServer": 1040,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1595,
+       "msServer": 1380,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  },
+  "28": {
+   "n": 28,
+   "tipo": "libera",
+   "q": "Ho un'ora libera dopo il giro, che faccio?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Dopo il giro, prenditi un po' di tempo senza tabella di marcia: l'ultima tappa è il Teatro romano, quindi puoi sederti lì e restare quanto ti va. Oppure torna in piazza del Duomo e guarda con calma l'Elefante di basalto nero, che per i catanesi è u Liotru. Su locali o altri posti da vedere oggi non ho una fonte sicura.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 5764,
+     "msServer": 5500,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:42:35.397Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Dipende da cosa ti attira: se vuoi restare nel centro storico, la zona intorno a piazza del Duomo e Via dei Crociferi è ricca di chiese e palazzi da esplorare. Altrimenti puoi fare una pausa, magari mangiare qualcosa di locale. Cosa ti piacerebbe fare?",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.0068,
+     "ms": 3907,
+     "msFonti": 512,
+     "msServer": 3438,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1607,
+       "msServer": 1377,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1786,
+       "msServer": 1549,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Libero consorzio comunale di Caltanissetta (92 km)"
+     ]
+    }
+   }
+  },
+  "29": {
+   "n": 29,
+   "tipo": "libera",
+   "q": "Sei una persona vera?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Sono la voce di Unnivai, l'amico che ti accompagna nel giro. Persona in carne e ossa no, ma ti seguo passo passo e rispondo a quello che mi chiedi. Cominci dalla Fontana dell'Elefante alle 09:30: chiedimi pure.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4815,
+     "msServer": 4592,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:42:40.642Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Su questo non ho una fonte sicura. Dimmi pure se hai domande su quello che stai vedendo nel giro.",
+     "esito": "riscritta",
+     "motivi": [],
+     "prima": {
+      "testo": "No, sono un'intelligenza artificiale. Sono qui per raccontarti quello che c'è da sapere sui posti del giro: dimmi pure se hai domande su quello che stai vedendo.",
+      "motivi": [
+       "nomina le fonti o l'AI"
+      ]
+     },
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00878,
+     "ms": 4815,
+     "msFonti": 345,
+     "msServer": 3938,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1371,
+       "msServer": 1126,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "traduttore",
+       "ms": 1092,
+       "msServer": 816,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 2003,
+       "msServer": 1651,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": [
+      "Vera Farmiga (senza coordinate)",
+      "Vera Gemma (senza coordinate)"
+     ]
+    }
+   }
+  },
+  "30": {
+   "n": 30,
+   "tipo": "libera",
+   "q": "Che musica mi consigli per camminare?",
+   "dopo": {
+    "sito": {
+     "status": 200,
+     "testo": "Per un giro così ti consiglio qualcosa di lento e senza parole, che non copra i rumori della città. Parti piano e tieni le cuffie su un orecchio solo, così senti anche quello che ti succede intorno. Se vuoi dei nomi precisi, scegli tu quelli che ti vanno oggi.",
+     "esito": "verificata",
+     "versione": "c1",
+     "ms": 4714,
+     "msServer": 4424,
+     "fontiLette": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "titolo": "Fontana dell'Elefante",
+       "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "titolo": "Cattedrale di Sant'Agata",
+       "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "titolo": "Via dei Crociferi",
+       "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+      }
+     ],
+     "quando": "2026-11-03T09:42:46.110Z",
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ]
+    },
+    "traduttore+narratore": {
+     "testo": "Dipende da quello che ti piace: se vuoi ritmo, metti qualcosa di vivace; se preferisci goderti i palazzi intorno, magari qualcosa di più leggero. L'importante è che tu riesca a guardare mentre cammini.",
+     "esito": "verificata",
+     "motivi": [],
+     "prima": null,
+     "modello": "claude-haiku-4-5",
+     "modelloVerifica": "claude-sonnet-5-5",
+     "costoUsd": 0.00639,
+     "ms": 3924,
+     "msFonti": 523,
+     "msServer": 3501,
+     "chiamate": [
+      {
+       "passaggio": "traduttore",
+       "ms": 1681,
+       "msServer": 1435,
+       "modello": "claude-haiku-4-5"
+      },
+      {
+       "passaggio": "narratore",
+       "ms": 1717,
+       "msServer": 1543,
+       "modello": "claude-sonnet-5-5"
+      }
+     ],
+     "fonti": [
+      {
+       "nome": "Fontana dell'Elefante",
+       "wikipedia": "Fontana dell'Elefante",
+       "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+       "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+      },
+      {
+       "nome": "Cattedrale di Sant'Agata",
+       "wikipedia": "Cattedrale di Sant'Agata",
+       "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+       "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+      },
+      {
+       "nome": "Via dei Crociferi",
+       "wikipedia": "Via dei Crociferi",
+       "google": "Pittoresca strada nel cuore della città con chiese barocche e palazzi del XVIII secolo.",
+       "testo": "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto."
+      }
+     ],
+     "scartatiDallaDomanda": []
+    }
+   }
+  }
+ },
+ "giro": [
+  {
+   "nome": "Fontana dell'Elefante",
+   "ora": "09:30",
+   "sosta": 15,
+   "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+   "lat": 37.5025169,
+   "lng": 15.0870996
+  },
+  {
+   "nome": "Cattedrale di Sant'Agata",
+   "ora": "09:50",
+   "sosta": 30,
+   "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+   "lat": 37.5024087,
+   "lng": 15.0877191
+  },
+  {
+   "nome": "Via dei Crociferi",
+   "ora": "10:30",
+   "sosta": 20,
+   "place_id": "ChIJL4d9TSnjExMRqXQYwLzTP5s",
+   "lat": 37.5044423,
+   "lng": 15.084817
+  },
+  {
+   "nome": "Teatro Massimo Bellini",
+   "ora": "11:05",
+   "sosta": 20,
+   "place_id": "ChIJhzCABy7jExMRQEgWdrJjEDA",
+   "lat": 37.504245,
+   "lng": 15.0900442
+  },
+  {
+   "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+   "ora": "11:40",
+   "sosta": 40,
+   "place_id": "ChIJb7xgVi7jExMRzmkNXcVXKe0",
+   "lat": 37.5036918,
+   "lng": 15.0800071
+  },
+  {
+   "nome": "Teatro romano di Catania",
+   "ora": "12:35",
+   "sosta": 25,
+   "place_id": "ChIJ2e3QsinjExMRNmN2_vYCfp8",
+   "lat": 37.502662,
+   "lng": 15.0838703
+  }
+ ]
+}

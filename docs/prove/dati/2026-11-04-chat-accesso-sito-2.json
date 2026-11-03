@@ -1,0 +1,82 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-03T10:31:10.428Z",
+ "titolo": "Unnivai | Esplora l'Italia Autentica",
+ "panoramica": {
+  "tasto": "Chiedi alla guida",
+  "boxTasto": {
+   "x": 120,
+   "y": 587,
+   "width": 106,
+   "height": 44
+  },
+  "boxAvvia": {
+   "x": 292,
+   "y": 547,
+   "width": 71,
+   "height": 56
+  },
+  "sopraAvvia": false,
+  "foto": "docs/prove/schermate/chat-accesso/1-panoramica.png",
+  "benvenuto": "Assistente Unnivai\n\nAI GUIDE\n\nUNNIVAI AI\nChiedimi del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nL'assistente AI può commettere errori. Verifica le info sensibili.",
+  "attesa": true,
+  "msSchermo": 5870,
+  "fonti": "Fonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi",
+  "fotoRisposta": "docs/prove/schermate/chat-accesso/2-panoramica-risposta.png"
+ },
+ "scheda": {
+  "inNavigazioneTastiChiedi": 0,
+  "fotoNavigazione": "docs/prove/schermate/chat-accesso/3-navigazione.png",
+  "tasto": "Chiedi alla guida",
+  "boxTasto": {
+   "x": 16,
+   "y": 556,
+   "width": 358,
+   "height": 44
+  },
+  "boxRiparti": {
+   "x": 16,
+   "y": 608,
+   "width": 358,
+   "height": 44
+  },
+  "sopraRiparti": false,
+  "foto": "docs/prove/schermate/chat-accesso/4-scheda.png",
+  "benvenuto": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nSono stanco, conviene fare una pausa?\nUNNIVAI AI\nSì, fermati un attimo. Il giro è lungo ma ha le sue soste: a ogni tappa hai da 15 a 40 minuti per sederti e riprendere fiato. Quella più lunga è al Monastero dei Benedettini, 40 minuti. Se vuoi tirare il fiato prima, la Cattedrale ti concede 30 minuti.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nL'assistente AI può commettere errori. Verifica le info sensibili.",
+  "fotoAperta": "docs/prove/schermate/chat-accesso/5-chat-dalla-scheda.png",
+  "attesa": true,
+  "msSchermo": 7367,
+  "fonti": "Fonti lette: Chiesa di San Nicolò l'Arena · Fontana dell'Elefante · Cattedrale di Sant'Agata",
+  "fotoRisposta": "docs/prove/schermate/chat-accesso/6-chat-dalla-scheda-risposta.png",
+  "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nSono stanco, conviene fare una pausa?\nUNNIVAI AI\nSì, fermati un attimo. Il giro è lungo ma ha le sue soste: a ogni tappa hai da 15 a 40 minuti per sederti e riprendere fiato. Quella più lunga è al Monastero dei Benedettini, 40 minuti. Se vuoi tirare il fiato prima, la Cattedrale ti concede 30 minuti.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nChi l'ha fatta?\nUNNIVAI AI\nSe parli della Fontana dell'Elefante, l'ha realizzata l'architetto Giovanni Battista Vaccarini, tra il 1735 e il 1737. L'elefante è di basalto nero e i catanesi lo chiamano U Liotru. Se intendevi un'altra tappa, dimmi quale.\nFonti lette: Chiesa di San Nicolò l'Arena · Fontana dell'Elefante · Cattedrale di Sant'Agata\nL'assistente AI può commettere errori. Verifica le info sensibili.",
+  "schedaDopoChat": true
+ },
+ "richieste": [
+  {
+   "domanda": "Sono stanco, conviene fare una pausa?",
+   "aperto": null,
+   "apertoPlaceId": null,
+   "luoghi": 6,
+   "prossima": null,
+   "stato": 200,
+   "ms": 5416,
+   "esito": "verificata",
+   "msServer": 4537,
+   "testo": "Sì, fermati un attimo. Il giro è lungo ma ha le sue soste: a ogni tappa hai da 15 a 40 minuti per sederti e riprendere fiato. Quella più lunga è al Monastero dei Benedettini, 40 minuti. Se vuoi tirare il fiato prima, la Cattedrale ti concede 30 minuti."
+  },
+  {
+   "domanda": "Chi l'ha fatta?",
+   "aperto": "Fontana dell'Elefante",
+   "apertoPlaceId": "ChIJV63v_C7jExMRLThjTCcPppk",
+   "luoghi": 6,
+   "prossima": 0,
+   "stato": 200,
+   "ms": 7093,
+   "esito": "verificata",
+   "msServer": 6659,
+   "testo": "Se parli della Fontana dell'Elefante, l'ha realizzata l'architetto Giovanni Battista Vaccarini, tra il 1735 e il 1737. L'elefante è di basalto nero e i catanesi lo chiamano U Liotru. Se intendevi un'altra tappa, dimmi quale."
+  }
+ ],
+ "ok": true,
+ "finito": "2026-11-03T10:31:54.728Z"
+}

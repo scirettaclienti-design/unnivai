@@ -102,11 +102,43 @@ La risposta a «Chi l'ha fatta?» chiede «Parli della Via dei Crociferi?», per
 | `npm run lint` · `npm run build` | **0 errori** (186 avvisi, già noti) · ok |
 | `npm run banco:guardia` | **12/12**; pertinenza: nessun ❌ nuovo (3 già noti) |
 | banco della chat | § 3 |
-| WebKit | § 4 e § 6 |
+| WebKit | § 4 (in locale) e § 6 (sito pubblicato, 2 giri su 2 con esito sì) |
 
 ## 6. Dal sito pubblicato
 
-Si aggiunge dopo il merge e il deploy di Vercel: la stessa prova di § 4 su https://unnivai.vercel.app.
+Merge `7795ea8` (PR #28): CI di main verde (run 41615015876), Vercel di produzione **READY** alle 09:59 UTC del 03/11 (deployment 7515639082). Nessun deploy di openai-proxy: il percorso `chat` è quello di § 3 (`chat c1`, Sonnet 5.5 scrive e Sonnet 5.5 rivede).
+
+La stessa prova di § 4 su https://unnivai.vercel.app, fatta due volte da WebKit sul Mac (profilo iPhone 14, account di prova). Cartella `~/unnivai-notte-t12-sito`, ramo `notte/chat-accesso-veloce-sito`. Titolo verificato prima delle credenziali: «Unnivai | Esplora l'Italia Autentica».
+- Grezzo: `docs/prove/dati/2026-11-04-chat-accesso-sito.json` (giro 1) e `docs/prove/dati/2026-11-04-chat-accesso-sito-2.json` (giro 2).
+- Schermate del giro 1: `docs/prove/schermate/chat-accesso/`.
+
+| Passo | Giro 1 (10:30 UTC) | Giro 2 (10:31 UTC) |
+|---|---|---|
+| panoramica: «Chiedi alla guida» | c'è, 106×44 px; «Avvia» a 292–363 px, non lo tocca | uguale |
+| chat dalla panoramica, «Sono stanco, conviene fare una pausa?» | «Controllo le fonti…», risposta **riscritta**; `aperto` null, `prossima` null, 6 tappe | «Controllo le fonti…», risposta verificata; stessi dati |
+| «Avvia» → navigazione | nessun «Chiedi alla guida» a schermo (0) | 0 |
+| «Apri la scheda: Fontana dell'Elefante» → «Chiedi alla guida» | c'è, 358×44 px, sopra «Riparti» (y 556 contro 608), non lo tocca | uguale |
+| chat dalla scheda, «Chi l'ha fatta?» | «Focus: Fontana dell'Elefante»; `aperto` = Fontana dell'Elefante (`ChIJV63v_C7jExMRLThjTCcPppk`), `prossima` 0; verificata; «Fonti lette:» | uguale |
+| chiusa la chat | la scheda è ancora aperta | uguale |
+| esito della prova (`ok`) | **sì** | **sì** |
+
+**Tempo alla prima parola.** La chat non scrive a pezzi: la risposta compare intera. La prima parola è quindi il momento in cui sparisce «Controllo le fonti…».
+
+| Domanda | A schermo | Risposta di rete | Sul server (log del proxy) | Esito |
+|---|---|---|---|---|
+| giro 1, panoramica | 8,40 s | 8,29 s | 7,98 s (fonti 0,46 s) | riscritta |
+| giro 1, scheda | 4,33 s | 4,16 s | 3,92 s (fonti 0,42 s) | verificata |
+| giro 2, panoramica | 5,87 s | 5,42 s | 4,54 s (fonti 0,71 s) | verificata |
+| giro 2, scheda | 7,37 s | 7,09 s | 6,66 s (fonti 2,76 s) | verificata |
+
+- **Mediana a schermo: 6,62 s su 4 domande** (minimo 4,33 s, massimo 8,40 s). Dal Mac, con WebKit e non da un telefono vero; 4 domande non bastano per una mediana stabile. Il numero di riferimento resta quello del banco di § 3 (4,75 s dal telefono su 30 domande).
+- Sotto i 4 s: 0 su 4.
+- Le due risposte più lente hanno un motivo leggibile nei log: una è stata **riscritta** (8,4 s, come le riscritte di § 3, fra 7,7 e 9,6 s); nell'altra **le fonti hanno preso 2,76 s** invece dei soliti 0,4–0,7 s.
+- Fra lo schermo e la risposta di rete ci sono 0,1–0,5 s. Il telefono non perde tempo a mostrare la risposta.
+
+**Cosa dice la chat dalla scheda.** In tutti e due i giri: «Se parli della Fontana dell'Elefante, l'ha realizzata l'architetto Giovanni Battista Vaccarini, tra il 1735 e il 1737…», poi «Se invece intendevi un'altra tappa, dimmi quale.» Rispetto alla prova in locale non chiede più «Parli della Via dei Crociferi?», ma va ancora a tentoni: lo scrittore non sa quale scheda è aperta (proposta 1 di § 3, resta aperta).
+
+**Nessun difetto nuovo sul sito pubblicato.** I tasti, le posizioni, il luogo aperto mandato al proxy e la scheda dopo la chat sono come in locale.
 
 ## 7. Costo AI
 
@@ -117,6 +149,8 @@ Si aggiunge dopo il merge e il deploy di Vercel: la stessa prova di § 4 su http
 | prove di una domanda per controllare lo script | 0,0163 |
 | WebKit in locale, 2 domande | ≈ 0,03 |
 | **Totale prima del merge** | **≈ 0,75** |
+| WebKit sul sito pubblicato, 2 giri da 2 domande (somma dai log del proxy: 0,02422 + 0,01126 + 0,01142 + 0,01156) | 0,0585 |
+| **Totale del task** | **≈ 0,81** |
 
 ## 8. Cosa NON risolve
 

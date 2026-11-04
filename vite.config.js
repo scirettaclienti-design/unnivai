@@ -7,7 +7,7 @@ import path from 'path'
 // In dev (vite serve) intercettiamo /__dev/places-proxy e replichiamo
 // la stessa logica server-side, così possiamo testare senza deploy.
 // DVAI-060: allineato con supabase/functions/places-proxy/index.ts (textsearch + nearbysearch)
-const ALLOWED_PATHS = new Set(['place/findplacefromtext', 'place/photo', 'place/details', 'place/textsearch', 'place/nearbysearch'])
+const ALLOWED_PATHS = new Set(['place/findplacefromtext', 'place/photo', 'place/details', 'place/textsearch', 'place/nearbysearch', 'geocode'])
 const GOOGLE_BASE = 'https://maps.googleapis.com/maps/api'
 
 function devPlacesProxyPlugin(env) {
@@ -20,7 +20,7 @@ function devPlacesProxyPlugin(env) {
       server.middlewares.use(async (req, res, next) => {
         if (!req.url || !req.url.startsWith('/__dev/places-proxy')) return next()
 
-        const key = env.GOOGLE_MAPS_API_KEY || env.VITE_GOOGLE_MAPS_API_KEY
+        const key = env.GOOGLE_SERVER_KEY || env.GOOGLE_MAPS_API_KEY // GOOGLE-CHIAVI: mai la chiave del browser (VITE_*)
         if (!key) {
           res.statusCode = 500
           res.setHeader('Content-Type', 'application/json')

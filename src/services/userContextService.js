@@ -4,6 +4,7 @@ import { weatherService } from './weatherService';
 // Gate C1 — un motore solo per il lookup citta' a chiave (regola locked #8):
 // stesso helper qui su CITY_COORDS e in QuickPath su CITY_CONFIG.
 import { findCityKey } from '../lib/cityKey';
+import { geocodeGoogle } from '../lib/geocodeGoogle';
 
 class UserContextService {
     async getUserContext(gpsLocation = null, manualCity = null) {
@@ -195,12 +196,8 @@ class UserContextService {
     // Helper: Reverse Geocoding (Lat/Lng -> City)
     async reverseGeocodeCity(lat, lng) {
         try {
-            const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-            const response = await fetch(
-                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}&language=it`
-            );
-            if (!response.ok) throw new Error('Geocoding failed');
-            const data = await response.json();
+            const data = await geocodeGoogle({ latlng: `${lat},${lng}`, language: 'it' });
+            if (!data) throw new Error('Geocoding failed');
 
             if (data.results && data.results.length > 0) {
                 const components = data.results[0].address_components;
@@ -256,12 +253,8 @@ class UserContextService {
         }
 
         try {
-            const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-            const response = await fetch(
-                `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityName)}&key=${apiKey}&language=it`
-            );
-            if (!response.ok) throw new Error('City Search Failed');
-            const data = await response.json();
+            const data = await geocodeGoogle({ address: cityName, language: 'it' });
+            if (!data) throw new Error('City Search Failed');
             if (data.results && data.results.length > 0) {
                 const location = data.results[0].geometry.location;
                 return { lat: location.lat, lng: location.lng };

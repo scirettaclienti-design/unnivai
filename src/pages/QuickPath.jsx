@@ -759,6 +759,8 @@ export default function QuickPathPage() {
                 dietNote: result?.days?.[0]?.dietNote || null,
                 // BORGO-FIX (decisione 3) — la nota «La natura di notte non si vede…», se il motore l'ha scritta
                 naturaNote: result?.days?.[0]?.naturaNote || null,
+                // BANCO-DIFETTI-2 (T23) — le righe della richiesta che il giro non contiene
+                notaGiro: result?.days?.[0]?.notaGiro || null,
             }, {
                 cityFallback: activeCity,
                 cityCenter, // enforceRadius default (on): il raggio si applica.

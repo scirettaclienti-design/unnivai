@@ -2187,10 +2187,23 @@ export function tettoNelPiano(sched, { capKm = TETTO_PIEDI_KM, eccezione = null 
                 k = i; break;
             }
             if (k < 0) break;
+            // BANCO-DIFETTI-2 (T23) — quale delle due tappe esce: di regola quella d'arrivo; ma se la tappa di partenza e' la PRIMA del giorno
+            // e da sola sta lontano da tutto il resto (a-milano: la colazione a 2,9 km da Brera toglieva l'intera giornata, tappa dopo tappa),
+            // esce lei. Si sceglie la prima solo se lascia strettamente meno tratti oltre il tetto. Il tetto (1,2 km) non cambia.
+            if (k === 1 && list.length > 2) {
+                const oltre = (l) => l.reduce((n, x, i) => n + (i > 0 && (kmTratto(l[i - 1].candidate, x.candidate) ?? 0) > capKm ? 1 : 0), 0);
+                if (oltre(list.slice(1)) < oltre(list.filter((_, i) => i !== 1))) k = 0;
+            }
             const s = list[k];
+            const vicino = list[k === 0 ? 1 : k - 1];
             tolte.push({ momento: s.moment.id, key: s.moment.key, label: s.moment.label, dayIndex: di, place_id: idOf(s.candidate), nome: nome(s.candidate),
-                da: nome(list[k - 1].candidate), km: Math.round(kmTratto(list[k - 1].candidate, s.candidate) * 100) / 100,
+                da: nome(vicino.candidate), km: Math.round(kmTratto(vicino.candidate, s.candidate) * 100) / 100,
                 pasto: FOOD_ONLY_MOMENT_KEYS.has(s.moment.key) });
+            // la prima tappa tolta: la nuova prima aspetta dall'inizio del giorno (gli orari restano)
+            if (k === 0) {
+                const inizio = s.start.getTime() - (Number(s.waitMinutesBefore) || 0) * 60000;
+                list[1] = { ...list[1], waitMinutesBefore: Math.max(0, Math.ceil((list[1].start.getTime() - inizio) / 60000)) };
+            }
             list = list.filter((_, i) => i !== k);
         }
         for (let i = 1; i < list.length; i++) {

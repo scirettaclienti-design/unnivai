@@ -720,6 +720,10 @@ export default function AIItineraryPage() {
                                                     {day.naturaNote && (
                                                         <p data-natura-note className="text-obsidian-secondary text-[11px] mt-1">{day.naturaNote}</p>
                                                     )}
+                                                    {/* BANCO-DIFETTI-2 (T23) — quello che la richiesta chiedeva e il giro non contiene, col motivo */}
+                                                    {day.notaGiro && (
+                                                        <p data-nota-giro className="text-obsidian-secondary text-[11px] mt-1">{day.notaGiro}</p>
+                                                    )}
                                                     {/* C10b — un borgo che si gira in mezza giornata (riga approvata) */}
                                                     {day.scalaNote && (
                                                         <p data-scala-note className="text-obsidian-secondary text-[11px] mt-1">{day.scalaNote}</p>

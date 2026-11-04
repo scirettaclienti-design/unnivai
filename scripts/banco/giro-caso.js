@@ -189,6 +189,9 @@ export function registraItinerario(rec, { r, rec: extra, food }, caso, luoghi) {
     // DNA-3b — le soste del DNA e le esclusioni tolte dal pool (solo registrazione)
     rec.sosteDna = r._momentReport?.soste ?? null;
     rec.esclusioni = r._momentReport?.esclusioni ?? null;
+    // BANCO-DIFETTI-2 (T23) — la richiesta precisa (D6) e i buchi lunghi (D7): solo registrazione
+    rec.richiestaMotore = r._momentReport?.richiesta ?? null;
+    rec.buchi = r._momentReport?.buchi ?? null;
     // ORARI — il messaggio "meglio domattina" al posto del giro e' un ripiego dichiarato
     rec.ripiegoDichiarato = !!(r._singleStop || r._queryDiBaseDopoVuoto || r._source === 'closed-now');
     if (r._source === 'closed-now') rec.chiusoOra = r._messaggio;
@@ -214,7 +217,7 @@ export function registraItinerario(rec, { r, rec: extra, food }, caso, luoghi) {
         .filter(g => g.moment).map(g => ({ etichetta: g.moment.label, ora: g.items[0]?.timeLabel ?? null }));
     rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })), sezioni,
         // BORGO-FIX — anche la nota della natura di notte (decisione 3)
-        note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote), ...(r.days || []).map(d => d.scalaNote), ...(r.days || []).map(d => d.naturaNote)].filter(Boolean),
+        note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote), ...(r.days || []).map(d => d.scalaNote), ...(r.days || []).map(d => d.naturaNote), ...(r.days || []).map(d => d.notaGiro)].filter(Boolean),
         // GUARDIA-PERTINENZA — il riquadro «Il tuo DNA Esplorativo» del riepilogo del Quiz (QuickPathSummary): BORGO-SCHERMO, la scelta si
         // mostra solo se una tappa e' della sua famiglia (sceltaConfermata, la stessa funzione della pagina)
         ...(caso.modo === 'veloce' ? { riquadro: { mostrato: sceltaConfermata({ main: caso.scelta?.main, steps: r.days?.[0]?.stops || [] }), scelta: [caso.scelta?.mainTitle, caso.scelta?.subTitle].filter(Boolean).join(' / ') } } : {}),

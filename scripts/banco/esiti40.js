@@ -48,7 +48,7 @@ const griglia = (g) => (g ? [g.scala, g.ora, g.richiesta, g.dna && `DNA ${g.dna}
 export function tabellaMd(esiti) {
     const righe = esiti.map((e, i) => `| ${i + 1} | \`${e.id}\` | ${e.modo}${e.posizione ? ` (da ${e.posizione})` : ''} | ${e.luogo} | ${e.ora} | ${griglia(e.griglia)} | ${e.tappe} | `
         + `${CONTROLLI40.map(([k]) => casella(e, k)).join(' | ')} | ${MARCA[e.stato] ?? e.stato} ${e.stato}${e.motivo ? ` — ${e.motivo}` : ''}${e.nota ? ` — ${e.nota}` : ''} |`);
-    return ['| # | Caso | Modo | Luogo | Ora | Griglia | Tappe | Aperte | Distanze | Città | Titolo | Frasi | Esito |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|', ...righe].join('\n');
+    return ['| # | Caso | Modo | Luogo | Ora | Griglia | Tappe | Aperte | Distanze | Città | Titolo | Frasi | Richiesta | Esito |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|', ...righe].join('\n');
 }
 
 /** Il riepilogo: quanti passano e i controlli che falliscono. */

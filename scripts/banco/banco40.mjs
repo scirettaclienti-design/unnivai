@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 // BANCO-40 — il banco dei 40 casi fissi (`npm run banco`): i 18 di sempre + 22 che coprono la griglia (casi-banco40.js).
-// Cinque controlli per caso (controlli40.js): tappe aperte all'ora del giro, distanze plausibili per il mezzo, nessun luogo di un'altra
-// città, titolo coerente con le tappe, nessuna frase ripetuta.
+// Sei controlli per caso (controlli40.js): tappe aperte all'ora del giro, distanze plausibili per il mezzo, nessun luogo di un'altra
+// città, titolo coerente con le tappe, nessuna frase ripetuta, la richiesta precisa rispettata o dichiarata (il sesto, T23).
 //
 //   npm run banco                         il giro VERO (account di prova, a pagamento): 40 casi, tracciati, esiti, tabella
 //   npm run banco -- --replay             la RIPRODUZIONE a 0 $ dai tracciati salvati; confronta con gli esiti del giro vero (esce 1 se differiscono)
 //   npm run banco -- --report             la tabella dagli esiti salvati
 //   npm run banco -- --da <grezzo.json> [<altro.json> …]   gli esiti da uno o più grezzi di un giro già fatto (unisce i giri, scrive i file del repo)
 //   npm run banco -- --mancanti           il giro vero dei soli casi saltati dal tetto in un giro precedente (si uniscono agli esiti salvati)
+//   npm run banco -- --ricontrolla        un controllo nuovo negli esiti salvati dei casi con la stessa firma del giro vero (T23: il sesto)
 //   BANCO_CASI=a-roma,… per un sottoinsieme · BANCO_TETTO=7.8 il tetto di spesa del giro vero (token + Google a listino, cache del proxy esclusa)
 //
 // File nel repo: docs/prove/dati/banco-40-tracciati.json.gz (risposte dei proxy, per la riproduzione), docs/prove/dati/banco-40-esiti.json (esiti
@@ -88,6 +89,37 @@ if (args.includes('--da')) {
     }
     scrivi(esiti, { registrato: grezzi[0]?.avvio ?? null, commit: git('rev-parse --short HEAD'), giorno: GIORNO_BANCO40, fuso: FUSO_BANCO40, costi: costo });
     stampa(esiti, 'esiti dai grezzi');
+    process.exit(0);
+}
+
+// --ricontrolla (T23): un controllo NUOVO (il sesto, la richiesta) negli esiti salvati dei casi NON rifatti dal vivo. Si rigiocano i tracciati;
+// per ogni caso la cui riproduzione ha la STESSA firma del giro vero (stesse tappe agli stessi orari) i controlli che l'esito salvato non ha
+// ancora si calcolano sul giro rigiocato (che e' quel giro) e si scrivono, segnati in `controlliDalReplay`. I controlli gia' salvati non cambiano;
+// un caso con firma diversa non si tocca (va rifatto dal vivo).
+if (args.includes('--ricontrolla')) {
+    const salvati = leggiEsiti();
+    const out = path.join(mkdtempSync(path.join(os.tmpdir(), 'banco40-')), 'replay.json');
+    spawnSync('npx', ['vitest', 'run', '-c', 'scripts/banco/vitest.replay.config.js'], {
+        cwd: root, stdio: process.env.BANCO_LOG ? 'inherit' : 'ignore', env: { ...process.env, REPLAY_IN: FILE_TRACCIATI, REPLAY_OUT: out },
+    });
+    if (!existsSync(out)) { console.error('[banco] il replay non ha scritto il risultato'); process.exit(1); }
+    const replay = JSON.parse(readFileSync(out, 'utf8'));
+    if (replay.casi.some(c => c.replay?.uscite?.length)) { console.error('[banco] il replay ha provato a uscire in rete: niente da ricontrollare'); process.exit(1); }
+    const rigiocati = esitiDaGrezzi([replay]);
+    let aggiunti = 0;
+    const casi = salvati.casi.map((e) => {
+        const r = rigiocati.find(x => x.id === e.id);
+        if (!r || !e.controlli || JSON.stringify(r.firma) !== JSON.stringify(e.firma)) return e;
+        const nuovi = Object.keys(r.controlli || {}).filter(k => !(k in e.controlli));
+        if (!nuovi.length) return e;
+        aggiunti++;
+        const controlli = { ...e.controlli, ...Object.fromEntries(nuovi.map(k => [k, r.controlli[k]])) };
+        const stato = e.stato === 'ok' || e.stato === 'ko' ? (Object.values(controlli).every(c => c.ok) ? 'ok' : 'ko') : e.stato;
+        return { ...e, controlli, stato, controlliDalReplay: [...(e.controlliDalReplay || []), ...nuovi] };
+    });
+    scrivi(casi, { ...Object.fromEntries(Object.entries(salvati).filter(([k]) => !['formato', 'riepilogo', 'casi'].includes(k))) });
+    console.log(`[banco] ricontrollo: ${aggiunti} casi con i controlli nuovi calcolati sul giro rigiocato (stessa firma del giro vero)`);
+    stampa(casi, 'esiti salvati');
     process.exit(0);
 }
 

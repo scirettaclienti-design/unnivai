@@ -88,6 +88,10 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modific
                     {tourData.naturaNote && (
                         <p data-natura-note className="text-obsidian-secondary text-xs px-1">{tourData.naturaNote}</p>
                     )}
+                    {/* BANCO-DIFETTI-2 (T23) — quello che la scelta chiedeva e il giro non contiene, col motivo */}
+                    {tourData.notaGiro && (
+                        <p data-nota-giro className="text-obsidian-secondary text-xs px-1">{tourData.notaGiro}</p>
+                    )}
 
                     {/* Stats */}
                     <div className="flex items-center justify-around px-2">

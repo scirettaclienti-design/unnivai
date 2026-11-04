@@ -8,11 +8,13 @@
 //   citta      nessuna tappa fuori dalla città del giro (centro e raggio in casi-banco40.js) e la destinazione è quella chiesta
 //   titolo     il titolo nomina luoghi che sono nel giro (almeno 70% delle parole di luogo) e nessun'altra città
 //   frasi      nessuna frase uguale due volte nello stesso giro (stessa regola di c7, ma da 2, non da 3)
+//   richiesta  (sesto, BANCO-DIFETTI-2, ordinato da Ivano) la richiesta precisa è nel giro, o una nota dice perché no (controlloRichiesta.js)
 //
 // Un caso con errore, saltato o senza tappe vere non passa nessun controllo: è un giro che non esce.
 import { c5 } from './controlli.js';
 import { haversineKm } from './misure.js';
 import { CENTRI } from './casi-banco40.js';
+import { richiesta } from './controlloRichiesta.js';
 
 export const CONTROLLI40 = [
     ['aperte', 'Tappe aperte all\'ora del giro'],
@@ -20,6 +22,7 @@ export const CONTROLLI40 = [
     ['citta', 'Nessun luogo di un\'altra città'],
     ['titolo', 'Titolo coerente con le tappe'],
     ['frasi', 'Nessuna frase ripetuta'],
+    ['richiesta', 'Richiesta precisa rispettata o dichiarata'],
 ];
 
 const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -166,6 +169,6 @@ export function controllaCaso(caso, meta, cfg) {
         if (caso.ripiegoDichiarato) return { id: caso.id, stato: 'ok', tappe: 0, nota: `ripiego dichiarato dal motore: «${caso.chiusoOra || caso.source}»`, controlli: {} };
         return { id: caso.id, stato: 'errore', motivo: `nessuna tappa vera (source ${caso.source ?? '?'})`, tappe: 0 };
     }
-    const controlli = { aperte: aperte(caso, cfg), distanze: distanze(caso, meta, cfg), citta: citta(caso, meta), titolo: titolo(caso, meta), frasi: frasi(caso) };
+    const controlli = { aperte: aperte(caso, cfg), distanze: distanze(caso, meta, cfg), citta: citta(caso, meta), titolo: titolo(caso, meta), frasi: frasi(caso), richiesta: richiesta(caso, meta) };
     return { id: caso.id, stato: Object.values(controlli).every(c => c.ok) ? 'ok' : 'ko', controlli, tappe };
 }

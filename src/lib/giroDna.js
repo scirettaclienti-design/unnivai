@@ -6,9 +6,21 @@
  */
 
 import { REGOLE_COMPAGNIA, bonusCompagnia, compagniaDelGiro } from './compagniaDna.js';
-import { ritmoAppreso, ritmoDelGiro } from './dnaRitmo.js';
+import { ritmoAppreso, ritmoDelGiro, TAPPE_PER_TE } from './dnaRitmo.js';
 
-const NESSUNO = Object.freeze({ attivo: false, ritmo: null, compagnia: null, passo: null, fattoreSosta: null, sostaPasto: null, gruppo: null, merenda: false, tappePerTe: null, bonus: null, impronta: '' });
+/**
+ * BANCO-DIFETTI-2 (T23) — CON I BAMBINI SI CAMMINA MENO DEL GIRO NEUTRO (regola di DNA-5 resa esplicita).
+ * Prima la famiglia teneva il ritmo del DNA (C, ritmo medio: 11 tappe e 6,19 km contro 9 e 3,94 del giro neutro a Roma). Ora, con la
+ * compagnia «famiglia» e nessun ritmo chiesto nella richiesta:
+ *  · le tappe per momento sono quelle del ritmo Tranquillo (1 per mattina e pomeriggio, tetto 6 visite, niente espansione dei buchi);
+ *  · le visite durano almeno il 20% in piu' (`FATTORE_SOSTA_FAMIGLIA`; un fattore appreso piu' alto resta);
+ *  · la merenda del pomeriggio (DNA-5) e' la pausa;
+ *  · in Per Te i tour hanno 3 tappe (quelle del ritmo lento).
+ * Un ritmo scelto nella richiesta (Crea) vince sempre: la regola non lo tocca. Il tetto di 1,2 km fra due tappe resta per tutti.
+ */
+export const FATTORE_SOSTA_FAMIGLIA = 1.2;
+
+const NESSUNO = Object.freeze({ attivo: false, ritmo: null, compagnia: null, passo: null, famiglia: false, fattoreSosta: null, sostaPasto: null, gruppo: null, merenda: false, tappePerTe: null, bonus: null, impronta: '' });
 
 /**
  * @param {{ ritmo?: object|null, compagnia?: object|null }|null} dnaGiro
@@ -21,20 +33,25 @@ export function giroDnaPerMotore(dnaGiro, prefs = {}) {
     const compagnia = dnaGiro.compagnia && REGOLE_COMPAGNIA[dnaGiro.compagnia.valore] ? dnaGiro.compagnia : null;
     if (!ritmo && !compagnia) return NESSUNO;
     const regole = compagnia ? REGOLE_COMPAGNIA[compagnia.valore] : null;
-    const fattoreSosta = ritmo && Number.isFinite(ritmo.fattoreSosta) && ritmo.fattoreSosta !== 1 ? ritmo.fattoreSosta : null;
+    const famiglia = compagnia?.valore === 'famiglia' && !ritmoChiesto;
+    const fattoreRitmo = ritmo && Number.isFinite(ritmo.fattoreSosta) && ritmo.fattoreSosta !== 1 ? ritmo.fattoreSosta : null;
+    const fattoreSosta = famiglia ? Math.max(fattoreRitmo ?? 1, FATTORE_SOSTA_FAMIGLIA) : fattoreRitmo;
     return {
         attivo: true,
         ritmo,
         compagnia,
-        passo: ritmo?.passo || null,
+        // T23 — la famiglia cammina come il ritmo Tranquillo (anche se il DNA ha imparato un ritmo medio o veloce)
+        passo: famiglia ? 'rilassato' : (ritmo?.passo || null),
+        famiglia,
         fattoreSosta,
         sostaPasto: regole?.sostaPasto || null,
         // il Gruppo della richiesta resta quello scelto; senza, quello della compagnia del DNA (scheletro e prompt lo leggono)
         gruppo: !String(prefs?.group || '').trim() && compagnia ? compagnia.gruppo : null,
         merenda: !!regole?.merenda,
-        tappePerTe: ritmo?.tappePerTe || null,
+        // T23 — in Per Te la famiglia ha i tour del ritmo lento (3 tappe), mai piu' lunghi di quelli del ritmo del DNA
+        tappePerTe: famiglia ? Math.min(ritmo?.tappePerTe || TAPPE_PER_TE.medio, TAPPE_PER_TE.lento) : (ritmo?.tappePerTe || null),
         bonus: compagnia && Object.keys(regole.spinte).length ? (c) => bonusCompagnia(c, compagnia.valore) : null,
-        impronta: `dna5:${ritmo ? `${ritmo.valore}${fattoreSosta ?? ''}` : '-'}|${compagnia ? compagnia.valore : '-'}`,
+        impronta: `dna5:${ritmo ? `${ritmo.valore}${fattoreSosta ?? ''}` : '-'}|${compagnia ? compagnia.valore : '-'}${famiglia ? '|t23' : ''}`,
     };
 }
 
@@ -46,7 +63,7 @@ export const tracciatoGiroDna = (g) => (g?.attivo ? {
         ...(g.ritmo.dati ? { dati: { giri: g.ritmo.dati.giri, fattoreSosta: g.ritmo.dati.fattoreSosta, kmMedi: g.ritmo.dati.kmMedi, tappeMedie: g.ritmo.dati.tappeMedie } } : {}),
     } : null,
     compagnia: g.compagnia ? { valore: g.compagnia.valore, fonte: g.compagnia.fonte, ...(g.compagnia.quante ? { quante: g.compagnia.quante } : {}) } : null,
-    sostaPasto: g.sostaPasto, gruppo: g.gruppo, merenda: g.merenda,
+    sostaPasto: g.sostaPasto, gruppo: g.gruppo, merenda: g.merenda, ...(g.famiglia ? { famiglia: { passo: g.passo, fattoreSosta: g.fattoreSosta } } : {}),
 } : null);
 
 /**

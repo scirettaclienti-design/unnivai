@@ -53,7 +53,8 @@ export function kmDelPercorso(stops) {
 /** Una tappa si puo' spostare dentro il suo momento? */
 export function eMovibile(e, indice, giorno) {
     if (!e || !MOMENTI_MOVIBILI.has(e.moment?.key)) return false;
-    if (e.source === 'dna') return false;
+    // le soste del DNA, il posto chiesto e la tappa di un buco lungo (T23) stanno nell'attesa precisa in cui sono state messe
+    if (e.source === 'dna' || e.source === 'richiesta' || e.source === 'riempimento') return false;
     if (!pt(e)) return false;
     // la colazione: la prima tappa di un momento che ha la colazione
     if (e.moment?.colazione && !(indice > 0 && giorno[indice - 1]?.moment === e.moment)) return false;

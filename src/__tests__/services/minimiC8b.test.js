@@ -102,7 +102,9 @@ describe('C8b — un tour sotto il minimo prende una tappa in piu\' o lo dichiar
         const r = await genera([spiaggia('s0', 0), spiaggia('s1', 1)], '14:30', { prefs: PREFS_RIL });
         expect(vere(r)).toHaveLength(2);
         expect(libere(r).length).toBeGreaterThan(0);
-        expect(libere(r)[0].description).toBe('Niente in agenda: cammina dove ti porta la strada.');
+        // BANCO-DIFETTI-2 (T23, D7): una riga di oltre 2 ore dice il motivo (qui la coda del giro dopo l'ultima visita)
+        expect(libere(r)[0].description).toMatch(/^(Niente in agenda: cammina dove ti porta la strada\.|Nessuna tappa in questa fascia: .+|Il giro finisce qui: .+)$/);
+        if (libere(r)[0].stayMinutes > 120) expect(libere(r)[0].description).not.toMatch(/^Niente in agenda/);
         expect(r._momentReport.continuita.minimo.dichiarati.length).toBeGreaterThan(0);
     });
     it('6 ore o piu\' (Percorso Veloce Lungo): almeno 4 tappe', async () => {

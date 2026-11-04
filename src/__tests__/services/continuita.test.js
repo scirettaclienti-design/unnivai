@@ -78,7 +78,8 @@ describe('un buco che non si riempie viene dichiarato, con la sua fascia', () =>
         const tl = libere(r);
         expect(tl.length).toBeGreaterThan(0);
         for (const t of tl) {
-            expect(t.description).toBe('Niente in agenda: cammina dove ti porta la strada.');
+            // BANCO-DIFETTI-2 (T23, D7): oltre 2 ore la riga dice il motivo; fino a 2 ore il testo di sempre
+            expect(t.description).toBe(t.stayMinutes > 120 ? 'Nessuna tappa in questa fascia: entro 1,2 km non ci sono altri posti aperti adatti al giro.' : 'Niente in agenda: cammina dove ti porta la strada.');
             expect(t.stayMinutes).toBeGreaterThan(GAP_MAX_MINUTES);   // la fascia: quanto dura
             expect(t.scheduledTime).toBeTruthy();                      // e da che ora
         }

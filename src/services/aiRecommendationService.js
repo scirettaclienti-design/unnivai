@@ -385,7 +385,7 @@ import { zoneReason } from '@/lib/zone';
 import { isSitDownMeal, perTeMealProblem, mealFitsClock, isBreakfastPlace, isOutdoorWalk } from '@/lib/mealRules';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
-import { buildDaySkeleton, addEveningWalk, normalizePace, isSeraStart, parseExplicitCategory, COLAZIONE_AUTO_ENTRO_MINUTES, colazioneAutoSpenta } from '@/lib/daySkeleton';
+import { buildDaySkeleton, addEveningWalk, normalizePace, isSeraStart, parseExplicitCategory, COLAZIONE_AUTO_ENTRO_MINUTES, colazioneAutoSpenta, MAX_VISITS_PER_DAY, MAX_VISITS_RILASSATO } from '@/lib/daySkeleton';
 import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace, scheduleHoursSources,
@@ -414,8 +414,9 @@ import { giroDnaPerMotore, tracciatoGiroDna } from '../lib/giroDna';
 import { bonusCompagnia, fuoriPerTe } from '../lib/compagniaDna';
 import { placeKind, COMMERCIAL_KINDS } from '../lib/placeKind';
 import { riordinaPerPercorso, ordinePercorsoSpento } from '../lib/ordinePercorso';
-// BANCO-DIFETTI-2 (T23) — la richiesta precisa nel giro (D6)
+// BANCO-DIFETTI-2 (T23) — la richiesta precisa nel giro (D6) e niente buchi muti di oltre 2 ore (D7)
 import { vociDellaRichiesta, rispettaRichiesta, isTransito } from '../lib/richiestaNelGiro';
+import { riempiBuchi, testoBucoLungo } from '../lib/riempiBuchi';
 // DNA-3c — una ricerca di testo di Google Places (listino del banco): il costo massimo di una ricerca della sosta
 const COSTO_RICERCA_SOSTA_USD = 0.032;
 // DNA-5 — la merenda della famiglia: dalle 15:30.
@@ -2575,6 +2576,7 @@ export const aiRecommendationService = {
             let esclusioneNote = null; // DNA-3b: «Ho tolto le chiese come chiesto: il giro è più corto.»
             let richiestaReport = null; // BANCO-DIFETTI-2 (D6): le cose precise chieste e cosa ne e' stato
             let notaRichiesta = null;   // D6: le righe «X: …» di quello che il giro non ha potuto contenere
+            let buchiReport = null;     // D7: le attese di oltre 2 ore riempite e quelle rimaste (dichiarate)
             let conferma = null;
             const w0 = tourWindow.windows[0];
             const minuti0 = w0 ? (w0.end.getTime() - w0.start.getTime()) / 60000 : 0;
@@ -3398,7 +3400,7 @@ export const aiRecommendationService = {
                                 const sosteIds = new Set(sosteDnaReport.aggiunte.map(x => x.place_id));
                                 candidates = [...candidates, ...poolSoste.filter(c => sosteIds.has(c.place_id || c.googlePlaceId) && !candidates.includes(c))];
                             }
-                            // BANCO-DIFETTI-2 (T23) — LA RICHIESTA PRECISA, sul giro gia' in orario (dopo soste e minimi, prima
+                            // BANCO-DIFETTI-2 (T23) — LA RICHIESTA PRECISA E I BUCHI LUNGHI, sul giro gia' in orario (dopo soste e minimi, prima
                             // dell'ordine del percorso e dell'ultima rete del tetto). Per Te (`giornata: false`) resta com'era.
                             if (opts.giornata !== false) {
                                 const intensoGiro = normalizePace(prefs?.pace) === 'intenso';
@@ -3444,6 +3446,35 @@ export const aiRecommendationService = {
                                     richiestaReport = { voci: voci.map(v => ({ tipo: v.tipo, id: v.id, cosa: v.cosa })), esiti: r.report, note: r.note };
                                     for (const x of r.report) console.info(`[D6 RICHIESTA] ${city}: ${x.voce} → ${x.esito}${x.nome ? ` (${x.nome}${x.alPostoDi ? ` al posto di ${x.alPostoDi}` : ''})` : ''}${x.motivo ? ` — ${x.motivo}` : ''}`);
                                 }
+                                // D7 — le attese di oltre 2 ore: visite vicine coerenti col giro, o il motivo sulla riga
+                                const vociTema = voci.filter(v => v.tipo === 'tipo' && v.tutte);
+                                const dnaShare = dnaShareOf(opts.dnaWeights || {});
+                                const coerente = (c) => !isMealPlace(c) && !COMMERCIAL_KINDS.has(placeKind(c).kind) && !isTransito(c) && ammessoGiro(c)
+                                    && (!zoneReason({ ...c, primaryType: c.primaryType ?? c.primary_type }, city) || isStoricaLista(c))
+                                    // la categoria chiesta: come il Gate RAGGIO-CATEGORIA, con la natura e i luoghi storici riconosciuti dal tipo (un parco
+                                    // archeologico che Google segna «museo» e' storia)
+                                    && (!catStretta || candidateMatchesIntentCategoria(c, intent.categoria) || (catStretta === 'natura' && isNaturaOPanorama(c))
+                                        || (['storia', 'cultura'].includes(catStretta) && isLuogoStorico(c)))
+                                    && vociTema.every(v => v.voce.ammette(c) || isNaturaOPanorama(c));
+                                const nelPool = new Set(candidates.map(c => c.place_id || c.googlePlaceId));
+                                const punteggio = (c) => (Number(c.rating) || 0) + (nelPool.has(c.place_id || c.googlePlaceId) ? 0.3 : 0)
+                                    + (dnaShare > 0 ? 2 * Math.max(0, ...[...mapCandidateToCoreCategories(c)].map(k => Number(opts.dnaWeights?.[k]) || 0)) : 0)
+                                    + (giroDna.bonus ? giroDna.bonus(c) : 0);
+                                const rilassato = normalizePace(prefs?.pace) === 'rilassato' || giroDna.passo === 'rilassato';
+                                // il ritmo Tranquillo e la famiglia tengono le pause lunghe (C8d, DNA-5): il buco si dichiara col suo motivo, non si riempie
+                                const soloDichiara = giroDna.famiglia ? 'famiglia' : (rilassato ? 'ritmo' : null);
+                                // i posti verificati del motore, e quelli delle ricerche che il merito (20 per giorno) aveva lasciato fuori; restano il
+                                // raggio della citta' e le regole di `coerente` (zone, esclusioni, categoria, tema, soglia di qualita')
+                                const visti7 = new Map();
+                                for (const c of [...candidates, ...candidatiGenerazione, ...applyRadiusFilter(rawCandidates, cityCenter, city, { requireCenter: true })]) { const id = c.place_id || c.googlePlaceId; if (id && !visti7.has(id)) visti7.set(id, c); }
+                                const rb = riempiBuchi({
+                                    sched, candidati: [...visti7.values()], ammette: coerente, punteggio, aperto: apertoGiro, capKm: capKmGiro, momentiDi, fineDi: fineFinestraDi,
+                                    tettoVisite: rilassato ? MAX_VISITS_RILASSATO : MAX_VISITS_PER_DAY, soloDichiara,
+                                });
+                                sched = rb.sched;
+                                buchiReport = { ...rb.report, capKm: capKmGiro };
+                                for (const x of rb.report.aggiunte) console.info(`[D7 BUCO] ${city}: ${x.nome} in ${x.momento} (attesa di ${x.buco} min)`);
+                                for (const x of rb.report.rimasti) console.info(`[D7 BUCO] ${city}: ${x.minuti} min ${x.coda ? 'in coda' : 'fra due tappe'} restano: ${x.motivo}`);
                                 // le tappe nuove devono stare fra i candidati: la canonicalizzazione scarta ogni tappa che non e' nel pool
                                 const nuove = sched.days.flat().filter(e => e.source === 'richiesta' || e.source === 'riempimento').map(e => e.candidate);
                                 candidates = [...candidates, ...nuove.filter(c => !candidates.some(x => (x.place_id || x.googlePlaceId) === (c.place_id || c.googlePlaceId)))];
@@ -3518,7 +3549,7 @@ export const aiRecommendationService = {
                             };
                             const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, respinti: filled.respinti || [], dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })),
                                 minimo: { richiesto: Object.fromEntries(minPerDay), aggiunte: minimo.aggiunte, tentativi: minimo.tentativi, dichiarati: righeMinimo.map(x => ({ momento: x.momento, giorno: x.dayIndex + 1 })) } };
-                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, dnaGiro: tracciatoGiroDna(giroDna), ordine: ordinePercorsoReport, tetto: tettoReport, richiesta: richiestaReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
+                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, dnaGiro: tracciatoGiroDna(giroDna), ordine: ordinePercorsoReport, tetto: tettoReport, richiesta: richiestaReport, buchi: buchiReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
                             logMomentReport(city, momentReport);
                             // C7 — nel tracciato (interno, mai a schermo): cosa ha voluto il tema. Il pasto del tema, l'esperienza
                             // nello spirito del tema, il momento chiesto ESPLICITAMENTE dal testo, e per "tipico" se il posto e' locale.
@@ -3674,7 +3705,19 @@ export const aiRecommendationService = {
                         // C5e (O) — il tempo libero entra nel giorno dopo il racconto,
                         // al suo posto fra i momenti, con il testo del codice.
                         const narratedDays = insertFreeTime(composed.days, [...(momentReport?.tempoLibero || []), ...(orariInfo?.riga ? [orariInfo.riga] : [])], { tourWindow });
-                        // BANCO-DIFETTI-2 (D6) — le cose chieste che il giro non contiene, con il motivo, stanno sul giorno (`notaGiro`, a schermo in Crea, Veloce e Sorprendimi)
+                        // BANCO-DIFETTI-2 (D7) — una riga di «Tempo libero» di oltre 2 ore dice perche' resta vuota (mai un buco muto); (D6) le cose chieste
+                        // che il giro non contiene, con il motivo, stanno sul giorno (`notaGiro`, a schermo in Crea, Veloce e Sorprendimi)
+                        if (buchiReport) {
+                            for (const d of narratedDays) {
+                                const di = Number.isFinite(d.windowIndex) ? d.windowIndex : 0;
+                                d.stops = d.stops.map((st, i, arr) => {
+                                    if (!st.tempoLibero || st.description === TESTO_NESSUN_LOCALE_APERTO) return st;
+                                    const dopo = arr.slice(i + 1).filter(x => !x.tempoLibero);
+                                    const testo = testoBucoLungo(st, { coda: dopo.length === 0, prima: dopo[0]?.place_id ?? null, rimasti: buchiReport.rimasti.filter(r => r.dayIndex === di), capKm: buchiReport.capKm });
+                                    return testo ? { ...st, description: testo, _tracciato: { ...(st._tracciato || {}), dichiarato: true } } : st;
+                                });
+                            }
+                        }
                         if (notaRichiesta && narratedDays[0]) narratedDays[0].notaGiro = notaRichiesta;
                         const allStops = narratedDays.flatMap(d => d.stops);
                         const narrationReport = {

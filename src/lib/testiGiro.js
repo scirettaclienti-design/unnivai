@@ -3,6 +3,7 @@
  *
  *  · `richiesta`: quando l'utente ha chiesto una cosa precisa (un luogo, un tipo di posto, un'ora) e il giro non la contiene,
  *    una riga dice quale e perche' (D6). La riga comincia con la cosa chiesta, come l'utente l'ha scritta.
+ *  · `buco`: un'attesa di oltre 2 ore che il motore non ha potuto riempire con tappe vicine (D7) dice perche' resta vuota.
  *
  * Funzioni pure: ricevono i fatti gia' misurati (km, ora, nome del posto) e li mettono in frase.
  */
@@ -29,5 +30,17 @@ export const TESTI_GIRO = {
         nonDelTema: ({ n, totale, tema, altri, capKm }) => `${n} ${n === 1 ? 'tappa' : 'tappe'} su ${totale} non ${n === 1 ? 'è' : 'sono'} di ${tema}: entro ${km1(capKm)} km non ho trovato altri ${altri} aperti che entrino negli orari del giro.`,
         /** «Il giro parte alle 15:40, non alle 15:00.» */
         ora: ({ chiesta, vera }) => `Il giro parte alle ${hhmm(vera)}, non alle ${hhmm(chiesta)}.`,
+    },
+    buco: {
+        /** l'attesa fra due tappe che resta oltre 2 ore */
+        nessunPosto: ({ capKm }) => `Nessuna tappa in questa fascia: entro ${km1(capKm)} km non ci sono altri posti aperti adatti al giro.`,
+        tettoVisite: ({ visite }) => `Nessuna tappa in questa fascia: il giro ha già ${visite} visite, il massimo per una giornata.`,
+        /** il ritmo Tranquillo (scelto, o imparato dal DNA) e la famiglia tengono le pause lunghe: si dice, non si riempie (C8d) */
+        ritmo: () => 'Nessuna tappa in questa fascia: con il ritmo tranquillo il giro tiene una tappa per mattina e una per pomeriggio.',
+        famiglia: () => 'Nessuna tappa in questa fascia: in famiglia il giro tiene una tappa per mattina e una per pomeriggio.',
+        /** la coda del giro (dopo l'ultima tappa vera) oltre 2 ore */
+        coda: ({ capKm }) => `Il giro finisce qui: dopo l'ultima tappa entro ${km1(capKm)} km non ci sono altri posti aperti adatti al giro.`,
+        /** la coda dopo la cena (o dopo una tappa della sera): il giro finisce, il resto della fascia e' libero */
+        fine: () => 'Il giro finisce qui: il resto della fascia chiesta è libero.',
     },
 };

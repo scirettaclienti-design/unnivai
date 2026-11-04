@@ -474,8 +474,11 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         const res = await genera();
         const st = byMoment(res);
         // C5e (O): l'aperitivo non e' piu' il belvedere a 100 min, ma il tempo libero.
-        expect(st.aperitivo).toMatchObject({ tempoLibero: true, title: 'Tempo libero', latitude: null, longitude: null,
-            description: 'Niente in agenda: cammina dove ti porta la strada.' });
+        expect(st.aperitivo).toMatchObject({ tempoLibero: true, title: 'Tempo libero', latitude: null, longitude: null });
+        // BANCO-DIFETTI-2 (T23, D7): oltre 2 ore la riga dice il motivo, fino a 2 ore il testo di sempre
+        // (qui dopo l'aperitivo non c'e' piu' una tappa vera: e' la coda del giro, la cena e' la riga del pasto mancante)
+        expect(st.aperitivo.description).toBe(st.aperitivo.stayMinutes > 120
+            ? 'Il giro finisce qui: il resto della fascia chiesta è libero.' : 'Niente in agenda: cammina dove ti porta la strada.');
         expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'tempo libero' });
         expect(st.aperitivo._tracciato.motivo).toMatch(/^nessun posto entro 40 min dalla tappa prima \(anche dopo la ricerca mirata\): il piu' vicino, "Belvedere Lontano", e' a \d+ min$/);
         expect(searches.filter(s => s.radius === String(MAX_WALK_METERS) && !PASSEGGIATA.test(s.q))).toHaveLength(1);

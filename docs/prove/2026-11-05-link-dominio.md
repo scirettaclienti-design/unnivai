@@ -23,7 +23,10 @@
 - Locale: vitest 280 file / 3465 test verdi, lint 0 errori (188 avvisi già presenti), build ok, `npm run banco:guardia` ok.
 
 ## Esito dal sito pubblicato
-Vedi la sezione in fondo, compilata dopo il READY di Vercel.
+Merge `81164503418b71212910ac4089938022d96f3d1f` (PR #51), CI di main verde, Vercel READY. Prova con WebKit (iPhone, 390 px) su https://unnivai.vercel.app:
+- `/update-password?token_hash=finto&type=recovery` → finisce su `/login?recupero=1` con «Il link non è valido o è scaduto. Scrivi la tua email e te ne mandiamo uno nuovo.» (`schermate/link-dominio-recupero.png`).
+- `/login` senza parametri → resta `/login`, nessun messaggio, come prima.
+Non provato: un link vero (serve un'email reale e i modelli caricati).
 
 ## Cosa resta (non fatto qui, di proposito)
 - Caricare i quattro modelli su Supabase (`scripts/email/carica-modelli.mjs`): lo fanno il coordinatore e Ivano dopo il merge. Finché non sono caricati, le email continuano a portare il vecchio link, che funziona.

@@ -16,6 +16,7 @@
 
 import { computeScheduledTimes, stayOf, travelMinutes } from './tourTiming';
 import { openStatus, OPEN, CLOSED, UNKNOWN, NIGHT_FROM_MINUTES, romeMinutes, orarioLabel } from './openingHours';
+import { kmTratto, tagliaTrattiLunghi } from './tettoCammino';
 
 const idOf = (c) => c?.place_id || c?.googlePlaceId || null;
 const nameOf = (c) => c?.name || c?.title || null;
@@ -35,34 +36,49 @@ const statusOfStop = (s) => openStatus(s, s.scheduledTime ? new Date(s.scheduled
  *   "Per Te"): torna il motivo se il posto non va bene a quell'ora, altrimenti null. Un posto cosi' si toglie e si sostituisce
  *   come uno chiuso. `altre`: le tappe gia' accettate del giro, in ordine, con il loro arrivo (serve a "un solo pasto seduto").
  * @param {number} [p.maxPasses]
+ * @param {number} [p.maxLegKm] BANCO-DIFETTI (D1) — il tetto a piedi fra due tappe consecutive (Per Te: 1,2 km). Una tappa oltre il tetto dalla
+ *   tappa prima si toglie come una chiusa; la sostituta sta entro il tetto dalla tappa prima. Senza, nessun tetto (come prima).
+ * @param {number} [p.want] quante tappe cercare di avere (di difetto: quelle passate)
  * @returns {{ stops: Array, chiuse: Array, aggiunte: Array, ignote: number, passi: number }}
  */
-export function keepOpenStops({ stops, pool, start, retime, toStop, exclude = null, maxPasses = 4, invalidAt = null }) {
-    const want = stops.length;
+export function keepOpenStops({ stops, pool, start, retime, toStop, exclude = null, maxPasses = 4, invalidAt = null, maxLegKm = null, want: wantIn = null }) {
+    const want = Number.isFinite(wantIn) ? Math.max(wantIn, stops.length) : stops.length;
+    const tetto = Number.isFinite(maxLegKm) && maxLegKm > 0 ? maxLegKm : null;
+    const oltre = (a, b) => !!tetto && !!a && (kmTratto(a, b) ?? 0) > tetto;
+    const motivoTetto = (a, b) => `oltre il tetto di cammino: ${(kmTratto(a, b) ?? 0).toFixed(2).replace('.', ',')} km dalla tappa prima (tetto ${String(tetto).replace('.', ',')} km)`;
     let list = stops;
     const vietati = new Set();
     const chiuse = [];
     const aggiunte = [];
     let passi = 0;
+    let aggiunteNelPasso = -1;
     for (; passi < maxPasses; passi++) {
         const timed = computeScheduledTimes(list, start);
         // C8b — la regola in piu' si guarda in ordine di arrivo, contro le tappe gia' accettate
         const accettate = [];
         const motivoRegola = new Map();
+        let prima = null; // D1 — l'ultima tappa tenuta, in ordine di cammino
         for (const s of timed) {
             if (statusOfStop(s).stato === CLOSED) continue;
-            const m = invalidAt && s.scheduledTime ? invalidAt(s, new Date(s.scheduledTime), accettate) : null;
+            const m = (invalidAt && s.scheduledTime ? invalidAt(s, new Date(s.scheduledTime), accettate) : null)
+                || (oltre(prima, s) ? motivoTetto(prima, s) : null);
             if (m) motivoRegola.set(idOf(s), m);
-            else if (s.scheduledTime) accettate.push({ c: s, arrivo: new Date(s.scheduledTime) });
+            else {
+                prima = s;
+                if (s.scheduledTime) accettate.push({ c: s, arrivo: new Date(s.scheduledTime) });
+            }
         }
         const closed = timed.filter(s => statusOfStop(s).stato === CLOSED || motivoRegola.has(idOf(s)));
-        if (closed.length === 0) break;
+        // D1 — con `want` piu' alto delle tappe passate (il tetto ne ha tolte prima) si riempie anche senza tappe chiuse
+        if (closed.length === 0 && list.length >= want) break;
+        if (closed.length === 0 && passi > 0 && aggiunteNelPasso === 0) break;
         for (const s of closed) {
             const st = statusOfStop(s);
             vietati.add(idOf(s));
             chiuse.push({ place_id: idOf(s), nome: nameOf(s), arrivo: s.scheduledTime, perche: st.stato === CLOSED ? st.motivo : motivoRegola.get(idOf(s)) });
         }
         list = timed.filter(s => !vietati.has(idOf(s)));
+        const primaDelRiempimento = aggiunte.length;
         // Riempie fino al numero di prima: il piu' vicino alla tappa prima, aperto quando ci si arriva.
         while (list.length < want) {
             const t = computeScheduledTimes(list, start);
@@ -75,7 +91,12 @@ export function keepOpenStops({ stops, pool, start, retime, toStop, exclude = nu
             for (const c of pool || []) {
                 const id = idOf(c);
                 if (!id || usati.has(id) || vietati.has(id) || exclude?.has(id)) continue;
-                const walk = last ? (travelMinutes(last, c) ?? 0) : 0;
+                // D1 — con il tetto: il candidato sta entro il tetto da almeno una tappa del giro (il giro si rimette in ordine di
+                // cammino dopo, e il passo dopo ricontrolla ogni tratto); vince il piu' vicino a una tappa del giro.
+                if (tetto && list.length && !list.some(x => !oltre(x, c))) continue;
+                const walk = tetto && list.length
+                    ? Math.min(...list.map(x => travelMinutes(x, c) ?? 0))
+                    : (last ? (travelMinutes(last, c) ?? 0) : 0);
                 const arrivo = new Date(fine.getTime() + walk * 60000);
                 const st = openStatus(c, arrivo, stayOf(c));
                 if (st.stato === CLOSED) continue;
@@ -93,6 +114,7 @@ export function keepOpenStops({ stops, pool, start, retime, toStop, exclude = nu
             list = [...list, stop];
             aggiunte.push({ place_id: idOf(migliore.c), nome: nameOf(migliore.c) });
         }
+        aggiunteNelPasso = aggiunte.length - primaDelRiempimento;
         list = retime(list);
     }
     let finale = computeScheduledTimes(list, start);
@@ -110,6 +132,15 @@ export function keepOpenStops({ stops, pool, start, retime, toStop, exclude = nu
         for (const { s, m } of residue) chiuse.push({ place_id: idOf(s), nome: nameOf(s), arrivo: s.scheduledTime, perche: m, residua: true });
         list = retime(list.filter(s => !residueSet.some(r => idOf(r) === idOf(s))));
         finale = computeScheduledTimes(list, start);
+    }
+    // D1 — l'ultima rete del tetto: un tratto ancora oltre il tetto (dopo i giri o dopo aver tolto un residuo) toglie la tappa d'arrivo.
+    if (tetto) {
+        const t = tagliaTrattiLunghi(list, { capKm: tetto, riordina: retime });
+        if (t.tolte.length) {
+            for (const x of t.tolte) chiuse.push({ place_id: idOf(x.tappa), nome: nameOf(x.tappa), arrivo: null, perche: motivoTetto(x.da, x.tappa), residua: true });
+            list = t.tenute;
+            finale = computeScheduledTimes(list, start);
+        }
     }
     const ignote = finale.filter(s => statusOfStop(s).stato === UNKNOWN).length;
     // Lo stato d'orario di ogni tappa va nel tracciato (`_orario`); l'orario assoluto lo rimette chi chiama.

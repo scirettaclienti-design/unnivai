@@ -17,8 +17,9 @@ const moment = (key, label, startIso, endIso, stops = 1, categories) => ({
 const flat = (ms) => flattenSkeleton({ days: [{ moments: ms }] });
 
 describe('C1 — il tetto', () => {
-    it('una costante sola: 20 minuti a piedi, ~1.5 km di bias per la ricerca dei pasti', () => {
-        expect(MAX_WALK_MINUTES).toBe(20);
+    // BANCO-DIFETTI (T19, D1): il tetto e' 1,2 km = 16 minuti (decisione di Ivano); il bias delle ricerche resta 1,5 km
+    it('una costante sola: 16 minuti a piedi (1,2 km), ~1.5 km di bias per la ricerca dei pasti', () => {
+        expect(MAX_WALK_MINUTES).toBe(16);
         expect(MAX_WALK_METERS).toBe(1500);
     });
 });
@@ -202,7 +203,8 @@ describe('C1 — ancora della ricerca dei pasti', () => {
         ]);
         const lontano = { ...parco, latitude: 37.51 + 0.06, longitude: 15.09 };
         const a = mealSearchAnchor(ms, bucketCandidates(ms, [museo, lontano]), [museo, lontano]);
-        expect(travelMinutes(museo, a)).toBe(Math.round(0.75 * MAX_WALK_MINUTES));
+        // il centro della ricerca sta a 3/4 del bias delle ricerche (1,5 km → 1125 m, 15 minuti), che T19 non ha cambiato
+        expect(travelMinutes(museo, a)).toBe(Math.round(0.75 * 20));
         expect(a.longitude).toBeCloseTo(15.09, 6);
     });
 
@@ -323,8 +325,9 @@ describe('C1 — varieta\' a portata di piedi', () => {
     });
 });
 
-// ═══ C1b — la varieta' vince sulla distanza fino a 25 minuti ═══════════════
-describe('C1b — famiglia nuova entro 25 minuti', () => {
+// ═══ C1b — la varieta' vinceva sulla distanza fino a 25 minuti ══════════════
+// BANCO-DIFETTI (T19, D1): il tetto di 1,2 km (16 minuti) e' duro, la varieta' non lo passa piu'.
+describe('C1b — famiglia nuova: solo dentro il tetto', () => {
     const R = { lat: 41.8986, lng: 12.4769 };
     // 0.001° di latitudine ≈ 111 m ≈ 1.5 minuti a piedi.
     const at = (id, name, types, dLat) => ({ place_id: id, name, types, rating: 4.6, user_ratings_total: 500, latitude: R.lat + dLat, longitude: R.lng });
@@ -335,14 +338,24 @@ describe('C1b — famiglia nuova entro 25 minuti', () => {
     const piazza1 = at('p1', 'Piazza Colonna', ['establishment'], 0);
     const piazza2 = at('p2', 'Piazza di Pietra', ['establishment'], 0.003);
 
-    it('controllo: 23 minuti e 30 minuti a piedi', () => {
-        expect(VARIETY_MAX_WALK_MINUTES).toBe(25);
+    it('controllo: la varieta\' ha la soglia del tetto; 23 e 15 minuti a piedi', () => {
+        expect(VARIETY_MAX_WALK_MINUTES).toBe(MAX_WALK_MINUTES);
         expect(travelMinutes(piazza1, at('x', 'x', [], 0.0155))).toBe(23);
-        expect(travelMinutes(piazza1, at('x', 'x', [], 0.0202))).toBe(30);
+        expect(travelMinutes(piazza1, at('x', 'x', [], 0.0101))).toBe(15);
     });
 
-    it('chiesa a 23 minuti contro piazza ripetuta a 4: vince la chiesa, dichiarata', () => {
+    it('chiesa a 23 minuti contro piazza ripetuta a 4: vince la piazza (la chiesa e\' oltre il tetto di 1,2 km)', () => {
         const chiesa = at('ch', 'Chiesa di San Silvestro', ['church'], 0.0155);
+        const pool = [piazza1, piazza2, chiesa];
+        const { plan } = repairMomentSelection({
+            moments: ms, buckets: bucketCandidates(ms, pool), pool,
+            aiStops: [{ place_id: 'p1', moment: 'g1-mattina' }, { place_id: 'p2', moment: 'g1-pomeriggio' }],
+        });
+        expect(plan[1].stops[0].candidate.place_id).toBe('p2');
+    });
+
+    it('chiesa a 15 minuti contro piazza ripetuta a 4: vince la chiesa (famiglia nuova dentro il tetto)', () => {
+        const chiesa = at('ch', 'Chiesa di San Silvestro', ['church'], 0.0101);
         const pool = [piazza1, piazza2, chiesa];
         const { plan, report } = repairMomentSelection({
             moments: ms, buckets: bucketCandidates(ms, pool), pool,
@@ -350,8 +363,6 @@ describe('C1b — famiglia nuova entro 25 minuti', () => {
         });
         const pom = plan[1].stops[0];
         expect(pom.candidate.place_id).toBe('ch');
-        expect(pom.trace).toMatchObject({ scelta: 'riparazione', minuti: 23, famiglia: 'chiesa' });
-        expect(pom.trace.motivo).toMatch(/famiglia nuova a 23 min/);
         expect(report.scartate.find(x => x.place_id === 'p2').motivo).toMatch(/famiglia gia' presente nel giorno \(piazza\)/);
         expect(report.ripieghi).toEqual([]);
     });
@@ -468,15 +479,15 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'tempo libero' });
         expect(st.aperitivo._tracciato.motivo).toMatch(/^nessun posto entro 40 min dalla tappa prima \(anche dopo la ricerca mirata\): il piu' vicino, "Belvedere Lontano", e' a \d+ min$/);
         expect(searches.filter(s => s.radius === String(MAX_WALK_METERS) && !PASSEGGIATA.test(s.q))).toHaveLength(1);
-        expect(res._momentReport.tempoLibero.filter(x => !x.buco)).toEqual([expect.objectContaining({ momento: 'g1-aperitivo' })]);
+        // BANCO-DIFETTI (T19, D1): la cena a 7 km e' oltre il tetto di 1,2 km → la riga approvata del pasto (C8c), non piu' il ripiego lontano
+        expect(res._momentReport.tempoLibero.filter(x => !x.buco)).toEqual([expect.objectContaining({ momento: 'g1-aperitivo' }), expect.objectContaining({ momento: 'g1-cena', pasto: true })]);
         // CONTINUITA' — la mattina finisce presto e il pranzo comincia alle 12:30: un buco, dichiarato con la sua fascia.
         const buchi = res.days[0].stops.filter(x => x._tracciato?.buco);
         expect(buchi).toHaveLength(1);
         expect(buchi[0]).toMatchObject({ tempoLibero: true, moment: 'mattina' });
         expect(buchi[0].stayMinutes).toBe(buchi[0]._tracciato.buco);
-        // La cena e' sempre un pasto: c'e', scelta dalla tappa vera prima.
-        expect(st.cena).toBeTruthy();
-        expect(st.cena.tempoLibero).toBeUndefined();
+        // La cena e' sempre un pasto: senza un ristorante entro il tetto c'e' la riga approvata (T19, D1; prima: il ripiego a 7 km).
+        expect(st.cena).toMatchObject({ tempoLibero: true, description: 'Nessun locale aperto qui vicino a quest’ora.' });
         // L'ordine del giorno resta quello dei momenti, e il tempo libero non ha orario proprio di cammino.
         expect(senzaBuchi(res.days[0].stops).map(x => x.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
         // Dalla cache: il tempo libero resta tale, con lo stesso testo (non si ricompone come una tappa).
@@ -495,9 +506,13 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         // lontana e' il pranzo.
         // C8a — la ricerca della passeggiata (budget suo, +1) non e' una delle due dei momenti veri
         expect(res._momentReport.ricercheDopo.map(x => x.momento).filter(m => m !== 'g1-passeggiata')).toEqual(['g1-pranzo', 'g1-aperitivo']);
-        expect(st.cena._tracciato).toMatchObject({ scelta: 'ripiego', ripiego: 'distanza' });
-        expect(st.cena._tracciato.motivo).toMatch(/ricerche mirate esaurite/);
-        expect(Object.keys(st)).toHaveLength(5);
+        // T19 (D1): il ripiego «esaurite» a 9 km non resta nel giro: la cena e' la riga approvata, col motivo del tetto
+        expect(res._momentReport.ripieghi.find(x => x.momento === 'g1-cena').motivo).toMatch(/ricerche mirate esaurite/);
+        expect(st.cena._tracciato).toMatchObject({ scelta: 'tempo libero' });
+        expect(st.cena._tracciato.motivo).toMatch(/nessun locale entro il tetto di cammino/);
+        // BANCO-DIFETTI (T19, D4): la riga di tempo libero dell'aperitivo durava meno di 15 minuti e non esce piu' (i suoi minuti restano attesa)
+        expect(Object.keys(st)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'cena']);
+        expect(res.days[0].stops.filter(s => s.tempoLibero && s.moment !== 'cena').every(s => s.stayMinutes >= 15)).toBe(true);
     });
 
     it('Roma: all\'aperitivo solo belvederi vicini e uno c\'e\' gia\' → ricerca mirata → un bar, nessuna famiglia ripetuta', async () => {
@@ -524,5 +539,29 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         // fuori dalla passeggiata nessuna famiglia ripetuta: c'era una famiglia nuova (il bar)
         const fams = tutte.filter(x => !x.passeggiata).map(x => x._tracciato.famiglia).filter(Boolean);
         expect(new Set(fams).size, fams.join(' | ')).toBe(fams.length);
+    });
+});
+
+// BANCO-DIFETTI (T19, D3) — n-napoli-dna-cibo: Teatro di San Carlo → Trattoria Don Vincenzo a 1,62 km per il pranzo.
+// Il pranzo sta nel tetto di 1,2 km dalla tappa prima come ogni altra tappa: vince la trattoria a 1 km anche con un voto piu' basso.
+describe('D3 — il pranzo entro 1,2 km dalla tappa prima', () => {
+    const N = { lat: 40.8375, lng: 14.2496 };
+    const at = (id, name, types, km, rating) => ({ place_id: id, name, types, rating, user_ratings_total: 800, latitude: N.lat + km * 0.009, longitude: N.lng });
+    const ms = flat([
+        moment('mattina', 'Mattina', '2026-11-05T09:30:00+01:00', '2026-11-05T12:30:00+01:00'),
+        moment('pranzo', 'Pranzo', '2026-11-05T12:30:00+01:00', '2026-11-05T14:30:00+01:00'),
+    ]);
+    it('la trattoria a 1,35 km (18 min: dentro il tetto vecchio di 20, fuori da quello di 16) perde contro quella a 1,0 km', () => {
+        const teatro = at('teatro', 'Teatro di San Carlo', ['performing_arts_theater', 'tourist_attraction'], 0, 4.7);
+        const lontana = at('lontana', 'Trattoria Don Vincenzo', ['restaurant', 'food'], 1.35, 4.9);
+        const vicina = at('vicina', 'Trattoria Vicina', ['restaurant', 'food'], 1.0, 4.3);
+        const pool = [teatro, lontana, vicina];
+        const { plan } = repairMomentSelection({
+            moments: ms, buckets: bucketCandidates(ms, pool), pool,
+            aiStops: [{ place_id: 'teatro', moment: 'g1-mattina' }, { place_id: 'lontana', moment: 'g1-pranzo' }],
+        });
+        expect(plan[1].stops[0].candidate.place_id).toBe('vicina');
+        expect(travelMinutes(teatro, vicina)).toBeLessThanOrEqual(MAX_WALK_MINUTES);
+        expect(travelMinutes(teatro, lontana)).toBeGreaterThan(MAX_WALK_MINUTES);
     });
 });

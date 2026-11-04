@@ -219,6 +219,7 @@ describe('P7a — "Rigenera giorno" passa il DNA come le altre sezioni', () => {
 // ─── 4. "Per Te" ────────────────────────────────────────────────────────────
 const CITY = 'Roma';
 const CENTER = { latitude: 41.9028, longitude: 12.4964 };
+// BANCO-DIFETTI (T19, D1): il Pantheon a 1,0 km (era 0,5) tiene i tour dentro il tetto di Per Te (1,2 km fra due tappe)
 const near = (km) => ({ latitude: CENTER.latitude + km * 0.009, longitude: CENTER.longitude });
 const poi = (id, name, km, extra = {}) => ({
     place_id: id, name, ...near(km), rating: 4.5, user_ratings_total: 500, types: ['tourist_attraction'], city: CITY, ...extra,
@@ -274,9 +275,9 @@ describe('P7a — "Per Te": la dedup fra temi non premia il piu\' recensito', ()
 });
 
 describe('P7a — "Per Te": tour con meno di 3 tappe e luogo ceduto', () => {
-    const CULTURA = [poi('c1', 'Pantheon', 0.5), poi('c2', 'San Clemente', 2), poi('c3', 'Santa Prassede', 2.2), poi('c4', 'Palazzo Massimo', 2.4)];
+    const CULTURA = [poi('c1', 'Pantheon', 1.0), poi('c2', 'San Clemente', 2), poi('c3', 'Santa Prassede', 2.2), poi('c4', 'Palazzo Massimo', 2.4)];
     const FOOD = [poi('f1', 'Da Enzo', 1), poi('f2', 'Armando', 2), poi('f3', 'Roscioli', 1.5)];
-    const INSIDER = [poi('c1', 'Pantheon', 0.5), poi('i1', 'Museo Barracco', 1), poi('i2', 'Casa di Goethe', 1.1), poi('i3', 'Cripta dei Cappuccini', 1.3)];
+    const INSIDER = [poi('c1', 'Pantheon', 1.0), poi('i1', 'Museo Barracco', 1), poi('i2', 'Casa di Goethe', 1.1), poi('i3', 'Cripta dei Cappuccini', 1.3)];
 
     it('un tour "Per Te" con 2 tappe non viene mostrato (se il pool non ha altro: P7a2)', async () => {
         vi.stubGlobal('fetch', proxyFetch({ tours: [
@@ -333,7 +334,7 @@ describe('P7a — ovvieta\': tappe nel 10% piu\' recensito dei candidati', () =>
     });
 
     it('il resoconto "Per Te" porta l\'ovvieta\'', async () => {
-        const CULTURA = [poi('c1', 'Pantheon', 0.5, { user_ratings_total: 90000 }), poi('c2', 'San Clemente', 2, { user_ratings_total: 300 }), poi('c3', 'Santa Prassede', 2.2, { user_ratings_total: 200 })];
+        const CULTURA = [poi('c1', 'Pantheon', 1.0, { user_ratings_total: 90000 }), poi('c2', 'San Clemente', 2, { user_ratings_total: 300 }), poi('c3', 'Santa Prassede', 2.2, { user_ratings_total: 200 })];
         vi.stubGlobal('fetch', proxyFetch({ tours: [{ themeType: 'cultura', title: 'Cultura', stops: [stop('c1'), stop('c2'), stop('c3')] }] }));
         const res = await home({ cultura: CULTURA });
         expect(res._report.ovvieta).toMatchObject({ tappe: 3, nelTop10: 1, ovvie: ['Pantheon'] });

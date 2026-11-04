@@ -33,7 +33,7 @@ describe('C5b — la prima tappa si misura dal centro del gruppo (o dalla parten
     const scelta = [['Belvedere Lontano', 'mattina'], ['Trattoria del Gruppo', 'pranzo'], ['Giardino del Gruppo', 'pomeriggio'], ['Bar del Gruppo', 'aperitivo'], ['Osteria del Gruppo', 'cena']]
         .map(([place_id, m]) => ({ place_id, moment: `g1-${m}` }));
 
-    it('controllo: la tappa del modello e\' oltre i 20 minuti dal centro del gruppo, quella del pool dentro', () => {
+    it('controllo: la tappa del modello e\' oltre il tetto (16 minuti da T19) dal centro del gruppo, quella del pool dentro', () => {
         const centro = groupCenter([pranzo, chiesa, bar, cena]);
         expect(travelMinutes(centro, lontana)).toBeGreaterThan(MAX_WALK_MINUTES);
         expect(travelMinutes(centro, vicina)).toBeLessThanOrEqual(MAX_WALK_MINUTES);
@@ -46,7 +46,7 @@ describe('C5b — la prima tappa si misura dal centro del gruppo (o dalla parten
         const { plan, report } = repairMomentSelection({ moments: g, buckets: bucketCandidates(g, pool), aiStops: scelta, pool });
         expect(seq(plan)[0].candidate.place_id).toBe('Museo Vicino');
         expect(report.scartate).toEqual(expect.arrayContaining([expect.objectContaining({
-            place_id: 'Belvedere Lontano', motivo: expect.stringMatching(/^prima tappa fuori dal gruppo: \d+ min dal centro del gruppo \(tetto 20\)$/),
+            place_id: 'Belvedere Lontano', motivo: expect.stringMatching(/^prima tappa fuori dal gruppo: \d+ min dal centro del gruppo \(tetto 16\)$/ /* T19: tetto 1,2 km = 16 min */),
         })]));
         expect(seq(plan)[0].trace.daPartenza).toMatchObject({ da: 'centro del gruppo' });
         expect(seq(plan)[0].trace.daPartenza.minuti).toBeLessThanOrEqual(MAX_WALK_MINUTES);
@@ -59,7 +59,7 @@ describe('C5b — la prima tappa si misura dal centro del gruppo (o dalla parten
         expect(prima.candidate.place_id).toBe('Belvedere Lontano');
         expect(plan).toHaveLength(5);
         expect(prima.trace).toMatchObject({ scelta: 'ripiego', ripiego: 'partenza' });
-        expect(prima.trace.motivo).toMatch(/^prima tappa a \d+ min dal centro del gruppo: nessuna alternativa del pool entro 20 min$/);
+        expect(prima.trace.motivo).toMatch(/^prima tappa a \d+ min dal centro del gruppo: nessuna alternativa del pool entro 16 min$/);
         // il ripiego della partenza non va fra i "lontani" (non spende una
         // ricerca mirata); il pranzo a 32 minuti dal belvedere si', per C1
         expect(report.lontani.map(x => x.momento)).toEqual(['g1-pranzo']);

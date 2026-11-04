@@ -379,7 +379,7 @@ import { senzaEscape, weatherLabel, weatherIconOf, isDopocenaClock } from '@/lib
 import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock, MOMENTS, MOMENT_BY_KEY, ALBA_MINUTES } from '@/lib/dayMoments';
 import { FREE_TIME_MAX_MINUTES, freeTimeStop } from '@/lib/freeTime';
-import { bandFreeTime, minStopsForWindow } from '@/lib/continuity';
+import { bandFreeTime, minStopsForWindow, rifinisciTempoLibero } from '@/lib/continuity';
 import { detectFoodTheme, isForeignCuisine, localCuisineReason, tipicoBonus } from '@/lib/foodTheme';
 import { zoneReason } from '@/lib/zone';
 import { isSitDownMeal, perTeMealProblem, mealFitsClock, isBreakfastPlace } from '@/lib/mealRules';
@@ -390,12 +390,13 @@ import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace, scheduleHoursSources,
     requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme, WALK_NATURA_BORGO_MINUTES,
-    applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule, fillGaps, gapRows, fillMinimum, belowMinimumRows,
+    applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule, fillGaps, gapRows, fillMinimum, belowMinimumRows, tettoNelPiano,
     isStoricaLista,
 } from './momentSelection';
 // ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta (lib/openingHours).
 import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO, romeMinutes, openStatus } from '../lib/openingHours';
 import { keepOpenStops } from '../lib/openStops';
+import { gruppoNelTetto, migliorePartenza, TETTO_PIEDI_KM, TESTI_TETTO } from '../lib/tettoCammino';
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 import { PER_TE_TESTI } from '../lib/esitoVuoto';
@@ -2082,8 +2083,17 @@ const weatherForDay = (weather, window, requestTime) => {
  * giorno (windowIndex) prima della prima tappa di un momento successivo.
  */
 const MOMENT_ORDER = new Map(MOMENTS.map((m, i) => [m.key, i]));
-const insertFreeTime = (days, entries) => {
-    if (!Array.isArray(entries) || entries.length === 0) return days;
+const insertFreeTime = (days, entries, { tourWindow = null } = {}) => {
+    // BANCO-DIFETTI (T19, D4 + D5) — il tempo libero dice il tempo vero: la coda fino alla fine della finestra,
+    // niente righe sotto i 15 minuti (rifinisciTempoLibero). Senza finestra (test, cache vecchia) solo la regola dei 15 minuti.
+    const rifinisci = (day, di, stops) => {
+        const w = (tourWindow?.windows || [])[Number.isFinite(day.windowIndex) ? day.windowIndex : di] || tourWindow || null;
+        return rifinisciTempoLibero(stops, {
+            start: w?.start instanceof Date ? w.start : null, fine: w?.end instanceof Date ? w.end : null,
+            pastoMancante: (x) => x.description === TESTO_NESSUN_LOCALE_APERTO,
+        });
+    };
+    if (!Array.isArray(entries) || entries.length === 0) return (days || []).map((day, di) => ({ ...day, stops: rifinisci(day, di, day.stops || []) }));
     return (days || []).map((day, di) => {
         const dayIndex = Number.isFinite(day.windowIndex) ? day.windowIndex : di;
         let stops = [...(day.stops || [])];
@@ -2099,7 +2109,7 @@ const insertFreeTime = (days, entries) => {
             stops = at < 0 ? [...stops, item] : [...stops.slice(0, at), item, ...stops.slice(at)];
         }
         // CONTINUITA' — il tempo libero occupa il suo tempo (la fascia e' l'attesa che prima stava sulla tappa dopo).
-        return { ...day, stops: bandFreeTime(stops) };
+        return { ...day, stops: rifinisci(day, di, bandFreeTime(stops)) };
     });
 };
 
@@ -2544,6 +2554,8 @@ export const aiRecommendationService = {
             let scalaNote = null;
             let sosteDnaReport = null; // DNA-3b
             let ordinePercorsoReport = null; // NAV-2
+            let trattiNote = null; // D1 (T19): «Da A a B sono 2,2 km a piedi, 29 minuti.» (la natura chiesta nel borgo)
+            let tettoReport = null;
             let esclusioneNote = null; // DNA-3b: «Ho tolto le chiese come chiesto: il giro è più corto.»
             let conferma = null;
             const w0 = tourWindow.windows[0];
@@ -3355,6 +3367,25 @@ export const aiRecommendationService = {
                                 for (const f of ord.report.file) console.info(`[NAV-2 ORDINE] ${city}: giorno ${f.giorno} ${f.momento}: ${f.kmPrima.toFixed(2)} → ${f.kmDopo.toFixed(2)} km`);
                             }
                             const { report } = repaired;
+                            // BANCO-DIFETTI (T19, D1) — l'ultima rete del tetto di 1,2 km nei giri a piedi (il ritmo Intenso usa qualche mezzo): un ripiego
+                            // oltre il tetto esce; un pasto rimasto senza locale ha la riga approvata («Nessun locale aperto qui vicino a quest'ora.»),
+                            // il resto lo dichiarano i buchi e il minimo. Il tratto lungo della natura chiesta nel borgo si dice nel giro.
+                            if (normalizePace(prefs?.pace) !== 'intenso') {
+                                // la natura chiesta in un borgo (BORGO-FIX, decisione 3): verso un luogo di natura o un panorama fino a 30 minuti, dichiarati
+                                const naturaNelBorgo = catStretta === 'natura' && (conferma?.scala === 'borgo' || (cityCenter?.isSmallTown ?? isSmallTown(city)));
+                                const tetto = tettoNelPiano(sched, { eccezione: naturaNelBorgo ? (a, c) => (isNaturaOPanorama(c) ? WALK_NATURA_BORGO_MINUTES : null) : null });
+                                sched = tetto.sched;
+                                tettoReport = { tolte: tetto.tolte, dichiarati: tetto.dichiarati };
+                                const conTappe = new Set(sched.days.flat().map(x => x.moment.id));
+                                for (const t of tetto.tolte) {
+                                    console.info(`[D1 TETTO] ${city}: tolta "${t.nome}" (${t.momento}): ${t.km} km da "${t.da}", oltre ${TETTO_PIEDI_KM} km`);
+                                    if (t.pasto && !conTappe.has(t.momento) && !(report.tempoLibero || []).some(x => x.momento === t.momento)) {
+                                        report.tempoLibero = [...(report.tempoLibero || []), { momento: t.momento, key: t.key, label: t.label, dayIndex: t.dayIndex, posto: 0, dopo: null, piuVicino: null,
+                                            chiuso: true, pasto: true, motivo: `nessun locale entro il tetto di cammino (${t.km} km da "${t.da}")` }];
+                                    }
+                                }
+                                if (tetto.dichiarati.length) trattiNote = tetto.dichiarati.map(d => TESTI_TETTO.trattoLungo(d)).join(' ');
+                            }
                             for (const a of minimo.aggiunte) console.info(`[C8b MINIMO] ${city}: tappa in piu' in ${a.momento} (giorno ${a.dayIndex + 1}: ${a.prima} → ${a.dopo} tappe, minimo ${minPerDay.get(a.dayIndex)})`);
                             for (const a of filled.aggiunte) console.info(`[CONTINUITA'] ${city}: tappa in piu' in ${a.momento} (buchi ${a.minutiPrima} → ${a.minutiDopo} min)`);
                             const hoursReport = openBuckets().report;
@@ -3397,7 +3428,7 @@ export const aiRecommendationService = {
                             };
                             const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, respinti: filled.respinti || [], dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })),
                                 minimo: { richiesto: Object.fromEntries(minPerDay), aggiunte: minimo.aggiunte, tentativi: minimo.tentativi, dichiarati: righeMinimo.map(x => ({ momento: x.momento, giorno: x.dayIndex + 1 })) } };
-                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, ordine: ordinePercorsoReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
+                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, ordine: ordinePercorsoReport, tetto: tettoReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
                             logMomentReport(city, momentReport);
                             // C7 — nel tracciato (interno, mai a schermo): cosa ha voluto il tema. Il pasto del tema, l'esperienza
                             // nello spirito del tema, il momento chiesto ESPLICITAMENTE dal testo, e per "tipico" se il posto e' locale.
@@ -3460,6 +3491,8 @@ export const aiRecommendationService = {
                             // toglie e si sostituisce col candidato piu' vicino aperto. Mai una chiusa.
                             const aperti = keepOpenStops({
                                 stops: ordered, pool: candidates, start: tourWindow.start,
+                                // BANCO-DIFETTI (D1) — a piedi fra due tappe al massimo 1,2 km; il ritmo Intenso usa qualche mezzo
+                                maxLegKm: normalizePace(prefs?.pace) === 'intenso' ? null : TETTO_PIEDI_KM,
                                 retime: (list) => computeStopTimings(enforceCategoryVariety(sortByProximity(list))).stops,
                                 toStop: (c) => canonicalizeStopsFromCandidates([{ place_id: c.place_id || c.googlePlaceId }], candidates, { guard: false })[0] || null,
                             });
@@ -3547,7 +3580,7 @@ export const aiRecommendationService = {
                         });
                         // C5e (O) — il tempo libero entra nel giorno dopo il racconto,
                         // al suo posto fra i momenti, con il testo del codice.
-                        const narratedDays = insertFreeTime(composed.days, [...(momentReport?.tempoLibero || []), ...(orariInfo?.riga ? [orariInfo.riga] : [])]);
+                        const narratedDays = insertFreeTime(composed.days, [...(momentReport?.tempoLibero || []), ...(orariInfo?.riga ? [orariInfo.riga] : [])], { tourWindow });
                         const allStops = narratedDays.flatMap(d => d.stops);
                         const narrationReport = {
                             raccontate: allStops.length,
@@ -3593,7 +3626,7 @@ export const aiRecommendationService = {
                         if (foodOn) console.info(`[P7b VINCOLI] ${city}: dieta=${food.dieta.join('+') || '-'} (${food.dietaFonte || '-'}), budget=${food.budget || '-'} (${food.budgetFonte || '-'}), stile=${food.stile || '-'} | pasti: ${tappePasto.map(x => `${x.title} [pl=${x.price_level ?? '?'}, ${x.criterio || 'senza criterio'}]`).join(' | ') || 'nessuno'}`);
                         if (dietNote) for (const d of narratedDays) d.dietNote = dietNote;
                         // C10b — il borgo che si gira in mezza giornata: la riga approvata, sul giorno
-                        const noteGiorno = [scalaNote, esclusioneNote].filter(Boolean).join(' ');
+                        const noteGiorno = [scalaNote, esclusioneNote, trattiNote].filter(Boolean).join(' ');
                         if (noteGiorno && narratedDays[0]) narratedDays[0].scalaNote = noteGiorno;
                         // BORGO-FIX — decisione 3: natura chiesta, giro che comincia dopo il tramonto, nessuna natura nel giro → la nota di Ivano
                         // (la seconda frase solo se un posto di natura verificato, nel pool, e' aperto domattina alle 9).
@@ -4169,16 +4202,25 @@ export const aiRecommendationService = {
                 // rimette in ordine tenendo la colazione per prima (la sola tappa che non si riordina per vicinanza)
                 const riordina = (lista) => {
                     const col = colazioneId ? lista.find(x => x.place_id === colazioneId) : null;
-                    return computeStopTimings(col ? [col, ...sortByProximity(lista.filter(x => x !== col))] : sortByProximity(lista)).stops;
+                    // D1 — senza colazione la prima tappa e' quella da cui il vicino-piu'-vicino resta nel tetto (migliorePartenza)
+                    return computeStopTimings(col ? [col, ...sortByProximity(lista.filter(x => x !== col))] : migliorePartenza(lista, sortByProximity)).stops;
                 };
+                // BANCO-DIFETTI (D1) — Per Te a piedi: fra due tappe consecutive al massimo 1,2 km (decisione di Ivano). Prima il gruppo piu'
+                // grande di tappe legate entro il tetto (le altre si tolgono, col motivo); poi keepOpenStops riempie dal pool del tema solo
+                // entro il tetto dalla tappa prima e taglia i tratti che restano lunghi. Sotto le 3 tappe il tour non e' servito (regola di sempre).
+                const quante = tappe.length;
+                const gruppo = gruppoNelTetto(tappe, TETTO_PIEDI_KM);
+                for (const x of gruppo.tolte) scarta(themeType, x.title, `oltre il tetto di cammino (${String(TETTO_PIEDI_KM).replace('.', ',')} km) dal gruppo delle altre tappe`);
+                tappe = gruppo.tenute;
                 const aperti = keepOpenStops({
+                    maxLegKm: TETTO_PIEDI_KM, want: quante,
                     // C8b — le stesse fasce dei pasti di Crea: un ristorante solo a pranzo e a cena, la mattina una colazione.
                     // GIRO-EDIT — la colazione scelta qui sopra e' un posto da colazione aperto: non passa dalla regola del dolce (una pasticceria e' la colazione).
                     invalidAt: (c, arrivo, altre) => (colazioneId && homePid(c) === colazioneId ? (mealFitsClock(c, romeMinutes(arrivo)) ? null : 'pasto fuori fascia') : perTeMealProblem(c, romeMinutes(arrivo), arrivo, altre))
                         // BORGO-FIX — decisione 3: la natura «da fuori» dopo il tramonto non e' una tappa nemmeno in Per Te
                         // NOTTE-FIX — la terza copia della regola: «al buio» = prima dell'alba o dal tramonto (eBuio), non solo dal tramonto
                         || (arrivo instanceof Date && eBuio(arrivo, sunNow) && isNaturaDaFuori(c, cityCenter) ? 'natura da fuori al buio' : null),
-                    stops: computeStopTimings(tappe).stops, pool: poolTema, start: now, exclude: usati,
+                    stops: riordina(tappe), pool: poolTema, start: now, exclude: usati,
                     retime: riordina,
                     toStop: (c) => {
                         const [nuovo] = canonicalizeStopsFromCandidates([{ place_id: homePid(c) }], poolTema, { guard: false });

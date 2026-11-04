@@ -38,7 +38,17 @@ describe('banco 40 — i casi', () => {
 });
 
 describe('banco 40 — i controlli', () => {
-    it('distanze: 20 minuti a piedi sono 1,5 km, il ritmo Intenso arriva a 5 km', () => {
+    // BANCO-DIFETTI (T19, D1): a piedi il tetto e' 1,2 km (decisione di Ivano), prima 1,5
+    it('distanze: a piedi 1,2 km — 1,3 km fallisce, 1,1 passa', () => {
+        expect(config.soglie.kmTraTappePiedi).toBe(1.2);
+        const t = (km) => caso([stop('A', 41.8955, 12.4823, '2026-11-05T09:00:00Z'), stop('B', 41.8955 + km * 0.009, 12.4823, '2026-11-05T10:00:00Z')]);
+        expect(distanze(t(1.1), meta, config).ok).toBe(true);
+        const r = distanze(t(1.3), meta, config);
+        expect(r.ok).toBe(false);
+        expect(r.violazioni[0]).toMatch(/oltre il tetto a piedi \(1\.2 km\)/);
+        expect(distanze(t(1.3), { attesa: 'Roma', prefs: { pace: 'Intenso' } }, config).ok).toBe(true);
+    });
+    it('distanze: il ritmo Intenso arriva a 5 km', () => {
         const vicino = caso([stop('A', 41.8955, 12.4823, '2026-11-05T09:00:00Z'), stop('B', 41.9, 12.49, '2026-11-05T09:45:00Z')]);
         expect(distanze(vicino, meta, config).ok).toBe(true);
         const lontano = caso([stop('A', 41.8955, 12.4823, '2026-11-05T09:00:00Z'), stop('B', 41.93, 12.49, '2026-11-05T11:00:00Z')]);

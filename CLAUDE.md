@@ -40,7 +40,7 @@ etichettate `label = 'test'` in `ai_generation_ticket`; il tetto globale lo ferm
 **Banco da 40 casi** (`npm run banco`, `scripts/banco/banco40.mjs`, casi in `casi-banco40.js`): i 18 casi di sempre (11 luoghi neutri, profili A/B a Roma e Catania, Per Te a Roma e Catania,
 Troina→"una giornata a Roma") + 22 nuovi che coprono la griglia (grandi città, borghi siciliani, ore mattina/13/sera/notte, richieste generiche e specifiche, ospite, giro lontano, ritmi diversi,
 DNA forte su cibo/cultura/natura). Giorno dei giri: giovedì 5/11/2026, ora solare (`+01:00`), ricerca nuova di Google come in produzione. Cinque controlli per caso (`controlli40.js`, funzioni pure):
-**tappe aperte** all'ora del giro (c5 e orari di Google), **distanze plausibili per il mezzo** (a piedi 1,5 km fra due tappe, ritmo Intenso 5 km, e il tempo fra gli arrivi basta), **nessun luogo di
+**tappe aperte** all'ora del giro (c5 e orari di Google), **distanze plausibili per il mezzo** (a piedi 1,2 km fra due tappe dal 05/11 — `soglie.kmTraTappePiedi` —, ritmo Intenso 5 km, e il tempo fra gli arrivi basta), **nessun luogo di
 un'altra città** (centro e raggio in `CENTRI`), **titolo coerente con le tappe**, **nessuna frase ripetuta**. Il giro vero è a pagamento (account di prova, tetto `BANCO_TETTO`, di difetto 7,8 $ a listino
 con le risposte dalla cache del proxy non contate) e scrive nel repo `docs/prove/dati/banco-40-tracciati.json.gz`, `banco-40-esiti.json` (esiti, firma delle tappe, orari di Google) e `banco-40-tabella.md`;
 un giro fermato dal tetto si completa con `npm run banco -- --mancanti` (i casi nuovi si uniscono agli esiti salvati). **`npm run banco -- --replay`**: la riproduzione a 0 $ dai tracciati, senza rete,
@@ -514,6 +514,14 @@ Testi in un file solo: `src/lib/testiAccount.js` (Elimina account, consenso AI, 
 - **Elimina account** (Profilo, `components/EliminaAccount.jsx`, `lib/eliminaAccount.js`): parola «elimina» → Edge Function `elimina-account` (JWT → solo se stessi; dati con `public.elimina_dati_utente`, file di Storage, poi `auth.admin.deleteUser`) → esci → home col messaggio. Senza funzione o migrazione dice «non ho cancellato niente», mai un falso «fatto». Prove: `bash scripts/test-elimina-account-sql.sh` (Docker, FK reali), `src/__tests__/functions/eliminaAccount.test.js`. **Una tabella nuova con colonna utente e FK senza ON DELETE CASCADE va aggiunta a `elimina_dati_utente`** (e al test SQL).
 - **Consenso AI di terzi** (`lib/consensoAi.js`, `components/ConsensoAi.jsx`): `user_metadata.consenso_ai` + copia sul telefono legata all'id (senza utente: solo telefono). Ogni servizio che manda dati a openai-proxy passa dal cancello (`richiediConsensoAi` / `assicuraConsensoAi` / `consensoAiDato`). Nei test il cancello è mockato in `src/test/setup.js`; gli script con account anonimo devono cliccare «Va bene» (`consensoAi()` nel collaudo).
 - Se si aggiunge un servizio che riceve dati dell'utente: aggiornare la privacy e alzare `VERSIONE_CONSENSO`.
+
+### Il tetto di 1,2 km, il tempo libero vero, i non-luoghi (BANCO-DIFETTI, T19)
+
+Report: `docs/prove/2026-11-05-banco-difetti.md`.
+- **Tetto a piedi 1,2 km fra due tappe consecutive** (decisione di Ivano; `src/lib/tettoCammino.js`, `TETTO_PIEDI_KM`): Crea/Veloce/Sorprendimi `MAX_WALK_MINUTES = 16` e la varietà non lo passa più (`VARIETY_MAX_WALK_MINUTES` = tetto); il bias delle ricerche mirate e il cerchio del quartiere restano 1,5 km (`MAX_WALK_METERS`: richieste a Google invariate). Ultima rete `tettoNelPiano` (momentSelection): un ripiego oltre il tetto esce (un pasto senza locale → «Nessun locale aperto qui vicino a quest'ora.»); eccezione dichiarata la natura chiesta nel borgo fino a 30 minuti, con la riga sul giorno «Da A a B sono X km a piedi, N minuti.» (`TESTI_TETTO`). Ritmo Intenso escluso. **Per Te**: il gruppo più grande di tappe legate entro il tetto (`gruppoNelTetto`), partenza da cui il vicino-più-vicino resta nel tetto (`migliorePartenza`), `keepOpenStops({ maxLegKm, want })` riempie dal pool del tema entro il tetto e taglia i tratti lunghi; sotto 3 tappe il tour non si serve.
+- **Tempo libero vero** (`continuity.rifinisciTempoLibero`, da `insertFreeTime`): nessuna riga sotto 15 minuti (i minuti restano attesa; resta la riga del pasto mancante); la riga in coda (serata con la sola cena, giro sotto il minimo) prende il resto della finestra.
+- **Non-luoghi** (`zone.zoneReason`): il nome della città («Matera, Italia») e il municipio come ufficio (`city_hall` senza `tourist_attraction`) non sono tappe. La fermata «Colosseo» resta (il Colosseo vero lo toglie il Gate RAGGIO-CATEGORIA: aperto).
+- Banco: le proposte «per dopo» di Per Te si misurano dal prossimo mattino (`giro-caso.inizioTourPerTe`).
 
 ### Regole di lavoro (decise da Ivano)
 

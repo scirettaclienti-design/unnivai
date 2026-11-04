@@ -118,7 +118,7 @@ describe('C5c — una ripetizione dichiara se era evitabile, con le alternative 
     const museo2 = p('Museo Capa', 37.7851, 14.6005, ['museum']);
 
     it('nel pool del momento non c\'e\' nessuna famiglia nuova entro 25 minuti: inevitabile, con la piu\' vicina', () => {
-        // una chiesa a ~4,5 km: oltre i 25 minuti
+        // una chiesa a ~4,5 km: oltre il tetto (T19: la varieta' vale fino al tetto di 16 minuti = 1,2 km, prima 25)
         const lontana = p('Chiesa Lontana', 37.8250, 14.5992, ['church']);
         const pool = [piazza, torre, museo2, lontana];
         const { plan, report } = repairMomentSelection({
@@ -129,7 +129,7 @@ describe('C5c — una ripetizione dichiara se era evitabile, con le alternative 
         expect(capa.trace).toMatchObject({ ripiego: 'famiglia', varieta: { esito: 'inevitabile' } });
         expect(capa.trace.varieta.piuVicina).toMatchObject({ nome: 'Chiesa Lontana', famiglia: 'chiesa' });
         expect(capa.trace.varieta.piuVicina.minuti).toBeGreaterThan(25);
-        expect(capa.trace.motivo).toMatch(/inevitabile: nei momenti delle tappe museo \(\d+ candidati\) nessuna alternativa libera che la tolga entro 25 min; la piu' vicina: "Chiesa Lontana" \(chiesa, (mattina|pomeriggio)\) a \d+ min/);
+        expect(capa.trace.motivo).toMatch(/inevitabile: nei momenti delle tappe museo \(\d+ candidati\) nessuna alternativa libera che la tolga entro 16 min; la piu' vicina: "Chiesa Lontana" \(chiesa, (mattina|pomeriggio)\) a \d+ min/);
         expect(report.ripetuti.find(x => x.place_id === 'Museo Capa')).toMatchObject({ evitabile: false });
     });
 

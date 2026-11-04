@@ -164,3 +164,8 @@ script `node --experimental-strip-types scripts/email/anteprime-marchio.webkit.m
 **Deploy delle due funzioni** (DOPO il merge, da una cartella su `main` aggiornato, con il «sì» di Ivano; non eseguiti):
 `supabase functions deploy lista-attesa-email --project-ref ahecpiwsdhghkndncejb --no-verify-jwt --use-api` e
 `supabase functions deploy avvisi --project-ref ahecpiwsdhghkndncejb --no-verify-jwt --use-api` (le stesse opzioni dei report EMAIL-LANCIO e AVVISI).
+
+**Rebase su LINK-DOMINIO (PR #51, già su main)**: tenute entrambe le modifiche. I link di conferma e accesso portano al sito
+(`{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email`, recupero `/update-password?…&type=recovery`) e li verifica l'app
+(`src/lib/linkEmail.js`, chiamato da `AuthContext`); conferma e accesso portano anche il codice di 6 cifre. `/login?link=scaduto` (link
+non valido) apre l'accesso col codice col messaggio chiaro. Suite 3493/3493, lint 0 errori, build ok, guardia 12/12 e 10/10.

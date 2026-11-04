@@ -113,6 +113,12 @@ describe('ONBOARDING-ACCESSO — si entra con email e codice', () => {
         expect(signInWithOtp).not.toHaveBeenCalled();
     });
 
+    it('LINK-DOMINIO: un link di conferma o accesso scaduto (?link=scaduto) porta al codice col messaggio chiaro', () => {
+        monta('/login?link=scaduto');
+        expect(screen.getByText(ACCESSO.LINK_SCADUTO)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Email')).toBeInTheDocument();
+    });
+
     it('arrivando da un vecchio link scaduto: messaggio chiaro e si entra col codice', () => {
         monta('/login?recupero=1');
         expect(screen.getByText(ACCESSO.LINK_SCADUTO)).toBeInTheDocument();

@@ -1,6 +1,6 @@
 // C7 — niente zone come tappe.
 import { describe, it, expect } from 'vitest';
-import { isZone, zoneReason, isAreaName } from '../../lib/zone';
+import { isZone, zoneReason, isAreaName, isCityName } from '../../lib/zone';
 
 describe('isAreaName — il nome e\' solo il nome di un\'area', () => {
     it('"Centro Storico Catania" e le sue forme', () => {
@@ -36,5 +36,23 @@ describe('isZone — tipi e nomi da zona', () => {
             { name: 'Palazzo Biscari', primaryType: 'tourist_attraction', types: ['tourist_attraction'] },
             { name: 'Trattoria Sorano', primaryType: 'italian_restaurant', types: ['restaurant'] },
         ]) expect(isZone(c, 'Catania'), c.name).toBe(false);
+    });
+});
+
+// BANCO-DIFETTI (T19, D8) — una tappa che non e' un luogo da visitare
+describe('D8 — la citta\' stessa, il municipio come ufficio, una stazione', () => {
+    it('«Matera, Italia» a Matera e\' la citta\', non una tappa', () => {
+        expect(zoneReason({ name: 'Matera, Italia', types: ['tourist_attraction', 'point_of_interest'], primaryType: 'tourist_attraction' }, 'Matera')).toMatch(/nome della citta'/);
+        expect(isCityName('Matera', 'Matera')).toBe(true);
+        expect(isCityName('Sassi di Matera', 'Matera')).toBe(false);
+    });
+    it('«Comune di Troina» (city_hall senza tourist_attraction) non e\' una tappa; Palazzo degli Elefanti (attrazione) si\'', () => {
+        expect(zoneReason({ name: 'Comune di Troina', primaryType: 'city_hall', types: ['city_hall', 'local_government_office', 'government_office'] }, 'Troina')).toMatch(/municipio/);
+        expect(zoneReason({ name: 'Palazzo degli Elefanti', primaryType: 'government_office', types: ['tourist_attraction', 'government_office'] }, 'Catania')).toBeNull();
+        expect(zoneReason({ name: 'Palazzo Senatorio', primaryType: 'city_hall', types: ['city_hall', 'tourist_attraction'] }, 'Roma')).toBeNull();
+    });
+    it('la fermata «Colosseo» della metro non e\' il Colosseo', () => {
+        expect(zoneReason({ name: 'Colosseo', primaryType: 'subway_station', types: ['subway_station', 'transit_station'] }, 'Roma')).toMatch(/stazione/);
+        expect(zoneReason({ name: 'Colosseo', primaryType: 'historical_landmark', types: ['historical_landmark', 'tourist_attraction'] }, 'Roma')).toBeNull();
     });
 });

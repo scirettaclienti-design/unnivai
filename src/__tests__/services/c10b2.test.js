@@ -199,7 +199,7 @@ describe('C10b2 — il motore: due quartieri, il quartiere chiesto, il borgo cor
         expect(t.map(s => s.title)).not.toContain('Piazza nord');
         // il tracciato dice quale modello ha scelto le tappe
         expect(r._modelli.selettore).toMatchObject({ passaggio: 'selettore', usato: 'gpt-6.1-sol' });
-    });
+    }, 20000); // CHAT-FOCUS-FONTI: 1,7 s in locale ma oltre i 5 s sui runner di CI (push falliti due volte, il run della PR verde)
 
     it('«Trastevere» chiesto → la lista dedicata del quartiere, e almeno 3 luoghi da visitare a Trastevere nel tour', async () => {
         vi.mocked(fetchCityKnowledge).mockResolvedValue({ stato: 'ok', cached: true, scala: 'metropoli', verificati: LISTA_ROMA });

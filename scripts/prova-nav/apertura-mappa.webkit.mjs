@@ -6,12 +6,13 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 const BASE = process.env.NAV_BASE || 'http://localhost:5187';
 const env = Object.fromEntries(fs.readFileSync('.env.local', 'utf8').split('\n').map(l => l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/)).filter(Boolean).map(m => [m[1], m[2].replace(/^["']|["']$/g, '')]));
 const giri = JSON.parse(fs.readFileSync('docs/prove/dati/2026-10-16-nav-sim-giri.json', 'utf8'));
 const c = giri.casi.find(x => x.id === 'navsim-catania');
 const stops = c.tours[0].stops.map(s => ({ title: s.title, latitude: s.lat, longitude: s.lng, description: s.description, types: s.types, place_id: s.place_id, moment: s.moment, ...(s.tempoLibero ? { tempoLibero: true } : { stayMinutes: s.stay }) }));
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'apertura-'));
 try {
     { const c0 = await browser.newContext(); const p = await c0.newPage(); await p.goto(BASE, { waitUntil: 'domcontentloaded' }); const t = await p.title(); await c0.close(); if (!/Unnivai|DoveVai/i.test(t)) throw new Error('Titolo non DoveVai: niente credenziali.'); }

@@ -12,6 +12,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASI = { dopo: process.env.DOPO };
 const OUT = path.resolve('docs/prove/schermate/estetica-coerenza');
@@ -77,7 +78,7 @@ const PUBBLICHE = [
     ['18-onboarding', '/onboarding'],
 ];
 
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const risultati = {};
 
 async function controllaPorta(base) {

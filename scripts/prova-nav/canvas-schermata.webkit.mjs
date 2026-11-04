@@ -5,13 +5,14 @@
  */
 import { webkit } from 'playwright';
 import fs from 'node:fs';
+import { conVoceTelefono } from './voce-telefono.mjs';
 const [, , sorgente, uscita] = process.argv;
 const html = fs.readFileSync(sorgente, 'utf8')
     .replace(/<script[^>]*support\.js[^>]*><\/script>/g, '')
     .replace(/<script type="text\/x-dc"[\s\S]*?<\/script>/g, '')
     .replace(/<\/?x-dc>/g, '')
     .replace(/<\/?helmet>/g, '');
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 });
     await page.setContent(html, { waitUntil: 'load' });

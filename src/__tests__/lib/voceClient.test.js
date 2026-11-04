@@ -29,7 +29,7 @@ beforeEach(async () => {
     Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { cancel: vi.fn(), speak: (u) => { parlatiBrowser.push(u.text); setTimeout(() => u.onend?.(), 0); } } });
     voce = await import('../../lib/voce.js');
 });
-afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.restoreAllMocks(); });
 
 describe('voce — cache e registro', () => {
     it('la stessa frase due volte: una sola richiesta al server, due righe nel registro (nuova, poi cache)', async () => {
@@ -141,5 +141,32 @@ describe('voce — un annuncio che non interrompe', () => {
         expect(await arrivo).toBe('nuova');
         expect(await prossima).toBe('nuova');
         expect(voce.registroVoce.map(r => r.testo)).toEqual(['Una frase di arrivo.', 'Si va verso Piazza Duomo.']);
+    });
+});
+
+describe('voce — VOCE-TEST: la voce del telefono per le prove e per gli account di prova', () => {
+    it('opzione esplicita (localStorage): zero richieste al server, parla il telefono', async () => {
+        localStorage.setItem('dvai_voce_telefono', '1');
+        await expect(voce.parla('Si va verso Piazza Duomo.')).resolves.toBe('browser');
+        expect(chiamate).toHaveLength(0);
+        expect(parlatiBrowser).toEqual(['Si va verso Piazza Duomo.']);
+        await expect(voce.preparaVoce('Un racconto.')).resolves.toBe('fallita');
+        expect(chiamate).toHaveLength(0);
+    });
+    it('opzione esplicita (window.__VOCE_TELEFONO__): zero richieste', async () => {
+        window.__VOCE_TELEFONO__ = true;
+        try { await voce.parla('Ciao.'); } finally { delete window.__VOCE_TELEFONO__; }
+        expect(chiamate).toHaveLength(0);
+    });
+    it('il server risponde «usa la voce del telefono»: parla il telefono, senza errori, e per la sessione non si richiede più', async () => {
+        risposta = () => ({ ok: true, status: 200, json: async () => ({ usaVoceTelefono: true, source: 'telefono', code: 'VOCE_TELEFONO' }) });
+        await expect(voce.parla('Prima frase.')).resolves.toBe('browser');
+        await expect(voce.parla('Seconda frase.')).resolves.toBe('browser');
+        expect(chiamate).toHaveLength(1);
+        expect(parlatiBrowser).toEqual(['Prima frase.', 'Seconda frase.']);
+    });
+    it('senza opzione e col proxy di oggi (nessuna risposta speciale) tutto resta com’era: voce OpenAI', async () => {
+        expect(await voce.parla('Fra cinquanta metri gira a sinistra.')).toBe('nuova');
+        expect(chiamate).toHaveLength(1);
     });
 });

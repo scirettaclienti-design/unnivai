@@ -10,6 +10,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.COLLAUDO_BASE || 'https://unnivai.vercel.app';
 const DOMANDA = process.argv[2] || "Chi ha fatto la Fontana dell'Elefante?";
@@ -28,7 +29,7 @@ const TOUR = { id: 'chat-verita-catania', title: 'Il tuo giro a Catania', city: 
         scheduledTime: oraIso(g.ora), stayMinutes: g.sosta, moment: 'mattina', types: ['tourist_attraction'], description: 'Tappa del banco.' })) };
 
 const esito = { base: BASE, iniziato: new Date().toISOString(), domanda: DOMANDA, titolo: null, conGiro: {}, senzaGiro: {} };
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const foto = async (page, nome) => { const f = path.join(OUT, `${nome}.png`); await page.screenshot({ path: f }); return path.relative(process.cwd(), f); };
 const badge = (page) => page.locator('div[title].cursor-pointer').filter({ hasText: 'Vento' }).first();
 try {

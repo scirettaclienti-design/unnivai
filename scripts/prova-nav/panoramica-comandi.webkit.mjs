@@ -16,6 +16,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.NAV_BASE || 'http://localhost:5187';
 const TAG = process.env.NAV_TAG || 'nav3';
@@ -113,7 +114,7 @@ async function caricaGiro(page, giro) {
 
 
 
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const esito = { tag: TAG, ora: ORA, base: BASE, richieste: { directions: 0 }, mapIdVisti: {}, fotogrammi: [], misure: {} };
 const CERCATI = (process.env.NAV_MAPID_CERCA || '').split(',').filter(Boolean);
 const luminanza = async (page, nome) => {

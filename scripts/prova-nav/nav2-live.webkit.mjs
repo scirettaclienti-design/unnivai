@@ -6,6 +6,7 @@
  */
 import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
+import { conVoceTelefono } from './voce-telefono.mjs';
 const BASE = process.env.NAV_BASE || 'https://unnivai.vercel.app';
 const TAG = process.env.NAV_TAG || 'live';
 const OUT = process.env.NAV_SCHERMATE || 'docs/prove/schermate/nav-2';
@@ -56,7 +57,7 @@ const misura = (page) => page.evaluate(() => {
         barra: (document.body.innerText.match(/Tappa \d+\/\d+/i) || [null])[0],
     };
 });
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const esito = { tag: TAG, base: BASE, richieste: { places: {}, miss: {} } };
 try {
     const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'it-IT', timezoneId: 'Europe/Rome', geolocation: { latitude: 37.5024, longitude: 15.0871 }, permissions: ['geolocation'] });

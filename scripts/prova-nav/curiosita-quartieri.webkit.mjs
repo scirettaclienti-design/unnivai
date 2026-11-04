@@ -16,6 +16,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.CURIOSITA_BASE || 'https://unnivai.vercel.app';
 const SOLO = (process.argv[2] || 'trastevere,monti,catania').split(',').filter(Boolean);
@@ -69,7 +70,7 @@ const GPS_FINTO = () => {
 };
 
 const esito = { base: BASE, iniziato: new Date().toISOString(), passoM: PASSO_M, passoS: PASSO_MS / 1000, giri: {} };
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 
 async function accedi() {
     const ctx = await browser.newContext({ ...IPHONE, locale: 'it-IT', timezoneId: 'Europe/Rome' });

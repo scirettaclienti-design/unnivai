@@ -21,6 +21,17 @@ export const VOCE_PREDEFINITA = 'marin';
 const CHIAVE_SCELTA = 'dvai_voce_scelta_v1';
 export const TIMEOUT_VOCE_MS = 12_000;
 
+// VOCE-TEST — due modi di dire «usa la voce del telefono», senza chiamare il server e senza errori a schermo:
+// 1) l'opzione esplicita delle prove (collaudo, banco, WebKit): `localStorage.dvai_voce_telefono = '1'` o `window.__VOCE_TELEFONO__ = true`;
+// 2) la risposta del server per gli account di prova (`usaVoceTelefono: true`): per il resto della sessione non si chiede più.
+// Con il proxy che non conosce la risposta (v49) il punto 2 non scatta mai: tutto resta com'era.
+const CHIAVE_TELEFONO = 'dvai_voce_telefono';
+let telefonoDalServer = false;
+export function voceTelefonoForzata() {
+    try { if (typeof window !== 'undefined' && window.__VOCE_TELEFONO__ === true) return true; } catch { /* niente */ }
+    try { return localStorage.getItem(CHIAVE_TELEFONO) === '1'; } catch { return false; }
+}
+
 export function voceScelta() {
     try {
         const v = localStorage.getItem(CHIAVE_SCELTA);
@@ -88,6 +99,7 @@ async function chiediAlServer(testo, voce) {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !anonKey) throw new Error('configurazione mancante');
+    if (voceTelefonoForzata() || telefonoDalServer) throw new Error('voce del telefono richiesta'); // nessuna richiesta di rete
     // ACCOUNT-PRIVACY — la voce umana manda la frase a OpenAI: senza consenso parla la voce del telefono (nessuna richiesta di rete).
     if (!(await consensoAiDato())) throw new Error('consenso AI mancante');
     const controller = new AbortController();
@@ -101,6 +113,7 @@ async function chiediAlServer(testo, voce) {
             body: JSON.stringify({ dv: { purpose: 'voce', testo, voce } }),
         });
         const corpo = await res.json().catch(() => null);
+        if (res.ok && corpo?.usaVoceTelefono === true) { telefonoDalServer = true; throw new Error('voce del telefono (server)'); }
         if (!res.ok || !corpo?.url) throw new Error(`voce ${res.status} ${corpo?.code || ''}`.trim());
         return corpo; // { url, source: 'cache' | 'nuova', ... }
     } finally {

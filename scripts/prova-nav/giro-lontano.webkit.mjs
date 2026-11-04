@@ -11,6 +11,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.NAV_BASE || 'http://localhost:5191';
 const TAG = process.env.NAV_TAG || 'prima';
@@ -172,7 +173,7 @@ async function giroDaCrea(browser, statePath, nome, posizione) {
     return r;
 }
 
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const esito = { tag: TAG, fase: FASE, ora: ORA, base: BASE, casi: [] };
 try {
     await controllaPorta(browser);

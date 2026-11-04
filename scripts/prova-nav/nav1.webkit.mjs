@@ -14,6 +14,7 @@
 import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.NAV_BASE || 'http://localhost:5181';
 const OUT = path.resolve('docs/prove/schermate/nav-1');
@@ -275,7 +276,7 @@ const SCENARI = {
     },
 };
 
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 let codice = 0;
 try {
     await controllaPorta(browser);

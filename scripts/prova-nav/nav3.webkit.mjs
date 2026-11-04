@@ -13,6 +13,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.NAV_BASE || 'http://localhost:5187';
 const TAG = process.env.NAV_TAG || 'nav3';
@@ -110,7 +111,7 @@ async function caricaGiro(page, giro) {
 
 
 
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const esito = { tag: TAG, ora: ORA, stati: STATI, base: BASE, richieste: { directions: 0 } };
 try {
     { const c = await browser.newContext(); const p = await c.newPage(); await p.goto(BASE, { waitUntil: 'domcontentloaded' }); const t = await p.title(); await c.close(); if (!/Unnivai|DoveVai/i.test(t)) throw new Error(`La pagina su ${BASE} non e' DoveVai (titolo: ${t}): niente credenziali.`); }

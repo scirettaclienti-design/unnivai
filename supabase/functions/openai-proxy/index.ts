@@ -69,7 +69,7 @@ import { fontiDiTappa, luoghiNominati } from './chatFonti.ts';
 import { VERSIONE_CURIOSITA, messaggiCuriosita, curiositaInCacheValida, eChiaveCuriosita } from './curiosita.ts';
 import { indirizzoDaClient, luoghiVicini, luoghiDellaZona, contaRichieste, testoDelLuogo, eUnaTappa, type Luogo, type MemoriaCelle } from './curiositaFonti.ts';
 import {
-  MODELLO_VOCE, VOCE_PREDEFINITA, BUCKET_VOCE, voceValida, testoValido, chiaveAudio, percorsoAudio, corpoVoce, tettoNuovi, costoStimatoUsd,
+  MODELLO_VOCE, VOCE_PREDEFINITA, BUCKET_VOCE, voceValida, testoValido, chiaveAudio, percorsoAudio, corpoVoce, tettoNuovi, costoStimatoUsd, utenteConVoceTelefono,
 } from './voce.ts';
 
 const OPENAI_BASE = 'https://api.openai.com/v1';
@@ -586,7 +586,11 @@ async function handleVoce(req: Request, dv: Record<string, unknown>, apiKey: str
   if (!SUPABASE_URL || !SERVICE_KEY) return json(503, { error: 'Voce non disponibile', code: 'VOCE_NON_DISPONIBILE' });
   const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
   try {
-    await resolveSubject(req, sb); // solo per rifiutare un token non valido
+    const soggetto = await resolveSubject(req, sb); // rifiuta un token non valido; serve anche a riconoscere gli account di prova
+    // VOCE-TEST: l'account di prova usa la voce del telefono, OpenAI non viene chiamato (il client ripiega da solo, senza errori a schermo)
+    if (soggetto.kind === 'user' && utenteConVoceTelefono(Deno.env.get('VOCE_TELEFONO_USER_IDS'), soggetto.id)) {
+      return json(200, { usaVoceTelefono: true, source: 'telefono', code: 'VOCE_TELEFONO' });
+    }
   } catch (err) {
     if (err instanceof HttpError) return json(err.status, err.body);
     return json(503, { error: 'Voce non disponibile', code: 'VOCE_NON_DISPONIBILE' });

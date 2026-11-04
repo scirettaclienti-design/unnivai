@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { normalizeTour } from '../../src/services/tourShape.js';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.NAV_BASE || 'https://unnivai.vercel.app';
 const TAG = process.env.NAV_TAG || '1000';
@@ -190,7 +191,7 @@ function giroDaFile(caso) {
     return { luogo: c.luogo, titolo, route, tourData, vere: vere.map(s => ({ title: s.title, lat: s.latitude, lng: s.longitude })) };
 }
 
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const esito = { tag: TAG, ora: ORA, base: BASE, device: 'iPhone 15', stati: {}, tocchi: [], voce: [], note: [], errori: [] };
 let ctx;
 try {

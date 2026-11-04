@@ -396,6 +396,7 @@ import {
 // ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta (lib/openingHours).
 import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO, romeMinutes, openStatus } from '../lib/openingHours';
 import { keepOpenStops } from '../lib/openStops';
+import { gruppoNelTetto, migliorePartenza, TETTO_PIEDI_KM } from '../lib/tettoCammino';
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 import { PER_TE_TESTI } from '../lib/esitoVuoto';
@@ -3460,6 +3461,8 @@ export const aiRecommendationService = {
                             // toglie e si sostituisce col candidato piu' vicino aperto. Mai una chiusa.
                             const aperti = keepOpenStops({
                                 stops: ordered, pool: candidates, start: tourWindow.start,
+                                // BANCO-DIFETTI (D1) — a piedi fra due tappe al massimo 1,2 km; il ritmo Intenso usa qualche mezzo
+                                maxLegKm: normalizePace(prefs?.pace) === 'intenso' ? null : TETTO_PIEDI_KM,
                                 retime: (list) => computeStopTimings(enforceCategoryVariety(sortByProximity(list))).stops,
                                 toStop: (c) => canonicalizeStopsFromCandidates([{ place_id: c.place_id || c.googlePlaceId }], candidates, { guard: false })[0] || null,
                             });
@@ -4169,16 +4172,25 @@ export const aiRecommendationService = {
                 // rimette in ordine tenendo la colazione per prima (la sola tappa che non si riordina per vicinanza)
                 const riordina = (lista) => {
                     const col = colazioneId ? lista.find(x => x.place_id === colazioneId) : null;
-                    return computeStopTimings(col ? [col, ...sortByProximity(lista.filter(x => x !== col))] : sortByProximity(lista)).stops;
+                    // D1 — senza colazione la prima tappa e' quella da cui il vicino-piu'-vicino resta nel tetto (migliorePartenza)
+                    return computeStopTimings(col ? [col, ...sortByProximity(lista.filter(x => x !== col))] : migliorePartenza(lista, sortByProximity)).stops;
                 };
+                // BANCO-DIFETTI (D1) — Per Te a piedi: fra due tappe consecutive al massimo 1,2 km (decisione di Ivano). Prima il gruppo piu'
+                // grande di tappe legate entro il tetto (le altre si tolgono, col motivo); poi keepOpenStops riempie dal pool del tema solo
+                // entro il tetto dalla tappa prima e taglia i tratti che restano lunghi. Sotto le 3 tappe il tour non e' servito (regola di sempre).
+                const quante = tappe.length;
+                const gruppo = gruppoNelTetto(tappe, TETTO_PIEDI_KM);
+                for (const x of gruppo.tolte) scarta(themeType, x.title, `oltre il tetto di cammino (${String(TETTO_PIEDI_KM).replace('.', ',')} km) dal gruppo delle altre tappe`);
+                tappe = gruppo.tenute;
                 const aperti = keepOpenStops({
+                    maxLegKm: TETTO_PIEDI_KM, want: quante,
                     // C8b — le stesse fasce dei pasti di Crea: un ristorante solo a pranzo e a cena, la mattina una colazione.
                     // GIRO-EDIT — la colazione scelta qui sopra e' un posto da colazione aperto: non passa dalla regola del dolce (una pasticceria e' la colazione).
                     invalidAt: (c, arrivo, altre) => (colazioneId && homePid(c) === colazioneId ? (mealFitsClock(c, romeMinutes(arrivo)) ? null : 'pasto fuori fascia') : perTeMealProblem(c, romeMinutes(arrivo), arrivo, altre))
                         // BORGO-FIX — decisione 3: la natura «da fuori» dopo il tramonto non e' una tappa nemmeno in Per Te
                         // NOTTE-FIX — la terza copia della regola: «al buio» = prima dell'alba o dal tramonto (eBuio), non solo dal tramonto
                         || (arrivo instanceof Date && eBuio(arrivo, sunNow) && isNaturaDaFuori(c, cityCenter) ? 'natura da fuori al buio' : null),
-                    stops: computeStopTimings(tappe).stops, pool: poolTema, start: now, exclude: usati,
+                    stops: riordina(tappe), pool: poolTema, start: now, exclude: usati,
                     retime: riordina,
                     toStop: (c) => {
                         const [nuovo] = canonicalizeStopsFromCandidates([{ place_id: homePid(c) }], poolTema, { guard: false });

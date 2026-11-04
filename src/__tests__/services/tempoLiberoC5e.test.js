@@ -32,16 +32,25 @@ describe('C5e (1) — una famiglia nuova fra 20 e 25 min toglie una ripetizione 
     const belvB = p('Belvedere Due', 40.8430, 14.2510);
     const scelta = [['Museo', 'mattina'], ['Belvedere Uno', 'pomeriggio'], ['Belvedere Due', 'aperitivo']].map(([place_id, m]) => ({ place_id, moment: `g1-${m}` }));
 
-    it('chiesa a 22 minuti dal museo: entra al posto del belvedere del pomeriggio, dichiarata', () => {
+    // BANCO-DIFETTI (T19, D1): il tetto di 1,2 km (16 min) e' duro anche per la varieta' — la chiesa a 22 minuti non entra piu',
+    // la ripetizione resta e si dichiara inevitabile (prima: entrava come «famiglia nuova oltre i 20 min (entro 25)»).
+    it('chiesa a 22 minuti dal museo: oltre il tetto di 1,2 km, la ripetizione resta dichiarata inevitabile', () => {
         const chiesa = p('Chiesa Lontana', 40.8400, 14.2695, ['church']);
         expect(travelMinutes(museo, chiesa)).toBe(22);
         const pool = [museo, belvA, belvB, chiesa];
+        const { plan } = repairMomentSelection({ moments: g, buckets: bucketCandidates(g, pool), aiStops: scelta, pool });
+        expect(seq(plan).map(s => s.candidate.place_id)).not.toContain('Chiesa Lontana');
+        const ripetuta = seq(plan).find(s => s.trace.varieta);
+        expect(ripetuta.trace.varieta).toMatchObject({ esito: 'inevitabile' });
+    });
+
+    it('chiesa a 14 minuti dal museo (dentro il tetto): entra al posto del belvedere del pomeriggio', () => {
+        const chiesa = p('Chiesa Vicina', 40.8400, 14.2622, ['church']);
+        expect(travelMinutes(museo, chiesa)).toBeLessThanOrEqual(16);
+        const pool = [museo, belvA, belvB, chiesa];
         const { plan, report } = repairMomentSelection({ moments: g, buckets: bucketCandidates(g, pool), aiStops: scelta, pool });
-        const ids = seq(plan).map(s => s.candidate.place_id);
-        expect(ids).toContain('Chiesa Lontana');
+        expect(seq(plan).map(s => s.candidate.place_id)).toContain('Chiesa Vicina');
         expect(seq(plan).filter(s => s.trace.famiglia === 'panorama')).toHaveLength(1);
-        const messa = seq(plan).find(s => s.candidate.place_id === 'Chiesa Lontana');
-        expect(messa.trace.motivo).toMatch(/^famiglia nuova oltre i 20 min \(entro 25\): toglie la ripetizione/);
         expect(report.ripetuti).toEqual([]);
     });
 
@@ -56,7 +65,7 @@ describe('C5e (1) — una famiglia nuova fra 20 e 25 min toglie una ripetizione 
         expect(ripetuta.trace.motivo).toMatch(/inevitabile/);
     });
 
-    it('il tetto dei 20 resta per tutto il resto: una tappa a 22 min non entra per accorciare il giro', () => {
+    it('il tetto (16 da T19) resta per tutto il resto: una tappa a 22 min non entra per accorciare il giro', () => {
         // nessuna ripetizione: lo scambio con un posto a 22 min non serve alla varieta'
         const verde = p('Giardino Lontano', 40.8400, 14.2695, ['park']);
         const bar = p('Bar Vicino', 40.8431, 14.2512, ['bar']);

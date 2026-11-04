@@ -2,7 +2,8 @@
 // Funzioni pure, nessuna rete. Le soglie vengono da banco.config.json (soglie.minutiCammino, esteso.camminoKmh).
 //
 //   aperte     ogni tappa è aperta all'ora in cui ci arrivi, per tutta la sosta (c5 del banco esteso, orari di Google)
-//   distanze   fra due tappe la distanza sta nel tetto del mezzo (a piedi 20 minuti = 1,5 km; ritmo Intenso 5 km) e il tempo
+//   distanze   fra due tappe la distanza sta nel tetto del mezzo (a piedi 1,2 km, decisione di Ivano del 05/11 — prima 20 minuti = 1,5 km;
+//              ritmo Intenso 5 km) e il tempo
 //              fra un arrivo e l'altro basta per farla
 //   citta      nessuna tappa fuori dalla città del giro (centro e raggio in casi-banco40.js) e la destinazione è quella chiesta
 //   titolo     il titolo nomina luoghi che sono nel giro (almeno 70% delle parole di luogo) e nessun'altra città
@@ -41,7 +42,8 @@ const LIMITE_MEZZO_KM = 5; // ritmo Intenso: «con qualche mezzo» (bus, metro)
 export function distanze(caso, meta, cfg) {
     const intenso = /intenso/i.test(meta?.prefs?.pace || '');
     const kmh = cfg.esteso.camminoKmh;
-    const limite = intenso ? LIMITE_MEZZO_KM : (cfg.soglie.minutiCammino * kmh) / 60;
+    // BANCO-DIFETTI (T19, D1): a piedi 1,2 km (soglie.kmTraTappePiedi); senza la voce, il tetto di prima (minutiCammino a camminoKmh)
+    const limite = intenso ? LIMITE_MEZZO_KM : (cfg.soglie.kmTraTappePiedi ?? (cfg.soglie.minutiCammino * kmh) / 60);
     const mezzo = intenso ? 'con qualche mezzo' : 'a piedi';
     const v = [];
     let tratti = 0, maxKm = 0;

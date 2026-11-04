@@ -42,6 +42,7 @@
 
 import { computeCandidateScore } from './candidateScoring';
 import { stayInMoment, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
+import { TETTO_PIEDI_MINUTI } from '../lib/tettoCammino';
 import { placeKind, KINDS, COMMERCIAL_KINDS, LOCALE_CATEGORIES } from '../lib/placeKind';
 import { FOOD_ONLY_MOMENT_KEYS, EXPANDABLE_KEYS, visitCount, visitCapOf } from '../lib/daySkeleton';
 import { momentAdmits, isLocale, isOutdoorWalk, isBreakfastPlace, isLightStop } from '../lib/mealRules';
@@ -156,14 +157,17 @@ export function candidateMomentCategories(candidate) {
 // il riempimento del codice e per i pasti. Ripiego: se nessun candidato del
 // momento sta sotto il tetto si prende il piu' vicino — un momento non resta
 // mai vuoto per colpa della distanza.
-export const MAX_WALK_MINUTES = 20;
+// BANCO-DIFETTI (T19, D1) — decisione di Ivano (05/11/2026): a piedi al massimo 1,2 km fra due tappe consecutive = 16 minuti a 4,5 km/h
+// (prima 20 minuti = 1,5 km). Lo stesso tetto vale per Per Te (src/lib/tettoCammino.js).
+export const MAX_WALK_MINUTES = TETTO_PIEDI_MINUTI;
 /** BORGO-FIX — decisione 3: nel borgo, con la natura chiesta, la passeggiata di giorno puo' arrivare a 30 minuti (Monte Muganà a 29). */
 export const WALK_NATURA_BORGO_MINUTES = 30;
-// Lo stesso tetto in metri: il bias delle ricerche mirate (pasti e luoghi).
-export const MAX_WALK_METERS = Math.round((MAX_WALK_MINUTES / 60) * WALKING_KMH * 1000);
-// C1b — la varieta' vince sulla distanza fino a qui: una famiglia nuova a 25
-// minuti batte una famiglia ripetuta a 5. Oltre, torna a vincere la distanza.
-export const VARIETY_MAX_WALK_MINUTES = 25;
+// Il bias delle ricerche mirate (pasti e luoghi) e il cerchio del quartiere: restano 20 minuti = 1,5 km (T19). Cercare un po' piu' largo
+// del tetto non lo sposta (il tetto vale nella scelta) e tiene uguali le richieste a Google (cache del proxy, tracciati del banco).
+export const MAX_WALK_METERS = Math.round((20 / 60) * WALKING_KMH * 1000);
+// C1b — la varieta' vinceva sulla distanza fino a 25 minuti. BANCO-DIFETTI (D1): il tetto di 1,2 km e' duro, la varieta' non lo passa
+// piu' (stessa soglia del tetto: una famiglia nuova vince su una ripetuta solo dentro il tetto).
+export const VARIETY_MAX_WALK_MINUTES = MAX_WALK_MINUTES;
 
 // ─── C5 — percorso a filo ────────────────────────────────────────────────────
 //

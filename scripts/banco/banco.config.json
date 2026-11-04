@@ -5,6 +5,7 @@
     "vocePct": 90,
     "entro20Pct": 95,
     "minutiCammino": 20,
+    "kmTraTappePiedi": 1.2,
     "ripetizioniMax": 0,
     "violazioniMax": 0,
     "inComuneABMaxPct": 30,

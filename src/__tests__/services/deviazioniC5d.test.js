@@ -33,7 +33,7 @@ describe('C5d — soglie del motore = soglie della voce 12 del banco', () => {
 describe('C5d — la prima di due tappe al pomeriggio si misura contro la seconda, non contro la cena', () => {
     const g = giorno([['mattina'], ['pomeriggio', 2], ['cena']]);
     const museo = p('Museo', 41.9000, 12.4800, ['museum']);
-    const ovest = p('Palazzo Ovest', 41.9035, 12.4720);              // scelto dal modello
+    const ovest = p('Palazzo Ovest', 41.9035, 12.4745);              // scelto dal modello (T19: 12.4745, era 12.4720: verso la Chiesa Est 1,1 km, dentro il tetto di 1,2)
     const est = p('Chiesa Est', 41.9040, 12.4880, ['church']);       // seconda tappa del modello
     // un giardino: famiglia "verde", nuova (una galleria sarebbe "museo", come il
     // Museo della mattina, e la varieta' la scarterebbe prima della forma)

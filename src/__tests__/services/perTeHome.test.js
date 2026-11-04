@@ -25,10 +25,12 @@ const poi = (id, name, km, extra = {}) => ({
     place_id: id, name, ...near(km), rating: 4.5, user_ratings_total: 500, types: ['tourist_attraction'], city: CITY, ...extra,
 });
 
+// BANCO-DIFETTI (T19, D1) — Per Te a piedi: al massimo 1,2 km fra due tappe consecutive. Il Pantheon a 1,2 km (era 0,5) e Villa Ada a 3,5
+// (era 4) tengono i tour dei test dentro il tetto: qui si provano scarti, tagli e resoconto, non il tetto (che ha i suoi test).
 const POOLS = {
     food: [poi('f1', 'Da Enzo', 1), poi('f2', 'Armando', 2), poi('f3', 'Roscioli', 1.5), poi('f4', 'Pizzeria Ai Marmi', 2.5), poi('f5', 'Da Teo', 3), poi('f6', 'Felice', 3.5)],
-    cultura: [poi('c1', 'Pantheon', 0.5), poi('c2', 'Galleria Borghese', 2), poi('c3', 'San Clemente', 2.2), poi('c4', 'Palazzo Massimo', 2.4), poi('c5', 'Santa Prassede', 2.6), poi('c6', 'Villa Adriana', 50)],
-    nature: [poi('n1', 'Villa Pamphilj', 3), poi('n2', 'Orto Botanico', 2), poi('n3', 'Villa Ada', 4)],
+    cultura: [poi('c1', 'Pantheon', 1.2), poi('c2', 'Galleria Borghese', 2), poi('c3', 'San Clemente', 2.2), poi('c4', 'Palazzo Massimo', 2.4), poi('c5', 'Santa Prassede', 2.6), poi('c6', 'Villa Adriana', 50)],
+    nature: [poi('n1', 'Villa Pamphilj', 3), poi('n2', 'Orto Botanico', 2), poi('n3', 'Villa Ada', 3.5)],
 };
 
 const openaiCalls = (fn) => fn.mock.calls.filter(([u]) => String(u).includes('openai-proxy'));
@@ -212,5 +214,25 @@ describe('Per Te — nessuno scarto silenzioso', () => {
         expect(righe).toHaveLength(2);
         expect(res._report.tappeRaccontate).toBe(12);
         expect(res._report.tappeServite).toBe(10);
+    });
+});
+
+// BANCO-DIFETTI (T19, D1) — Per Te a piedi: mai due tappe consecutive a piu' di 1,2 km (c-roma, c-catania, Napoli e Palermo da ospite).
+describe('Per Te — il tetto di cammino di 1,2 km (D1)', () => {
+    const kmFra = (s, t) => Math.abs(s.latitude - t.latitude) / 0.009;
+    it('la tappa lontana dal gruppo esce col motivo, il tour si riempie dal suo pool entro il tetto', async () => {
+        vi.stubGlobal('fetch', proxyFetch(JSON.stringify({ tours: [tourJson('food', ['f1', 'f5', 'f6'])] })));
+        const res = await home(POOLS);
+        const food = res.tours.find(t => t.themeType === 'food');
+        expect(food).toBeTruthy();
+        expect(food.stops.map(s => s.place_id).sort()).toEqual(['f4', 'f5', 'f6']);
+        for (let i = 1; i < food.stops.length; i++) expect(kmFra(food.stops[i - 1], food.stops[i])).toBeLessThanOrEqual(1.2);
+        expect(res._report.scarti).toEqual(expect.arrayContaining([expect.objectContaining({ tour: 'food', title: 'Da Enzo', motivo: expect.stringMatching(/oltre il tetto di cammino \(1,2 km\)/) })]));
+    });
+    it('senza candidati vicini il tour sotto le 3 tappe non si serve (mai un tratto lungo)', async () => {
+        vi.stubGlobal('fetch', proxyFetch(JSON.stringify({ tours: [tourJson('nature', ['n1', 'n2', 'n3'])] })));
+        const lontani = { nature: [poi('n1', 'Villa Pamphilj', 1), poi('n2', 'Orto Botanico', 3), poi('n3', 'Villa Ada', 5)] };
+        const res = await home(lontani);
+        expect(res.tours.find(t => t.themeType === 'nature')).toBeUndefined();
     });
 });

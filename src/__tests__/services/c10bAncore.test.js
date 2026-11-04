@@ -21,8 +21,8 @@ const nomi = (plan) => plan.flatMap(p => p.stops.map(s => s.candidate.name));
 describe('C10b — un\'ancora scelta resta', () => {
     it('la seconda ancora della mattina non cade «fuori strada» verso il pranzo (il caso del Teatro Massimo Bellini)', () => {
         const castello = ancora(posto('Castello Ursino', 0.2, 0, { types: ['museum', 'tourist_attraction'], primaryType: 'museum' }));
-        // a 1,2 km (16 min a piedi, dentro il tetto) ma dalla parte opposta al pranzo: il giro verso il pranzo si allunga
-        const teatro = ancora(posto('Teatro Massimo Bellini', 1.2, 0.3, { types: ['performing_arts_theater', 'tourist_attraction'], primaryType: 'performing_arts_theater' }));
+        // a 0,7 km dal castello e 1,1 dal pranzo (dentro il tetto di 1,2 km di T19) ma dalla parte opposta al pranzo: il giro verso il pranzo si allunga
+        const teatro = ancora(posto('Teatro Massimo Bellini', 0.9, 0.2, { types: ['performing_arts_theater', 'tourist_attraction'], primaryType: 'performing_arts_theater' }));
         const piazzetta = posto('Piazzetta Vicina', 0.1, 0.15, { types: ['tourist_attraction'], primaryType: 'plaza' });
         const pranzo = posto('Trattoria Sotto', -0.2, 0, { types: ['restaurant', 'food'], primaryType: 'italian_restaurant' });
         const moments = [M('mattina', 2), M('pranzo', 1)];
@@ -51,7 +51,7 @@ describe('C10b — un\'ancora scelta resta', () => {
     });
 
     it('la regola dura del cammino toglie l\'ancora, e il tracciato lo scrive', () => {
-        // a 3 km dalla tappa prima: 40 min a piedi, oltre il tetto (20)
+        // a 3 km dalla tappa prima: 40 min a piedi, oltre il tetto (16 da T19: 1,2 km)
         const vicino = posto('Chiesa Vicina', 0.1, 0, { types: ['church', 'place_of_worship'], primaryType: 'church' });
         const lontana = ancora(posto('Musei Lontani', 3.1, 0, { types: ['museum', 'tourist_attraction'], primaryType: 'museum' }));
         const altro = posto('Giardino Vicino', 0.2, 0.1, { types: ['park'], primaryType: 'park' });
@@ -63,6 +63,6 @@ describe('C10b — un\'ancora scelta resta', () => {
         expect(report.ancoreTolte.length).toBeGreaterThan(0);
         expect(report.ancoreTolte[0]).toMatchObject({ nome: 'Musei Lontani' });
         expect(report.ancoreTolte[0].motivo).toMatch(/^regola dura: .*tetto/);
-        expect(MAX_WALK_MINUTES).toBe(20);
+        expect(MAX_WALK_MINUTES).toBe(16);
     });
 });

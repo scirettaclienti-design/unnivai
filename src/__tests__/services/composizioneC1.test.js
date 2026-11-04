@@ -17,8 +17,9 @@ const moment = (key, label, startIso, endIso, stops = 1, categories) => ({
 const flat = (ms) => flattenSkeleton({ days: [{ moments: ms }] });
 
 describe('C1 — il tetto', () => {
-    it('una costante sola: 20 minuti a piedi, ~1.5 km di bias per la ricerca dei pasti', () => {
-        expect(MAX_WALK_MINUTES).toBe(20);
+    // BANCO-DIFETTI (T19, D1): il tetto e' 1,2 km = 16 minuti (decisione di Ivano); il bias delle ricerche resta 1,5 km
+    it('una costante sola: 16 minuti a piedi (1,2 km), ~1.5 km di bias per la ricerca dei pasti', () => {
+        expect(MAX_WALK_MINUTES).toBe(16);
         expect(MAX_WALK_METERS).toBe(1500);
     });
 });
@@ -202,7 +203,8 @@ describe('C1 — ancora della ricerca dei pasti', () => {
         ]);
         const lontano = { ...parco, latitude: 37.51 + 0.06, longitude: 15.09 };
         const a = mealSearchAnchor(ms, bucketCandidates(ms, [museo, lontano]), [museo, lontano]);
-        expect(travelMinutes(museo, a)).toBe(Math.round(0.75 * MAX_WALK_MINUTES));
+        // il centro della ricerca sta a 3/4 del bias delle ricerche (1,5 km → 1125 m, 15 minuti), che T19 non ha cambiato
+        expect(travelMinutes(museo, a)).toBe(Math.round(0.75 * 20));
         expect(a.longitude).toBeCloseTo(15.09, 6);
     });
 
@@ -323,8 +325,9 @@ describe('C1 — varieta\' a portata di piedi', () => {
     });
 });
 
-// ═══ C1b — la varieta' vince sulla distanza fino a 25 minuti ═══════════════
-describe('C1b — famiglia nuova entro 25 minuti', () => {
+// ═══ C1b — la varieta' vinceva sulla distanza fino a 25 minuti ══════════════
+// BANCO-DIFETTI (T19, D1): il tetto di 1,2 km (16 minuti) e' duro, la varieta' non lo passa piu'.
+describe('C1b — famiglia nuova: solo dentro il tetto', () => {
     const R = { lat: 41.8986, lng: 12.4769 };
     // 0.001° di latitudine ≈ 111 m ≈ 1.5 minuti a piedi.
     const at = (id, name, types, dLat) => ({ place_id: id, name, types, rating: 4.6, user_ratings_total: 500, latitude: R.lat + dLat, longitude: R.lng });
@@ -335,14 +338,24 @@ describe('C1b — famiglia nuova entro 25 minuti', () => {
     const piazza1 = at('p1', 'Piazza Colonna', ['establishment'], 0);
     const piazza2 = at('p2', 'Piazza di Pietra', ['establishment'], 0.003);
 
-    it('controllo: 23 minuti e 30 minuti a piedi', () => {
-        expect(VARIETY_MAX_WALK_MINUTES).toBe(25);
+    it('controllo: la varieta\' ha la soglia del tetto; 23 e 15 minuti a piedi', () => {
+        expect(VARIETY_MAX_WALK_MINUTES).toBe(MAX_WALK_MINUTES);
         expect(travelMinutes(piazza1, at('x', 'x', [], 0.0155))).toBe(23);
-        expect(travelMinutes(piazza1, at('x', 'x', [], 0.0202))).toBe(30);
+        expect(travelMinutes(piazza1, at('x', 'x', [], 0.0101))).toBe(15);
     });
 
-    it('chiesa a 23 minuti contro piazza ripetuta a 4: vince la chiesa, dichiarata', () => {
+    it('chiesa a 23 minuti contro piazza ripetuta a 4: vince la piazza (la chiesa e\' oltre il tetto di 1,2 km)', () => {
         const chiesa = at('ch', 'Chiesa di San Silvestro', ['church'], 0.0155);
+        const pool = [piazza1, piazza2, chiesa];
+        const { plan } = repairMomentSelection({
+            moments: ms, buckets: bucketCandidates(ms, pool), pool,
+            aiStops: [{ place_id: 'p1', moment: 'g1-mattina' }, { place_id: 'p2', moment: 'g1-pomeriggio' }],
+        });
+        expect(plan[1].stops[0].candidate.place_id).toBe('p2');
+    });
+
+    it('chiesa a 15 minuti contro piazza ripetuta a 4: vince la chiesa (famiglia nuova dentro il tetto)', () => {
+        const chiesa = at('ch', 'Chiesa di San Silvestro', ['church'], 0.0101);
         const pool = [piazza1, piazza2, chiesa];
         const { plan, report } = repairMomentSelection({
             moments: ms, buckets: bucketCandidates(ms, pool), pool,
@@ -350,8 +363,6 @@ describe('C1b — famiglia nuova entro 25 minuti', () => {
         });
         const pom = plan[1].stops[0];
         expect(pom.candidate.place_id).toBe('ch');
-        expect(pom.trace).toMatchObject({ scelta: 'riparazione', minuti: 23, famiglia: 'chiesa' });
-        expect(pom.trace.motivo).toMatch(/famiglia nuova a 23 min/);
         expect(report.scartate.find(x => x.place_id === 'p2').motivo).toMatch(/famiglia gia' presente nel giorno \(piazza\)/);
         expect(report.ripieghi).toEqual([]);
     });

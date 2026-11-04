@@ -120,7 +120,8 @@ describe('C5 — sulla strada verso il prossimo punto fisso', () => {
     const museo = p('museo', 'museo', 41.900, 12.480, ['museum']);
     const sullaStrada = p('su', 'su', 41.9045, 12.480, ['tourist_attraction']);
     const fuoriStrada = p('giu', 'giu', 41.8955, 12.480, ['tourist_attraction']);
-    const cena = p('cena', 'cena', 41.908, 12.480, RIST);
+    // T19 (tetto 1,2 km): la cena a 41.906 (era 41.908), cosi' anche il tratto «giu» → cena resta nel tetto e «giu» cade solo per la strada
+    const cena = p('cena', 'cena', 41.906, 12.480, RIST);
     const g = giorno([['mattina'], ['pomeriggio'], ['cena']]);
     const pool = [museo, sullaStrada, fuoriStrada, cena];
     const nomeDi = (plan, key) => plan.find(x => x.moment.key === key).stops[0].candidate.place_id;
@@ -174,7 +175,7 @@ describe('C5 — mai lo stesso marchio due volte nel giorno', () => {
     const ortr = IVANO[2], orcf = IVANO[6];
     // Il museo a due passi da Origano Trevi: il pranzo del modello sta sulla strada.
     const museo = p('museo', 'museo', 41.9000, 12.4830, ['museum']);
-    const altra = p('altra', 'altra', 41.8945, 12.4700, RIST, 4.0);
+    const altra = p('altra', 'altra', 41.8945, 12.4720, RIST, 4.0); // T19: 12.4720 (era 12.4700), dentro il tetto di 1,2 km dal museo
 
     it('Origano a pranzo → a cena un altro locale, anche se Origano Campo de\' Fiori e\' piu\' vicino e ha voto piu\' alto', () => {
         expect(travelMinutes(museo, orcf)).toBeLessThan(travelMinutes(museo, altra));

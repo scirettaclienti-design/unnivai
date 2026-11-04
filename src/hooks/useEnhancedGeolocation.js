@@ -10,6 +10,7 @@
  * esportata per unificare l'unico secondo path (CityContext.requestGPS).
  */
 import { useState, useEffect } from 'react';
+import { geocodeGoogle } from '../lib/geocodeGoogle';
 
 // Gate X.1 + X.2: unica costante condivisa da tutti i path GPS del client.
 // Prima erano due configurazioni diverse (useEnhancedGeolocation aveva
@@ -138,18 +139,13 @@ export function useEnhancedGeolocation(options = {}) {
         // + fallback Nominatim erano senza timeout — se pendevano, la catena
         // "GPS -> nome citta'" si spezzava senza feedback.
         try {
-            const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-            if (MAPS_KEY) {
+            {
                 const gCtrl = new AbortController();
                 const gTid = setTimeout(() => gCtrl.abort(), 6000);
                 try {
-                    const res = await fetch(
-                        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${MAPS_KEY}&result_type=locality|administrative_area_level_3`,
-                        { signal: gCtrl.signal }
-                    );
+                    const data = await geocodeGoogle({ latlng: `${lat},${lon}`, result_type: 'locality|administrative_area_level_3' }, gCtrl.signal);
                     clearTimeout(gTid);
-                    const data = await res.json();
-                    if (data.status === 'OK' && data.results.length > 0) {
+                    if (data && data.status === 'OK' && data.results.length > 0) {
                         let city = '';
                         let country = 'Italia';
                         data.results[0].address_components.forEach(c => {

@@ -980,7 +980,7 @@ async function handleCuriosita(req: Request, dv: Record<string, any>): Promise<R
     ind = dalTelefono;
     ({ luoghi, errore } = await luoghiVicini({ lat, lng, citta: citta || ind.citta || '' }, ind, fetchW));
   } else {
-    const z = await luoghiDellaZona({ lat, lng, citta }, fetchW, memoria, Deno.env.get('GOOGLE_MAPS_API_KEY')?.trim() || null, diagnosi);
+    const z = await luoghiDellaZona({ lat, lng, citta }, fetchW, memoria, Deno.env.get('GOOGLE_SERVER_KEY')?.trim() || Deno.env.get('GOOGLE_MAPS_API_KEY')?.trim() || null, diagnosi); // GOOGLE-CHIAVI: chiave del server, ripiego quella di oggi
     ({ luoghi, errore, daMemoria } = z);
     trovatoErrore = z.trovato === 'errore';
     ind = z.ind ?? { via: null, quartieri: [], citta: null };

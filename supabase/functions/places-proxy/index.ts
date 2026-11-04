@@ -30,7 +30,8 @@
  *   - `place/photo`              → 302 redirect verso CDN Google (NON cachable)
  *
  * Env:
- *   GOOGLE_MAPS_API_KEY       chiave Google Places (obbligatoria)
+ *   GOOGLE_SERVER_KEY         chiave Google del server (preferita; ripiego: GOOGLE_MAPS_API_KEY)
+ *   GOOGLE_MAPS_API_KEY       chiave Google di oggi (ripiego finche' non c'e' GOOGLE_SERVER_KEY)
  *   SUPABASE_URL              url progetto (auto-iniettato da Supabase in prod)
  *   SUPABASE_SERVICE_ROLE_KEY key service-role per bypass RLS (auto-iniettato)
  *
@@ -45,7 +46,10 @@ import {
   NEW_SEARCH_URL, NEW_FIELD_MASK,
 } from './placesNew.ts';
 
-const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY');
+// GOOGLE-CHIAVI — la chiave del SERVER (secret GOOGLE_SERVER_KEY, ristretta per API) ha la precedenza; se manca si usa
+// quella di oggi (GOOGLE_MAPS_API_KEY), cosi' pubblicare il codice prima del secret nuovo non rompe nulla.
+// Mai la chiave del browser: qui non si legge.
+const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_SERVER_KEY')?.trim() || Deno.env.get('GOOGLE_MAPS_API_KEY')?.trim() || undefined;
 const GOOGLE_BASE = 'https://maps.googleapis.com/maps/api';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -74,6 +78,7 @@ const ALLOWED_PATHS = new Set([
   'place/details',
   'place/textsearch',
   'place/nearbysearch',
+  'geocode', // GOOGLE-CHIAVI: Geocoding dal telefono (prima chiamava Google direttamente con la chiave del browser)
 ]);
 
 // Path che vale la pena cachare (JSON deterministici, non binari, non 302).
@@ -82,6 +87,7 @@ const CACHABLE_PATHS = new Set([
   'place/details',
   'place/textsearch',
   'place/nearbysearch',
+  'geocode',
 ]);
 
 // Client Supabase per il proxy (service-role → bypass RLS su places_cache).

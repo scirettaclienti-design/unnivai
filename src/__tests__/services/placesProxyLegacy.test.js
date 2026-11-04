@@ -46,7 +46,9 @@ describe('places-proxy con l\'interruttore su legacy = proxy di prima', () => {
             const vecchio = await run(OLD, { env }, tutti);
             const nuovo = await run(NEW, { env, mod: NEWMOD }, tutti);
             expect(nuovo.calls).toEqual(vecchio.calls);
-            expect(nuovo.out).toEqual(vecchio.out);
+            // GOOGLE-CHIAVI: l'unica differenza voluta e' il path `geocode` nell'elenco dei path ammessi (risposta 403)
+            const senzaGeocode = nuovo.out.map(o => ({ ...o, body: String(o.body).replace(',"geocode"]', ']') }));
+            expect(senzaGeocode).toEqual(vecchio.out);
             expect(nuovo.cache).toEqual(vecchio.cache);
             // controllo di sanita': la ricerca e' andata davvero all'API legacy, con la sua cache
             expect(nuovo.calls[0].url).toContain('maps.googleapis.com/maps/api/place/textsearch/json');

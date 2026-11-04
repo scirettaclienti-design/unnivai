@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { vi, beforeEach, afterEach } from 'vitest'
 
 // ─── Mock declarations (hoisted before any real import) ──────────────────────
 //
@@ -27,6 +27,9 @@ vi.mock('@/services/dataService', () => ({
 // module-level side effects (OpenAI client init, etc.).
 vi.mock('@/services/aiRecommendationService', () => ({
   aiRecommendationService: {},
+  // GOOGLE-CHIAVI: geocodeGoogle li importa (proxy spento: questi test provano il ripiego diretto)
+  isPlacesProxyEnabled: () => false,
+  buildPlacesProxyUrl: (p) => `/proxy?${new URLSearchParams(p)}`,
 }))
 
 // ─── Imports (AFTER vi.mock) ─────────────────────────────────────────────────
@@ -71,6 +74,10 @@ const gpsWithCity = (city = 'Roma') => ({
 })
 
 // ─── getUserContext() ─────────────────────────────────────────────────────────
+
+// GOOGLE-CHIAVI: il ripiego diretto di geocodeGoogle parte solo con la chiave del browser (questi test mockano fetch senza proxy)
+beforeEach(() => { vi.stubEnv('VITE_GOOGLE_MAPS_API_KEY', 'TEST_BROWSER_KEY') })
+afterEach(() => { vi.unstubAllEnvs() })
 
 describe('userContextService.getUserContext()', () => {
   beforeEach(() => {
@@ -505,9 +512,9 @@ describe('userContextService.getCoordinatesForCity()', () => {
     vi.stubGlobal('fetch', fetchSpy)
     await userContextService.getCoordinatesForCity('Reggio Emilia')
     // Il nome non deve essere stato riscritto prima di finire nella query.
-    const calledUrl = fetchSpy.mock.calls[0][0]
-    expect(calledUrl).toContain(encodeURIComponent('Reggio Emilia'))
-    expect(calledUrl).not.toContain(encodeURIComponent('Reggio emilia'))
+    // (la richiesta passa dal proxy del server: il nome sta nel parametro `address`, decodificato)
+    const calledUrl = String(fetchSpy.mock.calls[0][0])
+    expect(new URL(calledUrl, 'http://localhost').searchParams.get('address')).toBe('Reggio Emilia')
   })
 
   it('fetches from Google Geocoding for a city not in the fast-path cache', async () => {

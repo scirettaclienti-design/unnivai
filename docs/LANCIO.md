@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**12 su 22 fatte** · aggiornato il 06/11/2026 (T25 COLLAUDO-COMPLETO: L8, resta «da fare» fino al codice bloccato del 22/11) · fonte dello stato: `docs/prove/` e `git log` di `main` (`3317ee8`)
+**12 su 22 fatte** · aggiornato il 06/11/2026 (CODA-RIEPILOGO T23–T25) · fonte dello stato: `docs/prove/` e `git log` di `main` (`01af6ef`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.

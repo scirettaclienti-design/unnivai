@@ -1,0 +1,311 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-04T13:55:32.831Z",
+ "titolo": "Unnivai | Esplora l'Italia Autentica",
+ "schedaAperta": "Fontana dell'Elefante",
+ "risposte": [
+  {
+   "id": "v1",
+   "tipo": "vaga",
+   "q": "Cosa c'è qui?",
+   "focus": "Focus:",
+   "msSchermo": 6901,
+   "fonti": "Fonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi",
+   "risposta": "Qui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.",
+   "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi di Fontana dell'Elefante o del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è qui?\nUNNIVAI AI\nQui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nL'assistente AI può commettere errori. Verifica le info sensibili."
+  },
+  {
+   "id": "v2",
+   "tipo": "vaga",
+   "q": "Quanto ci resto?",
+   "focus": "Focus:",
+   "msSchermo": 4362,
+   "fonti": "Fonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi",
+   "risposta": "Qui hai quindici minuti: sei alla prima tappa, alle 09:30. Alle 09:50 tocca alla cattedrale di Sant'Agata, dove ti fermi mezz'ora. Per ora goditi l'elefante.",
+   "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi di Fontana dell'Elefante o del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è qui?\nUNNIVAI AI\nQui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nQuanto ci resto?\nUNNIVAI AI\nQui hai quindici minuti: sei alla prima tappa, alle 09:30. Alle 09:50 tocca alla cattedrale di Sant'Agata, dove ti fermi mezz'ora. Per ora goditi l'elefante.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nL'assistente AI può commettere errori. Verifica le info sensibili."
+  },
+  {
+   "id": "v3",
+   "tipo": "vaga",
+   "q": "È aperto?",
+   "focus": "Focus:",
+   "msSchermo": 8369,
+   "fonti": "Fonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi",
+   "risposta": "Su orari di apertura non ho una fonte sicura. Quello che so è che la fontana sta al centro di piazza del Duomo. Alle 09:50 hai la cattedrale, e lì ti conviene dare un'occhiata agli orari sul posto.",
+   "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi di Fontana dell'Elefante o del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è qui?\nUNNIVAI AI\nQui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nQuanto ci resto?\nUNNIVAI AI\nQui hai quindici minuti: sei alla prima tappa, alle 09:30. Alle 09:50 tocca alla cattedrale di Sant'Agata, dove ti fermi mezz'ora. Per ora goditi l'elefante.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nÈ aperto?\nUNNIVAI AI\nSu orari di apertura non ho una fonte sicura. Quello che so è che la fontana sta al centro di piazza del Duomo. Alle 09:50 hai la cattedrale, e lì ti conviene dare un'occhiata agli orari sul posto.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nL'assistente AI può commettere errori. Verifica le info sensibili."
+  },
+  {
+   "id": "v4",
+   "tipo": "vaga",
+   "q": "Mi racconti qualcosa di questo posto?",
+   "focus": "Focus:",
+   "msSchermo": 5861,
+   "fonti": "Fonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi",
+   "risposta": "Guarda l'elefante: la statua è di basalto nero e il nome popolare è U'Liotru. Per i catanesi è l'emblema della città. La fontana, invece, è stata realizzata da Vaccarini tra il 1735 e il 1737, proprio al centro di piazza del Duomo.",
+   "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi di Fontana dell'Elefante o del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è qui?\nUNNIVAI AI\nQui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nQuanto ci resto?\nUNNIVAI AI\nQui hai quindici minuti: sei alla prima tappa, alle 09:30. Alle 09:50 tocca alla cattedrale di Sant'Agata, dove ti fermi mezz'ora. Per ora goditi l'elefante.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nÈ aperto?\nUNNIVAI AI\nSu orari di apertura non ho una fonte sicura. Quello che so è che la fontana sta al centro di piazza del Duomo. Alle 09:50 hai la cattedrale, e lì ti conviene dare un'occhiata agli orari sul posto.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nMi racconti qualcosa di questo posto?\nUNNIVAI AI\nGuarda l'elefante: la statua è di basalto nero e il nome popolare è U'Liotru. Per i catanesi è l'emblema della città. La fontana, invece, è stata realizzata da Vaccarini tra il 1735 e il 1737, proprio al centro di piazza del Duomo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nL'assistente AI può commettere errori. Verifica le info sensibili."
+  },
+  {
+   "id": "v5",
+   "tipo": "vaga",
+   "q": "Com'è fatto?",
+   "focus": "Focus:",
+   "msSchermo": 4352,
+   "fonti": "Fonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi",
+   "risposta": "La fontana è opera di Giovanni Battista Vaccarini, al centro di piazza del Duomo. L'elemento principale è la statua di basalto nero di un elefante. Le fonti parlano di una statua romana. Sul resto della fontana non ho una fonte sicura.",
+   "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi di Fontana dell'Elefante o del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è qui?\nUNNIVAI AI\nQui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nQuanto ci resto?\nUNNIVAI AI\nQui hai quindici minuti: sei alla prima tappa, alle 09:30. Alle 09:50 tocca alla cattedrale di Sant'Agata, dove ti fermi mezz'ora. Per ora goditi l'elefante.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nÈ aperto?\nUNNIVAI AI\nSu orari di apertura non ho una fonte sicura. Quello che so è che la fontana sta al centro di piazza del Duomo. Alle 09:50 hai la cattedrale, e lì ti conviene dare un'occhiata agli orari sul posto.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nMi racconti qualcosa di questo posto?\nUNNIVAI AI\nGuarda l'elefante: la statua è di basalto nero e il nome popolare è U'Liotru. Per i catanesi è l'emblema della città. La fontana, invece, è stata realizzata da Vaccarini tra il 1735 e il 1737, proprio al centro di piazza del Duomo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nCom'è fatto?\nUNNIVAI AI\nLa fontana è opera di Giovanni Battista Vaccarini, al centro di piazza del Duomo. L'elemento principale è la statua di basalto nero di un elefante. Le fonti parlano di una statua romana. Sul resto della fontana non ho una fonte sicura.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nL'assistente AI può commettere errori. Verifica le info sensibili."
+  },
+  {
+   "id": "s1",
+   "tipo": "specifica",
+   "q": "Chi ha costruito la Cattedrale di Sant'Agata?",
+   "focus": "Focus:",
+   "msSchermo": 5357,
+   "fonti": "Fonti lette: Cattedrale di Sant'Agata · Fontana dell'Elefante · Via dei Crociferi",
+   "risposta": "Su chi l'ha costruita non ho una fonte sicura. Quello che so è che è dedicata a Sant'Agata, patrona di Catania, e sta sul lato sud-est di piazza del Duomo. Ha stili diversi: dal normanno al barocco, fino al neoclassico. Ci arrivi alle 09:50.",
+   "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi di Fontana dell'Elefante o del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è qui?\nUNNIVAI AI\nQui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nQuanto ci resto?\nUNNIVAI AI\nQui hai quindici minuti: sei alla prima tappa, alle 09:30. Alle 09:50 tocca alla cattedrale di Sant'Agata, dove ti fermi mezz'ora. Per ora goditi l'elefante.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nÈ aperto?\nUNNIVAI AI\nSu orari di apertura non ho una fonte sicura. Quello che so è che la fontana sta al centro di piazza del Duomo. Alle 09:50 hai la cattedrale, e lì ti conviene dare un'occhiata agli orari sul posto.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nMi racconti qualcosa di questo posto?\nUNNIVAI AI\nGuarda l'elefante: la statua è di basalto nero e il nome popolare è U'Liotru. Per i catanesi è l'emblema della città. La fontana, invece, è stata realizzata da Vaccarini tra il 1735 e il 1737, proprio al centro di piazza del Duomo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nCom'è fatto?\nUNNIVAI AI\nLa fontana è opera di Giovanni Battista Vaccarini, al centro di piazza del Duomo. L'elemento principale è la statua di basalto nero di un elefante. Le fonti parlano di una statua romana. Sul resto della fontana non ho una fonte sicura.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nChi ha costruito la Cattedrale di Sant'Agata?\nUNNIVAI AI\nSu chi l'ha costruita non ho una fonte sicura. Quello che so è che è dedicata a Sant'Agata, patrona di Catania, e sta sul lato sud-est di piazza del Duomo. Ha stili diversi: dal normanno al barocco, fino al neoclassico. Ci arrivi alle 09:50.\nFonti lette: Cattedrale di Sant'Agata · Fontana dell'Elefante · Via dei Crociferi\nL'assistente AI può commettere errori. Verifica le info sensibili."
+  },
+  {
+   "id": "s2",
+   "tipo": "specifica",
+   "q": "A che ora è prevista la tappa al Teatro romano di Catania?",
+   "focus": "Focus:",
+   "msSchermo": 4345,
+   "fonti": "Fonti lette: Teatro greco-romano di Catania · Fontana dell'Elefante · Cattedrale di Sant'Agata",
+   "risposta": "Al Teatro romano ci arrivi alle 12:35, ed è la sesta e ultima tappa del giro. Hai 25 minuti di sosta, giusto il tempo di guardare con calma la gradinata.",
+   "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi di Fontana dell'Elefante o del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è qui?\nUNNIVAI AI\nQui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nQuanto ci resto?\nUNNIVAI AI\nQui hai quindici minuti: sei alla prima tappa, alle 09:30. Alle 09:50 tocca alla cattedrale di Sant'Agata, dove ti fermi mezz'ora. Per ora goditi l'elefante.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nÈ aperto?\nUNNIVAI AI\nSu orari di apertura non ho una fonte sicura. Quello che so è che la fontana sta al centro di piazza del Duomo. Alle 09:50 hai la cattedrale, e lì ti conviene dare un'occhiata agli orari sul posto.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nMi racconti qualcosa di questo posto?\nUNNIVAI AI\nGuarda l'elefante: la statua è di basalto nero e il nome popolare è U'Liotru. Per i catanesi è l'emblema della città. La fontana, invece, è stata realizzata da Vaccarini tra il 1735 e il 1737, proprio al centro di piazza del Duomo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nCom'è fatto?\nUNNIVAI AI\nLa fontana è opera di Giovanni Battista Vaccarini, al centro di piazza del Duomo. L'elemento principale è la statua di basalto nero di un elefante. Le fonti parlano di una statua romana. Sul resto della fontana non ho una fonte sicura.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nChi ha costruito la Cattedrale di Sant'Agata?\nUNNIVAI AI\nSu chi l'ha costruita non ho una fonte sicura. Quello che so è che è dedicata a Sant'Agata, patrona di Catania, e sta sul lato sud-est di piazza del Duomo. Ha stili diversi: dal normanno al barocco, fino al neoclassico. Ci arrivi alle 09:50.\nFonti lette: Cattedrale di Sant'Agata · Fontana dell'Elefante · Via dei Crociferi\nA che ora è prevista la tappa al Teatro romano di Catania?\nUNNIVAI AI\nAl Teatro romano ci arrivi alle 12:35, ed è la sesta e ultima tappa del giro. Hai 25 minuti di sosta, giusto il tempo di guardare con calma la gradinata.\nFonti lette: Teatro greco-romano di Catania · Fontana dell'Elefante · Cattedrale di Sant'Agata\nL'assistente AI può commettere errori. Verifica le info sensibili."
+  },
+  {
+   "id": "s3",
+   "tipo": "specifica",
+   "q": "Cos'è il Monastero dei Benedettini di San Nicolò l'Arena?",
+   "focus": "Focus:",
+   "msSchermo": 6872,
+   "fonti": "Fonti lette: Chiesa di San Nicolò l'Arena · Fontana dell'Elefante · Cattedrale di Sant'Agata",
+   "risposta": "Le fonti parlano soprattutto della chiesa di San Nicolò l'Arena, in piazza Dante: oltre 1500 m² e circa 66 m di altezza alla cupola, la più grande della Sicilia. L'edificio attuale è nato dopo l'eruzione dell'Etna del 1669 e ha sostituito un tempio rinascimentale del 1578. Dal Novecento ospita il Sacrario militare della città. Ci arrivi alle 11:40, con 40 minuti di sosta.",
+   "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi di Fontana dell'Elefante o del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è qui?\nUNNIVAI AI\nQui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nQuanto ci resto?\nUNNIVAI AI\nQui hai quindici minuti: sei alla prima tappa, alle 09:30. Alle 09:50 tocca alla cattedrale di Sant'Agata, dove ti fermi mezz'ora. Per ora goditi l'elefante.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nÈ aperto?\nUNNIVAI AI\nSu orari di apertura non ho una fonte sicura. Quello che so è che la fontana sta al centro di piazza del Duomo. Alle 09:50 hai la cattedrale, e lì ti conviene dare un'occhiata agli orari sul posto.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nMi racconti qualcosa di questo posto?\nUNNIVAI AI\nGuarda l'elefante: la statua è di basalto nero e il nome popolare è U'Liotru. Per i catanesi è l'emblema della città. La fontana, invece, è stata realizzata da Vaccarini tra il 1735 e il 1737, proprio al centro di piazza del Duomo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nCom'è fatto?\nUNNIVAI AI\nLa fontana è opera di Giovanni Battista Vaccarini, al centro di piazza del Duomo. L'elemento principale è la statua di basalto nero di un elefante. Le fonti parlano di una statua romana. Sul resto della fontana non ho una fonte sicura.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nChi ha costruito la Cattedrale di Sant'Agata?\nUNNIVAI AI\nSu chi l'ha costruita non ho una fonte sicura. Quello che so è che è dedicata a Sant'Agata, patrona di Catania, e sta sul lato sud-est di piazza del Duomo. Ha stili diversi: dal normanno al barocco, fino al neoclassico. Ci arrivi alle 09:50.\nFonti lette: Cattedrale di Sant'Agata · Fontana dell'Elefante · Via dei Crociferi\nA che ora è prevista la tappa al Teatro romano di Catania?\nUNNIVAI AI\nAl Teatro romano ci arrivi alle 12:35, ed è la sesta e ultima tappa del giro. Hai 25 minuti di sosta, giusto il tempo di guardare con calma la gradinata.\nFonti lette: Teatro greco-romano di Catania · Fontana dell'Elefante · Cattedrale di Sant'Agata\nCos'è il Monastero dei Benedettini di San Nicolò l'Arena?\nUNNIVAI AI\nLe fonti parlano soprattutto della chiesa di San Nicolò l'Arena, in piazza Dante: oltre 1500 m² e circa 66 m di altezza alla cupola, la più grande della Sicilia. L'edificio attuale è nato dopo l'eruzione dell'Etna del 1669 e ha sostituito un tempio rinascimentale del 1578. Dal Novecento ospita il Sacrario militare della città. Ci arrivi alle 11:40, con 40 minuti di sosta.\nFonti lette: Chiesa di San Nicolò l'Arena · Fontana dell'Elefante · Cattedrale di Sant'Agata\nL'assistente AI può commettere errori. Verifica le info sensibili."
+  },
+  {
+   "id": "s4",
+   "tipo": "specifica",
+   "q": "Per cosa è famosa Via dei Crociferi?",
+   "focus": "Focus:",
+   "msSchermo": 4346,
+   "fonti": "Fonti lette: Via dei Crociferi · Fontana dell'Elefante · Cattedrale di Sant'Agata",
+   "risposta": "È una strada monumentale del Settecento, piena di chiese barocche e palazzi del XVIII secolo. Parte da piazza San Francesco d'Assisi e ci si entra passando sotto l'arco di San Benedetto. Ci arrivi alle 10:30, con 20 minuti di sosta.",
+   "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi di Fontana dell'Elefante o del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è qui?\nUNNIVAI AI\nQui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nQuanto ci resto?\nUNNIVAI AI\nQui hai quindici minuti: sei alla prima tappa, alle 09:30. Alle 09:50 tocca alla cattedrale di Sant'Agata, dove ti fermi mezz'ora. Per ora goditi l'elefante.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nÈ aperto?\nUNNIVAI AI\nSu orari di apertura non ho una fonte sicura. Quello che so è che la fontana sta al centro di piazza del Duomo. Alle 09:50 hai la cattedrale, e lì ti conviene dare un'occhiata agli orari sul posto.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nMi racconti qualcosa di questo posto?\nUNNIVAI AI\nGuarda l'elefante: la statua è di basalto nero e il nome popolare è U'Liotru. Per i catanesi è l'emblema della città. La fontana, invece, è stata realizzata da Vaccarini tra il 1735 e il 1737, proprio al centro di piazza del Duomo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nCom'è fatto?\nUNNIVAI AI\nLa fontana è opera di Giovanni Battista Vaccarini, al centro di piazza del Duomo. L'elemento principale è la statua di basalto nero di un elefante. Le fonti parlano di una statua romana. Sul resto della fontana non ho una fonte sicura.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nChi ha costruito la Cattedrale di Sant'Agata?\nUNNIVAI AI\nSu chi l'ha costruita non ho una fonte sicura. Quello che so è che è dedicata a Sant'Agata, patrona di Catania, e sta sul lato sud-est di piazza del Duomo. Ha stili diversi: dal normanno al barocco, fino al neoclassico. Ci arrivi alle 09:50.\nFonti lette: Cattedrale di Sant'Agata · Fontana dell'Elefante · Via dei Crociferi\nA che ora è prevista la tappa al Teatro romano di Catania?\nUNNIVAI AI\nAl Teatro romano ci arrivi alle 12:35, ed è la sesta e ultima tappa del giro. Hai 25 minuti di sosta, giusto il tempo di guardare con calma la gradinata.\nFonti lette: Teatro greco-romano di Catania · Fontana dell'Elefante · Cattedrale di Sant'Agata\nCos'è il Monastero dei Benedettini di San Nicolò l'Arena?\nUNNIVAI AI\nLe fonti parlano soprattutto della chiesa di San Nicolò l'Arena, in piazza Dante: oltre 1500 m² e circa 66 m di altezza alla cupola, la più grande della Sicilia. L'edificio attuale è nato dopo l'eruzione dell'Etna del 1669 e ha sostituito un tempio rinascimentale del 1578. Dal Novecento ospita il Sacrario militare della città. Ci arrivi alle 11:40, con 40 minuti di sosta.\nFonti lette: Chiesa di San Nicolò l'Arena · Fontana dell'Elefante · Cattedrale di Sant'Agata\nPer cosa è famosa Via dei Crociferi?\nUNNIVAI AI\nÈ una strada monumentale del Settecento, piena di chiese barocche e palazzi del XVIII secolo. Parte da piazza San Francesco d'Assisi e ci si entra passando sotto l'arco di San Benedetto. Ci arrivi alle 10:30, con 20 minuti di sosta.\nFonti lette: Via dei Crociferi · Fontana dell'Elefante · Cattedrale di Sant'Agata\nL'assistente AI può commettere errori. Verifica le info sensibili."
+  },
+  {
+   "id": "s5",
+   "tipo": "specifica",
+   "q": "Quanto mi fermo al Teatro Massimo Bellini?",
+   "focus": "Focus:",
+   "msSchermo": 4354,
+   "fonti": "Fonti lette: Teatro Massimo Vincenzo Bellini · Fontana dell'Elefante · Cattedrale di Sant'Agata",
+   "risposta": "Al Teatro Massimo Bellini ti fermi 20 minuti: ci arrivi alle 11:05. Il tenore Beniamino Gigli lo proclamò la migliore sala di teatro al mondo per l'acustica. Se hai tempo, guarda l'auditorium a taglio dorato.",
+   "testoChat": "Assistente Unnivai\n\nAI GUIDE\n\nFocus:\nFontana dell'Elefante\nUNNIVAI AI\nChiedimi di Fontana dell'Elefante o del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è qui?\nUNNIVAI AI\nQui c'è la fontana dell'Elefante, in mezzo a piazza del Duomo. La statua è un elefante di basalto nero, che i catanesi chiamano U'Liotru ed è l'emblema della città. La fontana l'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737. Fermati i tuoi quindici minuti: hai tempo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nQuanto ci resto?\nUNNIVAI AI\nQui hai quindici minuti: sei alla prima tappa, alle 09:30. Alle 09:50 tocca alla cattedrale di Sant'Agata, dove ti fermi mezz'ora. Per ora goditi l'elefante.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nÈ aperto?\nUNNIVAI AI\nSu orari di apertura non ho una fonte sicura. Quello che so è che la fontana sta al centro di piazza del Duomo. Alle 09:50 hai la cattedrale, e lì ti conviene dare un'occhiata agli orari sul posto.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nMi racconti qualcosa di questo posto?\nUNNIVAI AI\nGuarda l'elefante: la statua è di basalto nero e il nome popolare è U'Liotru. Per i catanesi è l'emblema della città. La fontana, invece, è stata realizzata da Vaccarini tra il 1735 e il 1737, proprio al centro di piazza del Duomo.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nCom'è fatto?\nUNNIVAI AI\nLa fontana è opera di Giovanni Battista Vaccarini, al centro di piazza del Duomo. L'elemento principale è la statua di basalto nero di un elefante. Le fonti parlano di una statua romana. Sul resto della fontana non ho una fonte sicura.\nFonti lette: Fontana dell'Elefante · Cattedrale di Sant'Agata · Via dei Crociferi\nChi ha costruito la Cattedrale di Sant'Agata?\nUNNIVAI AI\nSu chi l'ha costruita non ho una fonte sicura. Quello che so è che è dedicata a Sant'Agata, patrona di Catania, e sta sul lato sud-est di piazza del Duomo. Ha stili diversi: dal normanno al barocco, fino al neoclassico. Ci arrivi alle 09:50.\nFonti lette: Cattedrale di Sant'Agata · Fontana dell'Elefante · Via dei Crociferi\nA che ora è prevista la tappa al Teatro romano di Catania?\nUNNIVAI AI\nAl Teatro romano ci arrivi alle 12:35, ed è la sesta e ultima tappa del giro. Hai 25 minuti di sosta, giusto il tempo di guardare con calma la gradinata.\nFonti lette: Teatro greco-romano di Catania · Fontana dell'Elefante · Cattedrale di Sant'Agata\nCos'è il Monastero dei Benedettini di San Nicolò l'Arena?\nUNNIVAI AI\nLe fonti parlano soprattutto della chiesa di San Nicolò l'Arena, in piazza Dante: oltre 1500 m² e circa 66 m di altezza alla cupola, la più grande della Sicilia. L'edificio attuale è nato dopo l'eruzione dell'Etna del 1669 e ha sostituito un tempio rinascimentale del 1578. Dal Novecento ospita il Sacrario militare della città. Ci arrivi alle 11:40, con 40 minuti di sosta.\nFonti lette: Chiesa di San Nicolò l'Arena · Fontana dell'Elefante · Cattedrale di Sant'Agata\nPer cosa è famosa Via dei Crociferi?\nUNNIVAI AI\nÈ una strada monumentale del Settecento, piena di chiese barocche e palazzi del XVIII secolo. Parte da piazza San Francesco d'Assisi e ci si entra passando sotto l'arco di San Benedetto. Ci arrivi alle 10:30, con 20 minuti di sosta.\nFonti lette: Via dei Crociferi · Fontana dell'Elefante · Cattedrale di Sant'Agata\nQuanto mi fermo al Teatro Massimo Bellini?\nUNNIVAI AI\nAl Teatro Massimo Bellini ti fermi 20 minuti: ci arrivi alle 11:05. Il tenore Beniamino Gigli lo proclamò la migliore sala di teatro al mondo per l'acustica. Se hai tempo, guarda l'auditorium a taglio dorato.\nFonti lette: Teatro Massimo Vincenzo Bellini · Fontana dell'Elefante · Cattedrale di Sant'Agata\nL'assistente AI può commettere errori. Verifica le info sensibili."
+  }
+ ],
+ "richieste": [
+  {
+   "t": 1793800538010,
+   "purpose": "generation",
+   "precarica": false,
+   "domanda": null,
+   "aperto": null,
+   "luoghi": null
+  },
+  {
+   "t": 1793800538078,
+   "purpose": "aux",
+   "precarica": false,
+   "domanda": null,
+   "aperto": null,
+   "luoghi": null
+  },
+  {
+   "t": 1793800550902,
+   "purpose": "chat",
+   "precarica": true,
+   "domanda": null,
+   "aperto": null,
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 1912,
+   "esito": null,
+   "versione": null,
+   "msRete": 2160,
+   "precaricate": {
+    "tappe": 6,
+    "nuove": 6,
+    "ms": 1912
+   }
+  },
+  {
+   "t": 1793800550909,
+   "purpose": "voce",
+   "precarica": false,
+   "domanda": null,
+   "aperto": null,
+   "luoghi": null
+  },
+  {
+   "t": 1793800550912,
+   "purpose": "racconto",
+   "precarica": false,
+   "domanda": null,
+   "aperto": null,
+   "luoghi": null
+  },
+  {
+   "t": 1793800551190,
+   "purpose": "voce",
+   "precarica": false,
+   "domanda": null,
+   "aperto": null,
+   "luoghi": null
+  },
+  {
+   "t": 1793800558432,
+   "purpose": "chat",
+   "precarica": false,
+   "domanda": "Cosa c'è qui?",
+   "aperto": "Fontana dell'Elefante",
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 4004,
+   "esito": "verificata",
+   "versione": "c2",
+   "msRete": 6412,
+   "precaricate": null
+  },
+  {
+   "t": 1793800567454,
+   "purpose": "chat",
+   "precarica": false,
+   "domanda": "Quanto ci resto?",
+   "aperto": "Fontana dell'Elefante",
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 4049,
+   "esito": "verificata",
+   "versione": "c2",
+   "msRete": 4276,
+   "precaricate": null
+  },
+  {
+   "t": 1793800573935,
+   "purpose": "chat",
+   "precarica": false,
+   "domanda": "È aperto?",
+   "aperto": "Fontana dell'Elefante",
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 7754,
+   "esito": "riscritta",
+   "versione": "c2",
+   "msRete": 8042,
+   "precaricate": null
+  },
+  {
+   "t": 1793800584406,
+   "purpose": "chat",
+   "precarica": false,
+   "domanda": "Mi racconti qualcosa di questo posto?",
+   "aperto": "Fontana dell'Elefante",
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 5314,
+   "esito": "riscritta",
+   "versione": "c2",
+   "msRete": 5600,
+   "precaricate": null
+  },
+  {
+   "t": 1793800592389,
+   "purpose": "chat",
+   "precarica": false,
+   "domanda": "Com'è fatto?",
+   "aperto": "Fontana dell'Elefante",
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 3996,
+   "esito": "verificata",
+   "versione": "c2",
+   "msRete": 4206,
+   "precaricate": null
+  },
+  {
+   "t": 1793800598859,
+   "purpose": "chat",
+   "precarica": false,
+   "domanda": "Chi ha costruito la Cattedrale di Sant'Agata?",
+   "aperto": "Fontana dell'Elefante",
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 4894,
+   "esito": "verificata",
+   "versione": "c2",
+   "msRete": 5130,
+   "precaricate": null
+  },
+  {
+   "t": 1793800606293,
+   "purpose": "chat",
+   "precarica": false,
+   "domanda": "A che ora è prevista la tappa al Teatro romano di Catania?",
+   "aperto": "Fontana dell'Elefante",
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 3971,
+   "esito": "verificata",
+   "versione": "c2",
+   "msRete": 4139,
+   "precaricate": null
+  },
+  {
+   "t": 1793800612758,
+   "purpose": "chat",
+   "precarica": false,
+   "domanda": "Cos'è il Monastero dei Benedettini di San Nicolò l'Arena?",
+   "aperto": "Fontana dell'Elefante",
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 6041,
+   "esito": "verificata",
+   "versione": "c2",
+   "msRete": 6419,
+   "precaricate": null
+  },
+  {
+   "t": 1793800621726,
+   "purpose": "chat",
+   "precarica": false,
+   "domanda": "Per cosa è famosa Via dei Crociferi?",
+   "aperto": "Fontana dell'Elefante",
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 3639,
+   "esito": "verificata",
+   "versione": "c2",
+   "msRete": 3903,
+   "precaricate": null
+  },
+  {
+   "t": 1793800628194,
+   "purpose": "chat",
+   "precarica": false,
+   "domanda": "Quanto mi fermo al Teatro Massimo Bellini?",
+   "aperto": "Fontana dell'Elefante",
+   "luoghi": 6,
+   "stato": 200,
+   "msServer": 3908,
+   "esito": "verificata",
+   "versione": "c2",
+   "msRete": 4117,
+   "precaricate": null
+  }
+ ],
+ "tAvvia": 1793800550810,
+ "secondiDaAvviaAllaScheda": 7,
+ "finito": "2026-11-04T13:57:14.099Z"
+}

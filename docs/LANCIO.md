@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**12 su 22 fatte** · aggiornato il 05/11/2026 (VOCE-TEST T22, riga P5) · fonte dello stato: `docs/prove/` e `git log` di `main` (`e8364ea`)
+**12 su 22 fatte** · aggiornato il 05/11/2026 (CODA-RIEPILOGO T17–T21 + T22) · fonte dello stato: `docs/prove/` e `git log` di `main` (`3317ee8`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.

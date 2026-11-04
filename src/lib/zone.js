@@ -20,9 +20,8 @@
  * "Quartiere Coppede'" non e' una zona per nome (nome proprio), lo e' per tipo.
  *
  * BANCO-DIFETTI (T19, D8) — e non sono tappe nemmeno: la citta' stessa («Matera, Italia»: il nome e' la citta', con o senza «Italia»),
- * il municipio come ufficio («Comune di Troina», tipo principale `city_hall` senza `tourist_attraction`), una stazione
- * (tipo principale `subway_station`, `train_station`, `transit_station`, `bus_station`, `light_rail_station`: la fermata «Colosseo»
- * della metro non e' il Colosseo). Un palazzo comunale che Google segna anche come attrazione resta (Palazzo degli Elefanti).
+ * il municipio come ufficio («Comune di Troina», tipo principale `city_hall` senza `tourist_attraction`). Un palazzo comunale che
+ * Google segna anche come attrazione resta (Palazzo degli Elefanti). La stazione «Colosseo» resta aperta (vedi sotto).
  *
  * Puro: niente rete.
  */
@@ -49,8 +48,7 @@ const AREA_NAMES = new Set([
 const GLUE = new Set(['di', 'del', 'della', 'dello', 'de', 'il', 'lo', 'la', 'l', 'a', 'in', 'e']);
 // D8 — il nome e' la citta' (con o senza il paese)
 const PAESE = new Set(['', 'italia', 'italy']);
-// D8 — tipi principali che non sono un luogo da visitare
-const STAZIONI = new Set(['subway_station', 'train_station', 'transit_station', 'bus_station', 'light_rail_station', 'bus_stop']);
+
 
 /** Il nome e' solo il nome di un'area (con o senza la citta')? */
 export function isAreaName(name, cityName) {
@@ -83,9 +81,10 @@ export function zoneReason(place, cityName = null) {
     }
     const name = place?.name ?? place?.title ?? '';
     if (isAreaName(name, cityName ?? place?.city ?? null)) return `nome da area ("${name}")`;
-    // D8 — la citta' stessa, il municipio come ufficio, una stazione
+    // D8 — la citta' stessa, il municipio come ufficio
     if (isCityName(name, cityName ?? place?.city ?? null)) return `nome della citta' ("${name}")`;
-    if (primary && STAZIONI.has(primary)) return `stazione (${primary})`;
+    // La stazione (la fermata «Colosseo» della metro) resta aperta: toglierla oggi lascia il giro di n-roma-1300-specifica con una tappa
+    // sola, perche' il Colosseo vero lo toglie il Gate RAGGIO-CATEGORIA (tourist_attraction → cultura ≠ storia). Vedi il report T19, D8.
     if (primary === 'city_hall' && !types.includes('tourist_attraction')) return 'municipio (city_hall), non un luogo da visitare';
     return null;
 }

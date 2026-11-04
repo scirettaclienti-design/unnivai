@@ -40,7 +40,7 @@ describe('isZone — tipi e nomi da zona', () => {
 });
 
 // BANCO-DIFETTI (T19, D8) — una tappa che non e' un luogo da visitare
-describe('D8 — la citta\' stessa, il municipio come ufficio, una stazione', () => {
+describe('D8 — la citta\' stessa, il municipio come ufficio', () => {
     it('«Matera, Italia» a Matera e\' la citta\', non una tappa', () => {
         expect(zoneReason({ name: 'Matera, Italia', types: ['tourist_attraction', 'point_of_interest'], primaryType: 'tourist_attraction' }, 'Matera')).toMatch(/nome della citta'/);
         expect(isCityName('Matera', 'Matera')).toBe(true);
@@ -51,8 +51,8 @@ describe('D8 — la citta\' stessa, il municipio come ufficio, una stazione', ()
         expect(zoneReason({ name: 'Palazzo degli Elefanti', primaryType: 'government_office', types: ['tourist_attraction', 'government_office'] }, 'Catania')).toBeNull();
         expect(zoneReason({ name: 'Palazzo Senatorio', primaryType: 'city_hall', types: ['city_hall', 'tourist_attraction'] }, 'Roma')).toBeNull();
     });
-    it('la fermata «Colosseo» della metro non e\' il Colosseo', () => {
-        expect(zoneReason({ name: 'Colosseo', primaryType: 'subway_station', types: ['subway_station', 'transit_station'] }, 'Roma')).toMatch(/stazione/);
+    it('la stazione resta (aperto: senza di lei n-roma-1300-specifica ha una tappa sola, il Colosseo vero lo toglie il gate della categoria)', () => {
+        expect(zoneReason({ name: 'Colosseo', primaryType: 'subway_station', types: ['subway_station', 'transit_station'] }, 'Roma')).toBeNull();
         expect(zoneReason({ name: 'Colosseo', primaryType: 'historical_landmark', types: ['historical_landmark', 'tourist_attraction'] }, 'Roma')).toBeNull();
     });
 });

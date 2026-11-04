@@ -508,7 +508,9 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         expect(res._momentReport.ricercheDopo.map(x => x.momento).filter(m => m !== 'g1-passeggiata')).toEqual(['g1-pranzo', 'g1-aperitivo']);
         expect(st.cena._tracciato).toMatchObject({ scelta: 'ripiego', ripiego: 'distanza' });
         expect(st.cena._tracciato.motivo).toMatch(/ricerche mirate esaurite/);
-        expect(Object.keys(st)).toHaveLength(5);
+        // BANCO-DIFETTI (T19, D4): la riga di tempo libero dell'aperitivo durava meno di 15 minuti e non esce piu' (i suoi minuti restano attesa)
+        expect(Object.keys(st)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'cena']);
+        expect(res.days[0].stops.filter(s => s.tempoLibero).every(s => s.stayMinutes >= 15)).toBe(true);
     });
 
     it('Roma: all\'aperitivo solo belvederi vicini e uno c\'e\' gia\' → ricerca mirata → un bar, nessuna famiglia ripetuta', async () => {
@@ -537,3 +539,4 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         expect(new Set(fams).size, fams.join(' | ')).toBe(fams.length);
     });
 });
+

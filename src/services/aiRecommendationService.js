@@ -379,7 +379,7 @@ import { senzaEscape, weatherLabel, weatherIconOf, isDopocenaClock } from '@/lib
 import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock, MOMENTS, MOMENT_BY_KEY, ALBA_MINUTES } from '@/lib/dayMoments';
 import { FREE_TIME_MAX_MINUTES, freeTimeStop } from '@/lib/freeTime';
-import { bandFreeTime, minStopsForWindow } from '@/lib/continuity';
+import { bandFreeTime, minStopsForWindow, rifinisciTempoLibero } from '@/lib/continuity';
 import { detectFoodTheme, isForeignCuisine, localCuisineReason, tipicoBonus } from '@/lib/foodTheme';
 import { zoneReason } from '@/lib/zone';
 import { isSitDownMeal, perTeMealProblem, mealFitsClock, isBreakfastPlace } from '@/lib/mealRules';
@@ -2083,8 +2083,17 @@ const weatherForDay = (weather, window, requestTime) => {
  * giorno (windowIndex) prima della prima tappa di un momento successivo.
  */
 const MOMENT_ORDER = new Map(MOMENTS.map((m, i) => [m.key, i]));
-const insertFreeTime = (days, entries) => {
-    if (!Array.isArray(entries) || entries.length === 0) return days;
+const insertFreeTime = (days, entries, { tourWindow = null } = {}) => {
+    // BANCO-DIFETTI (T19, D4 + D5) — il tempo libero dice il tempo vero: la coda fino alla fine della finestra,
+    // niente righe sotto i 15 minuti (rifinisciTempoLibero). Senza finestra (test, cache vecchia) solo la regola dei 15 minuti.
+    const rifinisci = (day, di, stops) => {
+        const w = (tourWindow?.windows || [])[Number.isFinite(day.windowIndex) ? day.windowIndex : di] || tourWindow || null;
+        return rifinisciTempoLibero(stops, {
+            start: w?.start instanceof Date ? w.start : null, fine: w?.end instanceof Date ? w.end : null,
+            pastoMancante: (x) => x.description === TESTO_NESSUN_LOCALE_APERTO,
+        });
+    };
+    if (!Array.isArray(entries) || entries.length === 0) return (days || []).map((day, di) => ({ ...day, stops: rifinisci(day, di, day.stops || []) }));
     return (days || []).map((day, di) => {
         const dayIndex = Number.isFinite(day.windowIndex) ? day.windowIndex : di;
         let stops = [...(day.stops || [])];
@@ -2100,7 +2109,7 @@ const insertFreeTime = (days, entries) => {
             stops = at < 0 ? [...stops, item] : [...stops.slice(0, at), item, ...stops.slice(at)];
         }
         // CONTINUITA' — il tempo libero occupa il suo tempo (la fascia e' l'attesa che prima stava sulla tappa dopo).
-        return { ...day, stops: bandFreeTime(stops) };
+        return { ...day, stops: rifinisci(day, di, bandFreeTime(stops)) };
     });
 };
 
@@ -3550,7 +3559,7 @@ export const aiRecommendationService = {
                         });
                         // C5e (O) — il tempo libero entra nel giorno dopo il racconto,
                         // al suo posto fra i momenti, con il testo del codice.
-                        const narratedDays = insertFreeTime(composed.days, [...(momentReport?.tempoLibero || []), ...(orariInfo?.riga ? [orariInfo.riga] : [])]);
+                        const narratedDays = insertFreeTime(composed.days, [...(momentReport?.tempoLibero || []), ...(orariInfo?.riga ? [orariInfo.riga] : [])], { tourWindow });
                         const allStops = narratedDays.flatMap(d => d.stops);
                         const narrationReport = {
                             raccontate: allStops.length,

@@ -21,7 +21,7 @@
  * Modulo puro, senza rete.
  */
 
-import { stayInMoment, travelMinutes } from './tourTiming';
+import { stayInMoment, travelMinutes, computeCumulativeOffsets } from './tourTiming';
 import { MOMENT_BY_KEY } from './dayMoments';
 
 /** Oltre questa attesa fra due tappe serve una tappa o una riga dichiarata. */
@@ -174,6 +174,52 @@ export function remainingGaps(stops, max = GAP_MAX_MINUTES) {
         const walk = b.tempoLibero ? 0 : (Number.isFinite(b.travelMinutesFromPrev) ? b.travelMinutesFromPrev : 0);
         const minuti = Math.round((new Date(b.scheduledTime).getTime() - end) / 60000) - walk;
         if (minuti > max) out.push({ dopo: a.title ?? idOf(a), prima: b.title ?? idOf(b), minuti });
+    }
+    return out;
+}
+
+// ─── BANCO-DIFETTI (T19, D4 + D5) — il tempo libero dice il tempo vero ────────────────────────────────────────────────────────
+/** D4 — sotto questi minuti una riga «Tempo libero» non si mostra (era «Tempo libero 21:15–21:15»). */
+export const TEMPO_LIBERO_MIN_MINUTI = 15;
+
+const durata = (s) => (Number.isFinite(s?.stayMinutes) ? s.stayMinutes : 0);
+
+/**
+ * Le righe di tempo libero di un giorno gia' in fascia (dopo `bandFreeTime`), rese vere:
+ *   · D5 (a) — la riga in coda al giro (dopo l'ultima tappa vera: il giro sotto il minimo, la serata con la sola cena) prende il
+ *     resto della finestra, dalla fine dell'ultima tappa a `fine` (prima aveva 0 minuti);
+ *   · D4 — una riga sotto i 15 minuti non esce; i suoi minuti tornano attesa della tappa dopo (gli orari non cambiano). Resta la riga
+ *     di un pasto senza locali aperti («Nessun locale aperto qui vicino a quest'ora.»): dichiara un pasto mancante, non un vuoto.
+ * Pura.
+ * @param {Array} stops le voci del giorno, in fascia
+ * @param {{ start?: Date|null, fine?: Date|null, pastoMancante?: (s: object) => boolean }} [opts]
+ * @returns {Array}
+ */
+export function rifinisciTempoLibero(stops, { start = null, fine = null, pastoMancante = () => false } = {}) {
+    let list = Array.isArray(stops) ? stops.slice() : [];
+    const vera = (s) => s && !s.tempoLibero;
+    // D5 (a) — la coda prende il resto della finestra
+    let ultima = -1;
+    list.forEach((s, i) => { if (vera(s)) ultima = i; });
+    if (ultima >= 0 && ultima < list.length - 1 && start instanceof Date && fine instanceof Date) {
+        const off = computeCumulativeOffsets(list);
+        if (Number.isFinite(off[ultima])) {
+            const finePrima = start.getTime() + (off[ultima] + durata(list[ultima])) * 60000;
+            const resto = Math.max(0, Math.round((fine.getTime() - finePrima) / 60000));
+            const coda = list.slice(ultima + 1);
+            const totale = coda.reduce((n, s) => n + durata(s), 0);
+            if (totale === 0 && coda.length && !pastoMancante(coda[0])) list = [...list.slice(0, ultima + 1), { ...coda[0], stayMinutes: resto }, ...coda.slice(1)];
+        }
+    }
+    // D4 — niente righe sotto i 15 minuti (salvo il pasto mancante)
+    const out = [];
+    let riporto = 0;
+    for (const s of list) {
+        if (s?.tempoLibero && durata(s) < TEMPO_LIBERO_MIN_MINUTI && !pastoMancante(s)) { riporto += durata(s); continue; }
+        if (riporto > 0 && s) {
+            out.push(s.tempoLibero ? { ...s, stayMinutes: durata(s) + riporto } : { ...s, waitMinutesBefore: (s.waitMinutesBefore ?? 0) + riporto });
+            riporto = 0;
+        } else out.push(s);
     }
     return out;
 }

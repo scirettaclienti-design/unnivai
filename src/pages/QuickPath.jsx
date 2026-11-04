@@ -538,7 +538,7 @@ export default function QuickPathPage() {
     // questo task, non era nel perimetro dichiarato — corretto perché la nuova
     // formula di punteggio (0.45 affinità DNA) è inutile se dnaWeights è
     // sempre vuoto per l'unico flusso che lo popolava "di riferimento".
-    const { trackGeneratedTour, getAIContext, dnaWeights, dnaShare, onboardingPrefs } = useAILearning();
+    const { trackGeneratedTour, getAIContext, dnaWeights, dnaShare, onboardingPrefs, righeRegistro, semeInteressi } = useAILearning();
     // Gate E-2: hasHitPaywall + unlockPremium + showPaywall rimossi (paywall
     // morto). Prima: dopo 10 tour vita hasHitPaywall=true → click su gruppo
     // apriva showPaywall, ma <PaywallModal> non era MAI renderizzato nel JSX,
@@ -1094,7 +1094,7 @@ export default function QuickPathPage() {
                                 <QuickPathSummary
                                     tourData={readyTourData}
                                     modifica={modificaGiro}
-                                    dna={{ pesi: dnaWeights, fiducia: dnaShare }}
+                                    dna={{ pesi: dnaWeights, fiducia: dnaShare, registro: righeRegistro, interessi: semeInteressi }}
                                     choices={{
                                         mainId: selectedOption,
                                         mood: mainOptions.find(o => o.id === selectedOption)?.title || selectedOption,

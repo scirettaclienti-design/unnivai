@@ -39,7 +39,7 @@ const readLocalSeed = () => {
         if (!p) return null;
         // [] resta [] (saltato); la forma v2 si rinormalizza; la vecchia array di id si conserva.
         if (Array.isArray(parsed)) return parsed.filter(x => typeof x === 'string');
-        return buildSeed({ interessi: p.interessi, dieta: p.vincoli.dieta, budget: p.vincoli.budget, stile: p.gusti.stile });
+        return buildSeed({ interessi: p.interessi, dieta: p.vincoli.dieta, budget: p.vincoli.budget, stile: p.gusti.stile, ritmo: p.gusti.ritmo, compagnia: p.gusti.compagnia });
     } catch {
         return null;
     }

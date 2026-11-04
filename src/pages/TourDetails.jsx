@@ -514,7 +514,7 @@ export default function TourDetailsPage() {
     const [guideRating, setGuideRating] = useState({ avg: 0, count: 0 });
     const [reviews, setReviews] = useState([]);
     const [ctaDisabled, setCtaDisabled] = useState(false);
-    const { trackTourView, dnaWeights } = useAILearning();
+    const { trackTourView, dnaWeights, righeRegistro, semeInteressi } = useAILearning();
     // GIRO-EDIT — «Togli» e «Cambia» sulle tappe dei giri generati (Per Te, Sorprendimi, Quiz, Crea); mai sui tour di una guida.
     const modificaGiro = useModificaGiro({ tour, aggiorna: setLocalTour, dnaWeights });
     // VERITA-TESTI — la durata e' una sola: quella delle tappe di adesso (dopo «Togli» o «Cambia» cambia anche l'intestazione).
@@ -1018,7 +1018,7 @@ export default function TourDetailsPage() {
                     <>
                         {/* DNA-RIQUADRO — Per Te: cosa del DNA ha guidato questo giro (nessuna richiesta; mai trattini; senza righe non compare) */}
                         {isAiSelfGuided && (
-                            <DnaDelGiro className="mb-4" righe={righeDnaDelGiro({ pesi: dnaWeights, fiducia: dnaWeights?._share, tappe: tour.steps })} />
+                            <DnaDelGiro className="mb-4" righe={righeDnaDelGiro({ pesi: dnaWeights, fiducia: dnaWeights?._share, tappe: tour.steps, registro: righeRegistro, giro: tour.dnaGiro || null, interessi: semeInteressi })} />
                         )}
                         {/* Info Grid — Gate PULIZIA P5: anche il CONTENITORE e' sotto guardia */}
                         {(tour.location || tour.duration ||

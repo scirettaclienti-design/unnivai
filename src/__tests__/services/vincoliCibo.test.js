@@ -312,7 +312,7 @@ describe('P7b — notifiche: rispettano dieta e budget', () => {
 // ─── Il seme ─────────────────────────────────────────────────────────────────
 describe('P7b — il seme separa vincoli e gusti, e legge anche la forma vecchia', () => {
     it('forma vecchia (array) → solo interessi, nessun vincolo', () => {
-        expect(parseSeed(['food', 'arte'])).toEqual({ interessi: ['food', 'arte'], vincoli: { dieta: [], budget: null }, gusti: { stile: null } });
+        expect(parseSeed(['food', 'arte'])).toEqual({ interessi: ['food', 'arte'], vincoli: { dieta: [], budget: null }, gusti: { stile: null, ritmo: null, compagnia: null } });
     });
     it('forma nuova → vincoli e gusti separati; valori ignoti scartati', () => {
         const seed = buildSeed({ interessi: ['food'], dieta: ['vegano', 'carnivoro'], budget: '€€', stile: 'street' });

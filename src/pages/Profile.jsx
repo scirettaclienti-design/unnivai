@@ -12,6 +12,7 @@ import { useToast } from "../hooks/use-toast";
 import { useAILearning } from "../hooks/useAILearning";
 import { supabase } from "../lib/supabase";
 import FoodPrefsEditor from "../components/FoodPrefsEditor";
+import RitmoCompagniaEditor from "../components/RitmoCompagniaEditor";
 import InterestsEditor from "../components/InterestsEditor";
 import { salvaNomeProfilo } from "../lib/nomeProfilo";
 import DnaProfilo from "../components/DnaProfilo";
@@ -347,6 +348,9 @@ export default function ProfilePage() {
 
                 {/* ONB-1 — gli interessi dell'onboarding: si cambiano solo da qui */}
                 <InterestsEditor value={interestIds} onSave={saveInterests} toast={toast} />
+
+                {/* DNA-5 — ritmo e compagnia: impostati qui vincono su cio' che il DNA impara */}
+                <RitmoCompagniaEditor value={onboardingPrefs} onSave={saveFoodPrefs} toast={toast} />
 
                 {/* P7b — dieta, budget e stile del primo accesso, modificabili qui */}
                 <FoodPrefsEditor value={onboardingPrefs} onSave={saveFoodPrefs} toast={toast} />

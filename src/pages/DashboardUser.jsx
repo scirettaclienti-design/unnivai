@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { pagamentiVisibili, TIPI_NOTIFICA_PAGAMENTO } from '../config/pagamenti';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -20,6 +20,8 @@ import { placesDiscoveryService, PlacesSearchError } from '@/services/placesDisc
 import { MESSAGGIO_TECNICO, TASTO_RIPROVA } from '@/lib/esitoVuoto';
 import { giornoEFasciaPerTe, leggiPerTe, salvaPerTe, ultimoPerTe, fasciaDnaEffettiva, registraFasciaDna } from '@/lib/perTeSalvato';
 import { fasciaDna } from '@/lib/fasciaDna';
+import { dnaGiroDaApprendimento, giroDnaPerMotore, tracciatoGiroDna } from '@/lib/giroDna';
+import { ordinaPerTe } from '@/lib/perTeDna';
 
 // Gate INTERESSI-VERI — tre esiti diversi, tre testi diversi:
 //   ricerca Google fallita (rete/HTTP/eccezione) → testo di connessione
@@ -158,7 +160,14 @@ const DashboardUser = () => {
         }
     };
 
-    const { getAIContext, getTourAffinity, dnaShare, dnaWeights, onboardingPrefs, interestIds, dnaPronto, utenteId } = useAILearning();
+    const { getAIContext, getTourAffinity, dnaShare, dnaWeights, onboardingPrefs, interestIds, dnaPronto, utenteId, righeRegistro, ritmoPreferito, compagniaPreferita } = useAILearning();
+    // DNA-5 — ritmo e compagnia del DNA per Per Te: Profilo → giri finiti → scelte passate (Per Te non ha una richiesta).
+    // Letti all'apertura come i pesi (dnaPronto): dentro la sessione non si muovono.
+    const dnaGiroPerTe = useMemo(
+        () => dnaGiroDaApprendimento({ righeRegistro, onboardingPrefs, ritmoPreferito, compagniaPreferita }),
+        [righeRegistro, onboardingPrefs, ritmoPreferito, compagniaPreferita],
+    );
+    const giroDnaPerTe = giroDnaPerMotore(dnaGiroPerTe, {});
     // Gate SEME (L1): il ranking DNA (:216 tour reali, :359 riordino) si attiva
     // con >=3 interazioni reali OPPURE con un seme onboarding non vuoto — cosi'
     // gli interessi scelti contano dal primo ingresso (R1).
@@ -195,7 +204,8 @@ const DashboardUser = () => {
     // DNA-4 — nella chiave anche la FASCIA DI DNA (lib/fasciaDna.js): cambia solo quando il DNA passa un gradino, mai a ogni gesto, e al
     // massimo 2 volte al giorno (perTeSalvato). I pesi sono quelli letti all'apertura (dnaPronto): dentro la sessione non si muovono.
     const fasciaDelDna = fasciaDnaEffettiva(fasciaDna(dnaWeights), giorno, utenteId);
-    const chiavePerTe = ['home-experiences', city, giorno, fascia, fasciaDelDna, foodPrefsFingerprint(onboardingPrefs), (interestIds || []).join('+')];
+    // DNA-5 — l'impronta di ritmo e compagnia entra nella chiave solo se c'e' (per chi non ne ha, la chiave resta quella di prima)
+    const chiavePerTe = ['home-experiences', city, giorno, fascia, fasciaDelDna, foodPrefsFingerprint(onboardingPrefs), (interestIds || []).join('+'), ...(giroDnaPerTe.impronta ? [giroDnaPerTe.impronta] : [])];
     const { data: perTe, isError: experiencesError, error: experiencesErrorObj, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
         queryKey: chiavePerTe,
         enabled: !!city && !!dnaPronto,
@@ -293,10 +303,11 @@ const DashboardUser = () => {
                             insider: insiderPool,
                             ...themedPools, // food, cultura, romance, nature
                         },
-                        prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' },
+                        // DNA-5 — la compagnia del DNA come Gruppo; il ritmo veloce come Attivo (mai Intenso: il tetto di 1,2 km resta)
+                        prefs: { duration: '1 Giorno', group: (giroDnaPerTe.compagnia?.gruppo || 'solo').toLowerCase(), pace: giroDnaPerTe.ritmo?.valore === 'veloce' ? 'attivo' : 'rilassato' },
                         aiProfile: getAIContext?.() || '',
                         // P7a2 — i pool dei temi si ordinano per merito come l'insider.
-                        opts: { dnaWeights: dnaShare > 0 ? dnaWeights : { _share: 0 }, onboardingPrefs },
+                        opts: { dnaWeights: dnaShare > 0 ? dnaWeights : { _share: 0 }, onboardingPrefs, dnaGiro: dnaGiroPerTe },
                     });
                 } catch (err) {
                     // Gate INTERESSI-VERI — quota esaurita non e' "non trovo".
@@ -383,7 +394,9 @@ const DashboardUser = () => {
                         cityFallback: currentCity,
                         cityCenter: { latitude: cityCenter.latitude, longitude: cityCenter.longitude },
                     });
-                }).map((t, i) => ({ ...t, perDopo: homeToursResult.tours[i]?.perDopo || null }));
+                }).map((t, i) => ({ ...t, perDopo: homeToursResult.tours[i]?.perDopo || null, themeType: homeToursResult.tours[i]?.themeType || null,
+                    // DNA-5 — cosa del ritmo e della compagnia ha cambiato il giro: il riquadro del dettaglio lo dice
+                    dnaGiro: homeToursResult._report?.dnaGiro ?? tracciatoGiroDna(giroDnaPerTe) }));
 
                 // Insider sempre in cima (badge "✨ Insider AI"). Se il narratore
                 // non ha prodotto insider, l'ordine resta come tornato dall'AI.
@@ -395,11 +408,10 @@ const DashboardUser = () => {
 
                 // Ordinamento DNA preferences (esclude insider dalla parte
                 // riordinabile — resta primo per costruzione).
-                if (hasPreferences) {
-                    const head = finalTours[0]?.isInsiderNarrative ? [finalTours[0]] : [];
-                    const tail = (head.length ? finalTours.slice(1) : finalTours)
-                        .sort((a, b) => getTourAffinity(b) - getTourAffinity(a));
-                    finalTours = [...head, ...tail];
+                // DNA-5 — l'ordine guarda le TAPPE vere (categorie × pesi del DNA, spinte della compagnia): prima il punteggio sui tag della
+                // scheda era 0 per tutti e l'ordine restava quello del modello. L'insider resta in testa.
+                if (hasPreferences || giroDnaPerTe.compagnia) {
+                    finalTours = ordinaPerTe(finalTours, { pesi: dnaWeights, fiducia: dnaShare, compagnia: giroDnaPerTe.compagnia?.valore || null }).tours;
                 }
                 // PER-TE-PROPOSTE — quelle che si fanno adesso restano in testa; quelle «per domattina» seguono (ordine stabile).
                 finalTours = [...finalTours.filter(t => !t.perDopo), ...finalTours.filter(t => t.perDopo)];

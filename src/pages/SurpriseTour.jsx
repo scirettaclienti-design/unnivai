@@ -77,7 +77,7 @@ export default function SurpriseTourPage() {
     // DVAI-055: estraggo lat/lng dal userContext per il vincolo geografico
     const { city, userId, firstName, lat, lng } = useUserContext();
     const { toast } = useToast();
-    const { userDNAPreferences, getAIContext, dnaWeights, dnaShare, onboardingPrefs } = useAILearning();
+    const { userDNAPreferences, getAIContext, dnaWeights, dnaShare, onboardingPrefs, righeRegistro, semeInteressi } = useAILearning();
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -495,7 +495,7 @@ export default function SurpriseTourPage() {
                             </div>
 
                             {/* DNA-RIQUADRO — solo cio' che della scelta e del DNA ha guidato QUESTO giro (mai trattini; senza righe non compare) */}
-                            <DnaDelGiro righe={righeDnaDelGiro({ pesi: dnaWeights, fiducia: dnaShare, scelte: selectedFilter ? [selectedFilter] : [], tappe: mappedTour.stops || mappedTour.steps })} />
+                            <DnaDelGiro righe={righeDnaDelGiro({ pesi: dnaWeights, fiducia: dnaShare, scelte: selectedFilter ? [selectedFilter] : [], tappe: mappedTour.stops || mappedTour.steps, registro: righeRegistro, interessi: semeInteressi })} />
 
                             {/* Statistiche */}
                             <div className="flex items-center justify-around px-2">

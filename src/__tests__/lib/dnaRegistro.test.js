@@ -133,7 +133,7 @@ describe('DNA-1 — non blocca mai, non registra ciò che non deve', () => {
 describe('DNA-1 — dove il registro è collegato (i gesti dell\'app)', () => {
     it('MapPage registra tappa raggiunta e tappa saltata, e il giro completato passa dal DNA', () => {
         const mappa = ORIGINE('src/pages/MapPage.jsx');
-        expect(mappa).toMatch(/logDnaEvent\('stop_reached', gestoDellaTappa\(poiObj\)\)/);
+        expect(mappa).toMatch(/logDnaEvent\('stop_reached', \{ \.\.\.gestoDellaTappa\(poiObj\), value: valoreDellaTappa\(poiObj, doneNow\) \}\)/); // DNA-5: con km, sosta e tipo
         expect(mappa).toMatch(/logDnaEvent\('stop_skipped', gestoDellaTappa\(poiObj\)\)/);
         expect(mappa).toMatch(/trackDnaEvent\?\.\('tour_completed'[^\n]*tourId/);
     });

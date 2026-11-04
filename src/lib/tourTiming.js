@@ -22,7 +22,7 @@
  * abbiamo, ed e' esattamente il difetto che questo modulo esiste per chiudere.
  */
 
-import { placeKind, KINDS } from './placeKind';
+import { placeKind, KINDS, COMMERCIAL_KINDS } from './placeKind';
 
 // ─── Velocita' di camminata ───────────────────────────────────────────────────
 // 4.5 km/h. Numero SCELTO, non misurato, e dichiarato tale: sta sotto i 5 km/h
@@ -112,9 +112,16 @@ const APERITIVO_KINDS = new Set(['bar', 'caffe']);
  */
 export function stayInMoment(place, moment = null) {
     const base = stayOf(place);
-    if (!(moment?.sostaAperitivo > 0)) return base;
+    const fattore = Number(moment?.fattoreSosta);
+    const conFattore = Number.isFinite(fattore) && fattore > 0 && fattore !== 1;
+    if (!(moment?.sostaAperitivo > 0) && !(moment?.sostaPasto > 0) && !conFattore) return base;
     const { kind } = placeKind({ types: place?.types, primaryType: place?.primaryType ?? place?.primary_type });
-    return APERITIVO_KINDS.has(kind) ? moment.sostaAperitivo : base;
+    if (moment?.sostaAperitivo > 0 && APERITIVO_KINDS.has(kind)) return moment.sostaAperitivo;
+    // DNA-5 — la compagnia decide quanto dura un pasto seduto (solo 60, coppia e amici 90 a cena); il ritmo del DNA allunga o
+    // accorcia le VISITE (musei, chiese, verde, monumenti), mai i locali: arrotondato a 5 minuti, mai sotto 10.
+    if (moment?.sostaPasto > 0 && kind === 'pasto') return moment.sostaPasto;
+    if (conFattore && !COMMERCIAL_KINDS.has(kind)) return Math.max(10, Math.round((base * fattore) / 5) * 5);
+    return base;
 }
 
 /**
@@ -176,7 +183,7 @@ export function computeStopTimings(stops) {
     }
     const out = stops.map((s, i) => {
         // C8a — una tappa d'aperitivo porta la sosta del suo momento (45, o 60 con ritmo Rilassato).
-        const stayMinutes = stayInMoment(s, { key: s.moment, sostaAperitivo: s.sostaAperitivo });
+        const stayMinutes = stayInMoment(s, { key: s.moment, sostaAperitivo: s.sostaAperitivo, sostaPasto: s.sostaPasto, fattoreSosta: s.fattoreSosta });
         const travelMinutesFromPrev = i === 0 ? null : travelMinutes(stops[i - 1], s);
         return { ...s, stayMinutes, travelMinutesFromPrev };
     });

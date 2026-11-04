@@ -48,6 +48,11 @@ const uniq = (arr) => [...new Set(arr)];
 const asDieta = (arr) => uniq((Array.isArray(arr) ? arr : []).filter(d => DIETE[d]));
 const asBudget = (b) => (BUDGET_MAX_PRICE_LEVEL[b] ? b : null);
 const asStile = (s) => (STILI[s] ? s : null);
+// DNA-5 — ritmo e compagnia impostati dal Profilo (nel seme, `gusti`): la fonte principale, vincono su cio' che il DNA impara.
+export const RITMI_PROFILO = { lento: 'Tranquillo', medio: 'Medio', veloce: 'Intenso' };
+export const COMPAGNIE_PROFILO = { solo: 'Da solo', coppia: 'In coppia', famiglia: 'Con bambini', amici: 'Con amici' };
+const asRitmo = (r) => (RITMI_PROFILO[r] ? r : null);
+const asCompagnia = (c) => (COMPAGNIE_PROFILO[c] ? c : null);
 
 // ─── Il seme del primo accesso ───────────────────────────────────────────────
 //
@@ -57,31 +62,32 @@ const asStile = (s) => (STILI[s] ? s : null);
 // [] resta lo "skip esplicito". Chi legge passa sempre da qui.
 export const parseSeed = (raw) => {
     if (Array.isArray(raw)) {
-        return { interessi: raw.filter(x => typeof x === 'string'), vincoli: { dieta: [], budget: null }, gusti: { stile: null } };
+        return { interessi: raw.filter(x => typeof x === 'string'), vincoli: { dieta: [], budget: null }, gusti: { stile: null, ritmo: null, compagnia: null } };
     }
     if (raw && typeof raw === 'object') {
         const interessi = Array.isArray(raw.interessi) ? raw.interessi.filter(x => typeof x === 'string') : [];
         return {
             interessi,
             vincoli: { dieta: asDieta(raw.vincoli?.dieta), budget: asBudget(raw.vincoli?.budget) },
-            gusti: { stile: asStile(raw.gusti?.stile) },
+            gusti: { stile: asStile(raw.gusti?.stile), ritmo: asRitmo(raw.gusti?.ritmo), compagnia: asCompagnia(raw.gusti?.compagnia) },
         };
     }
     return null;
 };
 
-export const buildSeed = ({ interessi = [], dieta = [], budget = null, stile = null } = {}) => ({
+export const buildSeed = ({ interessi = [], dieta = [], budget = null, stile = null, ritmo = null, compagnia = null } = {}) => ({
     v: 2,
     interessi: uniq(interessi.filter(x => typeof x === 'string')),
     vincoli: { dieta: asDieta(dieta), budget: asBudget(budget) },
-    gusti: { stile: asStile(stile) },
+    // DNA-5 — ritmo e compagnia solo se impostati (un seme senza resta identico a prima)
+    gusti: { stile: asStile(stile), ...(asRitmo(ritmo) ? { ritmo } : {}), ...(asCompagnia(compagnia) ? { compagnia } : {}) },
 });
 
 // Le preferenze a tavola del seme, nella forma che il motore riceve.
 export const seedFoodPrefs = (raw) => {
     const s = parseSeed(raw);
-    if (!s) return { dieta: [], budget: null, stile: null };
-    return { dieta: s.vincoli.dieta, budget: s.vincoli.budget, stile: s.gusti.stile };
+    if (!s) return { dieta: [], budget: null, stile: null, ritmo: null, compagnia: null };
+    return { dieta: s.vincoli.dieta, budget: s.vincoli.budget, stile: s.gusti.stile, ritmo: s.gusti.ritmo, compagnia: s.gusti.compagnia };
 };
 
 // ─── Cosa dice il TESTO scritto ──────────────────────────────────────────────

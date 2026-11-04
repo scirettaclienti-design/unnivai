@@ -122,6 +122,9 @@ export function sostituisciTappa(stops, chiave, nuova) {
         moment: vecchia.moment,
         momentLabel: vecchia.momentLabel,
         ...(vecchia.sostaAperitivo ? { sostaAperitivo: vecchia.sostaAperitivo } : {}),
+        // DNA-5 — la tappa nuova tiene il ritmo e la compagnia del giro (soste e pasti)
+        ...(vecchia.fattoreSosta ? { fattoreSosta: vecchia.fattoreSosta } : {}),
+        ...(vecchia.sostaPasto ? { sostaPasto: vecchia.sostaPasto } : {}),
         ...(vecchia.passeggiata ? { passeggiata: true } : {}),
         scheduledTime: vecchia.scheduledTime ?? null,
         waitMinutesBefore: vecchia.waitMinutesBefore,

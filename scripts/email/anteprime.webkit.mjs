@@ -21,6 +21,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const ESEMPIO = {
     '{{ .ConfirmationURL }}': 'https://ahecpiwsdhghkndncejb.supabase.co/auth/v1/verify?token=pkce_8f3a2c1d9e&type=signup&redirect_to=https://unnivai.vercel.app/login',
     '{{ .SiteURL }}': 'https://unnivai.vercel.app',
+    '{{ .TokenHash }}': 'a1b2c3d4e5f6',
     '{{ .Email }}': 'anna.rossi@example.com',
 };
 const riempi = (html) => Object.entries(ESEMPIO).reduce((h, [k, v]) => h.split(k).join(v), html);

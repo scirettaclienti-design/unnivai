@@ -70,13 +70,17 @@ describe('la voce di Unnivai', () => {
 
 describe('i modelli di Supabase Auth', () => {
     const CON_LINK = Object.entries(MODELLI_AUTH).filter(([k]) => k !== 'email_change');
-    it.each(CON_LINK)('%s ha le variabili giuste', (_k, m) => {
-        expect(m.html.match(/\{\{ \.ConfirmationURL \}\}/g)).toHaveLength(3); // pulsante, link scritto, testo del link
-        expect(m.html).toContain('{{ .SiteURL }}');
+    // LINK-DOMINIO: il link punta al sito con il token_hash e verifica l'app (src/lib/linkEmail.js), non l'indirizzo di Supabase.
+    const LINK = { confirmation: '/login?token_hash={{ .TokenHash }}&type=email', magic_link: '/login?token_hash={{ .TokenHash }}&type=email', recovery: '/update-password?token_hash={{ .TokenHash }}&type=recovery' };
+    it.each(CON_LINK)('%s ha le variabili giuste', (k, m) => {
+        const link = `{{ .SiteURL }}${LINK[k]}`;
+        expect(m.html.split(`href="${link}"`)).toHaveLength(3); // pulsante e testo del link
+        expect(m.html.split(link)).toHaveLength(4); // pulsante, link scritto, testo del link
+        expect(m.html).not.toContain('{{ .ConfirmationURL }}');
         expect(m.html).toContain('{{ .Email }}');
         // solo variabili che Supabase conosce, scritte come le scrive la documentazione
         const variabili = [...m.html.matchAll(/\{\{([^}]*)\}\}/g)].map((x) => x[1].trim());
-        for (const v of variabili) expect(['.ConfirmationURL', '.SiteURL', '.Email']).toContain(v);
+        for (const v of variabili) expect(['.TokenHash', '.SiteURL', '.Email']).toContain(v);
     });
     it('email_change (OSPITE-GIRO): il codice di 6 cifre, nessun link da toccare', () => {
         const m = MODELLI_AUTH.email_change;

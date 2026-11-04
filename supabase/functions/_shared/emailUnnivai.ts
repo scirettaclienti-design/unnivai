@@ -1,7 +1,7 @@
 // EMAIL-LANCIO — le quattro email di Unnivai, in un posto solo.
 //
 // · conferma della registrazione, link di accesso, reset della password: sono i modelli di Supabase Auth.
-//   Le variabili ({{ .ConfirmationURL }}, {{ .Email }}, {{ .SiteURL }}) le riempie Supabase al momento dell'invio.
+//   Le variabili ({{ .TokenHash }}, {{ .Email }}, {{ .SiteURL }}) le riempie Supabase al momento dell'invio.
 //   I file supabase/templates/*.html si rigenerano da qui (scripts/email/genera-modelli.mjs) e un test controlla
 //   che siano uguali; Ivano li carica con scripts/email/carica-modelli.mjs.
 // · iscrizione alla lista d'attesa: la spedisce l'Edge Function lista-attesa-email con l'API di Resend.
@@ -125,8 +125,8 @@ export const MODELLI_AUTH = {
                 'Hai creato un account Unnivai con {{ .Email }}.',
                 'Tocca il pulsante per attivarlo. Poi entri con la tua password.',
             ],
-            pulsante: { testo: "Conferma l'email", url: '{{ .ConfirmationURL }}' },
-            dopoPulsante: [scadenza, linkCopiabile('{{ .ConfirmationURL }}')],
+            pulsante: { testo: "Conferma l'email", url: '{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email' },
+            dopoPulsante: [scadenza, linkCopiabile('{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email')],
             piede: ["Non hai creato tu l'account? Ignora questa email: senza conferma non si attiva.", apriUnnivai],
         }),
     },
@@ -140,8 +140,8 @@ export const MODELLI_AUTH = {
                 'Hai chiesto di entrare con {{ .Email }}.',
                 'Tocca il pulsante: entri senza password.',
             ],
-            pulsante: { testo: 'Entra', url: '{{ .ConfirmationURL }}' },
-            dopoPulsante: [scadenza, linkCopiabile('{{ .ConfirmationURL }}')],
+            pulsante: { testo: 'Entra', url: '{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email' },
+            dopoPulsante: [scadenza, linkCopiabile('{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email')],
             piede: ["Non l'hai chiesto tu? Ignora questa email: senza questo link non entra nessuno.", apriUnnivai],
         }),
     },
@@ -155,8 +155,8 @@ export const MODELLI_AUTH = {
                 "È arrivata una richiesta per cambiare la password dell'account {{ .Email }}.",
                 'Tocca il pulsante e scegli quella nuova.',
             ],
-            pulsante: { testo: 'Scegli la nuova password', url: '{{ .ConfirmationURL }}' },
-            dopoPulsante: [scadenza, linkCopiabile('{{ .ConfirmationURL }}')],
+            pulsante: { testo: 'Scegli la nuova password', url: '{{ .SiteURL }}/update-password?token_hash={{ .TokenHash }}&type=recovery' },
+            dopoPulsante: [scadenza, linkCopiabile('{{ .SiteURL }}/update-password?token_hash={{ .TokenHash }}&type=recovery')],
             piede: ["Non l'hai chiesta tu? Ignora questa email: la password resta quella di adesso.", apriUnnivai],
         }),
     },

@@ -34,19 +34,23 @@ const ROLES = [
 
 const MSG_LINK_RECUPERO = 'Il link non è valido o è scaduto. Scrivi la tua email e te ne mandiamo uno nuovo.';
 
+// LINK-DOMINIO: link di conferma o di accesso non valido (linkEmail.js manda qui con ?link=scaduto).
+const MSG_LINK_EMAIL = 'Il link non è valido o è scaduto. Se hai già confermato l\'email, entra con la tua password.';
+
 const Login = () => {
     // ACCESSO-1: /update-password senza sessione di recupero rimanda qui, già sul
     // modulo «password dimenticata», con un messaggio chiaro.
     const [searchParams] = useSearchParams();
     const daRecupero = searchParams.get('recupero') === '1';
-    const [selectedRole, setSelectedRole] = useState(daRecupero ? 'tourist' : null);
-    const [authMode, setAuthMode] = useState('signup');
+    const daLinkScaduto = searchParams.get('link') === 'scaduto';
+    const [selectedRole, setSelectedRole] = useState(daRecupero || daLinkScaduto ? 'tourist' : null);
+    const [authMode, setAuthMode] = useState(daLinkScaduto ? 'login' : 'signup');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
     const [businessName, setBusinessName] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(daRecupero ? MSG_LINK_RECUPERO : null);
+    const [error, setError] = useState(daRecupero ? MSG_LINK_RECUPERO : daLinkScaduto ? MSG_LINK_EMAIL : null);
     const [fieldErrors, setFieldErrors] = useState({});
     const [emailSent, setEmailSent] = useState(false);
     const [resetMode, setResetMode] = useState(daRecupero);

@@ -15,7 +15,7 @@ import {
     type FontiRacconto, type EsitoControllo, type ChiamataModello, type Messaggi,
 } from './racconto.ts';
 
-export const VERSIONE_CHAT = 'c1';
+export const VERSIONE_CHAT = 'c2';
 export const RISPOSTA_ONESTA = 'Su questo non ho una fonte sicura.';
 /** Dopo le frasi passate di una risposta ridotta: quello che manca è «il resto», non «questo». */
 export const RISPOSTA_ONESTA_RESTO = 'Sul resto non ho una fonte sicura.';
@@ -37,7 +37,7 @@ const pulisci = (s: unknown, max: number) => String(s ?? '').replace(/\s+/g, ' '
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’`´]/g, "'");
 
 /** Le fonti di più luoghi in un blocco solo per luogo: «— Nome —» e il testo. Anche il revisore e il controllo automatico le leggono così. */
-export function fontiChat(input: { citta: string; domanda: string; storia?: Turno[]; luoghi?: LuogoChat[]; prossima?: number | null; luoghiFonti: FonteLuogo[] }): FontiChat {
+export function fontiChat(input: { citta: string; domanda: string; storia?: Turno[]; luoghi?: LuogoChat[]; prossima?: number | null; aperto?: LuogoChat | null; luoghiFonti: FonteLuogo[] }): FontiChat {
     const conFonti = input.luoghiFonti.filter((l) => (l.wikipedia?.testo || l.google));
     const wiki = conFonti.filter((l) => l.wikipedia?.testo).map((l) => `— ${pulisci(l.nome, 120)} —\n${pulisci(l.wikipedia!.testo, LIMITI_CHAT.wikipediaPerLuogo)}`).join('\n\n');
     const goog = conFonti.filter((l) => l.google).map((l) => `— ${pulisci(l.nome, 120)} —\n${pulisci(l.google, LIMITI_CHAT.googlePerLuogo)}`).join('\n\n');
@@ -50,7 +50,7 @@ export function fontiChat(input: { citta: string; domanda: string; storia?: Turn
         limiti: { wikipediaMax: (LIMITI_CHAT.wikipediaPerLuogo + 140) * (LIMITI_CHAT.luoghiConFonti + LIMITI_CHAT.luoghiDallaDomanda), googleMax: (LIMITI_CHAT.googlePerLuogo + 140) * (LIMITI_CHAT.luoghiConFonti + LIMITI_CHAT.luoghiDallaDomanda) },
         domanda: pulisci(input.domanda, LIMITI_CHAT.domandaMax),
         storia: (input.storia || []).slice(-LIMITI_CHAT.turni).map((t) => ({ ruolo: t.ruolo === 'guida' ? 'guida' : 'utente', testo: pulisci(t.testo, LIMITI_CHAT.turnoMax) })),
-        giro: testoGiro(luoghi, input.prossima ?? null),
+        giro: testoGiro(luoghi, input.prossima ?? null, input.aperto ?? null),
         luoghiFonti: input.luoghiFonti,
     };
 }
@@ -59,14 +59,19 @@ export function fontiChat(input: { citta: string; domanda: string; storia?: Turn
  * Il giro come lo vede la guida: tappe in ordine, con ora e sosta se ci sono, e quale è la prossima se il telefono lo sa (in navigazione).
  * Senza la prossima la guida non sa dove sei: lo dice la riga in fondo. Lo compone il server da campi controllati.
  */
-export function testoGiro(luoghi: LuogoChat[], prossima: number | null = null): string {
-    if (!luoghi.length) return '';
+export function testoGiro(luoghi: LuogoChat[], prossima: number | null = null, aperto: LuogoChat | null = null): string {
+    if (!luoghi.length && !aperto) return '';
     const righe = luoghi.map((l, i) => {
         const ora = /^\d{1,2}:\d{2}$/.test(String(l.ora ?? '')) ? ` alle ${l.ora}` : '';
         const sosta = Number.isFinite(Number(l.sosta)) && Number(l.sosta) > 0 ? `, sosta ${Math.round(Number(l.sosta))} minuti` : '';
         return `${i + 1}. ${pulisci(l.nome, 120)}${ora}${sosta}${i === prossima ? ' ← la prossima tappa' : ''}`;
     });
-    righe.push(prossima != null && luoghi[prossima] ? '' : 'Dove si trova adesso l\'utente nel giro non si sa.');
+    if (luoghi.length) righe.push(prossima != null && luoghi[prossima] ? '' : 'Dove si trova adesso l\'utente nel giro non si sa.');
+    // CHAT-FOCUS-FONTI — la scheda (o il luogo) aperta sul telefono: la guida lo sa e risponde su quello alle domande vaghe. È il nome, non un fatto.
+    if (aperto?.nome) {
+        const i = luoghi.findIndex((l) => l.nome === aperto.nome);
+        righe.push(`SCHEDA APERTA ORA sul telefono dell'utente: ${pulisci(aperto.nome, 120)}${i >= 0 ? ` (tappa ${i + 1} del giro)` : ' (non è una tappa del giro)'}.`);
+    }
     return righe.filter(Boolean).join('\n');
 }
 
@@ -143,6 +148,10 @@ export const SYSTEM_CHAT = [
     'DUE TIPI DI FRASE:',
     '- Frasi di FATTO: tutto ciò che si può dire vero o falso su un luogo, una persona, una storia (chi, cosa, quando, quanto, com\'è fatto, a cosa serviva, orari, prezzi, nomi, date, numeri). Ogni fatto deve stare scritto nelle FONTI o nel GIRO qui sotto, con le loro parole o con parole che dicono la stessa cosa. Niente da memoria, nemmeno se lo sai vero.',
     '- Frasi LIBERE: consigli, ritmo, gusti, inviti, domande, come goderti il giro («Fermati dieci minuti, te li sei guadagnati.»). Queste sono libere, purché non contengano fatti.',
+    '',
+    'SCHEDA APERTA:',
+    '- Se nel GIRO c\'è la riga «SCHEDA APERTA ORA» e la domanda è vaga («cosa c\'è qui?», «quanto ci resto?», «è aperto?», «com\'è fatto?», «me la racconti?»), la domanda parla di quel luogo: rispondi su quello, non su un\'altra tappa, e per «quanto ci resto?» e «a che ora?» usa la sosta e l\'ora di quella tappa nel GIRO.',
+    '- Se la domanda nomina un altro luogo, rispondi sul luogo nominato. Se la scheda aperta non ha fonti per ciò che chiedono, dillo: non passare a un\'altra tappa per riempire.',
     '',
     'QUANDO NON HAI UNA FONTE:',
     `- Se ti chiedono un fatto che le FONTI e il GIRO non dicono, dillo in modo naturale, con le parole tue o con «${RISPOSTA_ONESTA}», e se puoi offri quello che le fonti dicono davvero.`,

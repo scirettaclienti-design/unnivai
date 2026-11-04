@@ -255,12 +255,40 @@ const chiedi = (dv) => handler(new Request('http://edge.test/functions/v1/openai
 }));
 const openai = () => fetch.mock.calls.filter(([u]) => String(u) === OPENAI_URL).length;
 
+describe('CHAT-FOCUS-FONTI sul proxy', () => {
+    it('la scheda aperta arriva allo scrittore e al revisore nel GIRO, con la regola per le domande vaghe', async () => {
+        const r = await chiedi({ domanda: 'Cosa c\'è qui?', aperto: GIRO[1], prossima: 0 });
+        expect(r.status).toBe(200);
+        const corpi = fetch.mock.calls.filter(([u]) => String(u) === OPENAI_URL).map(([, i]) => JSON.parse(i.body));
+        const scrittura = corpi[0].messages;
+        expect(scrittura[0].content).toContain('SCHEDA APERTA ORA');
+        expect(scrittura[1].content).toContain(`SCHEDA APERTA ORA sul telefono dell'utente: ${GIRO[1].nome} (tappa 2 del giro).`);
+        expect(corpi[1].messages[1].content).toContain('SCHEDA APERTA ORA sul telefono');
+    });
+
+    it('senza scheda aperta il GIRO è quello di prima', async () => {
+        await chiedi({ domanda: 'Chi ha fatto la Fontana dell\'Elefante?' });
+        const scrittura = JSON.parse(fetch.mock.calls.find(([u]) => String(u) === OPENAI_URL)[1].body);
+        expect(scrittura.messages[1].content).not.toContain('SCHEDA APERTA ORA sul telefono');
+    });
+
+    it('precarica: senza domanda, nessuna AI e nessuna quota; senza accesso non chiama nessuno; senza tappe 400', async () => {
+        const guest = await chiedi({ precarica: true });
+        expect(guest.status).toBe(200);
+        expect((await guest.json()).precarica).toMatchObject({ tappe: 0, saltato: 'senza-accesso' });
+        expect(openai()).toBe(0);
+        expect(rpcLog).toEqual([]);
+        const senza = await chiedi({ precarica: true, luoghi: [] });
+        expect(senza.status).toBe(400);
+    });
+});
+
 describe('la chat sul proxy (dv.purpose = chat)', () => {
     it('una domanda sul giro: fonti dal server, scrittura, revisione, risposta con le fonti lette; una chiamata di contorno', async () => {
         const r = await chiedi({ domanda: "Chi ha fatto la Fontana dell'Elefante?" });
         expect(r.status).toBe(200);
         const { chat } = await r.json();
-        expect(chat).toMatchObject({ esito: 'verificata', testo: "L'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737.", versione: 'c1' });
+        expect(chat).toMatchObject({ esito: 'verificata', testo: "L'ha realizzata Giovanni Battista Vaccarini tra il 1735 e il 1737.", versione: 'c2' });
         expect(chat.fonti[0]).toMatchObject({ nome: "Fontana dell'Elefante", titolo: "Fontana dell'Elefante" });
         expect(openai()).toBe(2); // scrittore + revisore
         expect(rpcLog.map((x) => x.name)).toEqual(['ai_quota_consume']);

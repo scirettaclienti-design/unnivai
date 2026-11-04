@@ -4,7 +4,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { supabase } from '@/lib/supabase';
-import { chiediAllaGuida, luogoPerChat, MSG_CHAT_RETE } from '@/services/chatGuidaService';
+import { chiediAllaGuida, luogoPerChat, precaricaFontiGiro, MSG_CHAT_RETE } from '@/services/chatGuidaService';
 import { AI_ENGINE_MESSAGE } from '@/lib/aiEngineError';
 import { AIDrawer, BENVENUTO_CHAT, TESTO_ATTESA_CHAT } from '@/components/Map/AIDrawer';
 
@@ -79,5 +79,21 @@ describe('il cassetto della chat', () => {
         expect(await screen.findByText("L'ha realizzata Vaccarini tra il 1735 e il 1737.")).toBeTruthy();
         expect(screen.getByTestId('chat-fonti').textContent).toContain("Fontana dell'Elefante");
         expect(screen.queryByTestId('chat-attesa')).toBeNull();
+    });
+});
+
+describe('precaricaFontiGiro (CHAT-FOCUS-FONTI)', () => {
+    it('manda le tappe una volta sola per giro, senza domanda; senza consenso non parte niente', async () => {
+        vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: { access_token: 'jwt', user: { id: 'u1', user_metadata: { consenso_ai: { v: 1 } } } } } });
+        vi.stubGlobal('fetch', risponde(200, { precarica: { tappe: 3, nuove: 3, ms: 900 } }));
+        expect(await precaricaFontiGiro({ tappe: TAPPE, citta: 'Catania' })).toBe(true);
+        expect(corpi[0].dv).toMatchObject({ purpose: 'chat', precarica: true, citta: 'Catania' });
+        expect(corpi[0].dv.domanda).toBeUndefined();
+        expect(corpi[0].dv.luoghi.map((l) => l.nome)).toEqual(["Fontana dell'Elefante", "Cattedrale di Sant'Agata", 'Via dei Crociferi']);
+        expect(await precaricaFontiGiro({ tappe: TAPPE, citta: 'Catania' })).toBe(false); // già fatto per questo giro
+        expect(corpi.length).toBe(1);
+        vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: { access_token: 'jwt', user: { id: 'u2', user_metadata: {} } } } });
+        expect(await precaricaFontiGiro({ tappe: TAPPE, citta: 'Roma' })).toBe(false);
+        expect(corpi.length).toBe(1);
     });
 });

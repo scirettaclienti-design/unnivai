@@ -64,7 +64,7 @@ import {
   VERSIONE_RACCONTO, versioneValida, MODELLO_REVISORE, TTL_RACCONTO_GIORNI, TTL_SCARTATO_GIORNI, haFonti, scriviERivedi, impronta as improntaRacconto,
 } from './racconto.ts';
 import { cercaWikipedia, allargaWikipedia, descrizioneGoogleDa } from './raccontoFonti.ts';
-import { fontiChat, luoghiDaCercare, rispondiInChat, leggiRichiestaChat, VERSIONE_CHAT, type FonteLuogo } from './chat.ts';
+import { fontiChat, luoghiDaCercare, rispondiInChat, leggiRichiestaChat, VERSIONE_CHAT, LIMITI_CHAT, type FonteLuogo } from './chat.ts';
 import { fontiDiTappa, luoghiNominati } from './chatFonti.ts';
 import { VERSIONE_CURIOSITA, messaggiCuriosita, curiositaInCacheValida, eChiaveCuriosita } from './curiosita.ts';
 import { indirizzoDaClient, luoghiVicini, luoghiDellaZona, contaRichieste, testoDelLuogo, eUnaTappa, type Luogo, type MemoriaCelle } from './curiositaFonti.ts';
@@ -803,6 +803,45 @@ function ricordaFonti(chiave: string, fonte: FonteLuogo) {
 }
 
 /**
+ * CHAT-FOCUS-FONTI — `dv.purpose = 'chat'` con `dv.precarica = true`: all'avvio del giro il telefono chiede di preparare le fonti delle tappe
+ * (`dv.luoghi`, `dv.citta`), così la prima domanda della chat non le cerca. Nessuna AI, nessuna quota: solo Wikipedia (gratis) e la
+ * descrizione Google dal places-proxy (che ha la sua cache). Le tappe già in memoria non si rifanno; al più LIMITI_CHAT.luoghi tappe, quattro alla
+ * volta. Solo con un accesso (utente o ospite): senza, risponde «saltato» e non chiama nessuno. Risponde { precarica: { tappe, nuove, ms } }.
+ * Un proxy di prima non conosce `precarica`: senza `domanda` risponde 400 CHAT_NON_VALIDA, e il telefono lo ignora.
+ */
+async function handlePrecaricaFonti(req: Request, dv: Record<string, any>): Promise<Response> {
+  const richiesta = leggiRichiestaChat({ ...dv, domanda: '.' }); // la domanda qui non serve: si controllano città e tappe come per la chat
+  if (!richiesta || !richiesta.luoghi.length) return json(400, { error: 'Giro non valido', code: 'CHAT_NON_VALIDA' });
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!SUPABASE_URL || !SERVICE_KEY) return json(503, { error: 'Chat non disponibile', code: 'CHAT_NON_DISPONIBILE' });
+  const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  try {
+    const subject = await resolveSubject(req, sb);
+    if (subject.kind === 'guest') return json(200, { precarica: { tappe: 0, nuove: 0, ms: 0, saltato: 'senza-accesso' } });
+  } catch (err) {
+    if (err instanceof HttpError) return json(err.status, err.body);
+    console.error('[openai-proxy] precarica: accesso non verificato:', scrubLogText(err));
+    return json(503, { error: 'Chat non disponibile', code: 'CHAT_NON_DISPONIBILE' });
+  }
+  const t0 = Date.now();
+  const fetchW = (u: string, init?: Record<string, unknown>) => fetch(u, init as RequestInit);
+  const google = (placeId: string) => placesCall({ path: 'place/details', place_id: placeId, fields: 'editorial_summary' }).then(({ body }) => descrizioneGoogleDa(body));
+  const chiaveDi = (l: { place_id?: string | null; nome: string; lat: number; lng: number }) => l.place_id || `${l.nome}|${l.lat.toFixed(4)},${l.lng.toFixed(4)}`;
+  const daFare = richiesta.luoghi.slice(0, LIMITI_CHAT.luoghi).filter((l) => !fontiInMemoria(chiaveDi(l)));
+  let nuove = 0;
+  for (let i = 0; i < daFare.length; i += 4) {
+    await Promise.all(daFare.slice(i, i + 4).map(async (l) => {
+      const f = await fontiDiTappa(l, richiesta.citta, fetchW, google).catch(() => null);
+      if (f && !f.errore) { ricordaFonti(chiaveDi(l), { nome: f.nome, wikipedia: f.wikipedia, google: f.google }); nuove++; }
+    }));
+  }
+  const ms = Date.now() - t0;
+  console.log(`[openai-proxy] precarica: ${richiesta.luoghi.length} tappe, ${nuove} nuove, ${ms} ms`);
+  return json(200, { precarica: { tappe: richiesta.luoghi.length, nuove, ms } });
+}
+
+/**
  * CHAT CON LA GUIDA — `dv.purpose = 'chat'`, con `dv.domanda`, `dv.citta`, `dv.storia` (gli ultimi turni), `dv.luoghi` (le tappe del giro
  * nell'ordine del giro: place_id, nome, coordinate, ora, sosta), `dv.aperto` (il luogo aperto sulla mappa), `dv.prossima` (indice) e `dv.centro`. Restituisce
  * { chat: { testo, esito, fonti: [{ nome, titolo, url }], ms } }.
@@ -812,6 +851,7 @@ function ricordaFonti(chiave: string, fonte: FonteLuogo) {
  * più la frase onesta. Quota: una chiamata di contorno (come la chat di prima). Niente si salva.
  */
 async function handleChat(req: Request, dv: Record<string, any>): Promise<Response> {
+  if (dv.precarica === true) return await handlePrecaricaFonti(req, dv);
   const richiesta = leggiRichiestaChat(dv);
   if (!richiesta) return json(400, { error: 'Domanda non valida', code: 'CHAT_NON_VALIDA' });
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -846,7 +886,7 @@ async function handleChat(req: Request, dv: Record<string, any>): Promise<Respon
   ]);
   const msFonti = Date.now() - t0;
   const conFonti = [...tappe, ...nominati.luoghi];
-  const f = fontiChat({ citta, domanda, storia, luoghi, prossima, luoghiFonti: conFonti });
+  const f = fontiChat({ citta, domanda, storia, luoghi, prossima, aperto, luoghiFonti: conFonti });
 
   const motore = motoreRacconti(OPENAI_API_KEY);
   let esito: Awaited<ReturnType<typeof rispondiInChat>>;

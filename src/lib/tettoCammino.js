@@ -126,3 +126,9 @@ export function migliorePartenza(stops, ordina, capKm = TETTO_PIEDI_KM) {
     });
     return migliore.ordine;
 }
+
+/** I testi del tetto (voce Unnivai: il dato nudo). Un tratto oltre il tetto che il giro tiene perche' l'utente l'ha chiesto si dice. */
+export const TESTI_TETTO = {
+    /** «Da Belvedere a Monte Muganà sono 2,2 km a piedi, 29 minuti.» */
+    trattoLungo: ({ da, a, km, minuti }) => `Da ${da} a ${a} sono ${String(Math.round(km * 10) / 10).replace('.', ',')} km a piedi, ${minuti} minuti.`,
+};

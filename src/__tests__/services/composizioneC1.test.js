@@ -479,15 +479,15 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'tempo libero' });
         expect(st.aperitivo._tracciato.motivo).toMatch(/^nessun posto entro 40 min dalla tappa prima \(anche dopo la ricerca mirata\): il piu' vicino, "Belvedere Lontano", e' a \d+ min$/);
         expect(searches.filter(s => s.radius === String(MAX_WALK_METERS) && !PASSEGGIATA.test(s.q))).toHaveLength(1);
-        expect(res._momentReport.tempoLibero.filter(x => !x.buco)).toEqual([expect.objectContaining({ momento: 'g1-aperitivo' })]);
+        // BANCO-DIFETTI (T19, D1): la cena a 7 km e' oltre il tetto di 1,2 km → la riga approvata del pasto (C8c), non piu' il ripiego lontano
+        expect(res._momentReport.tempoLibero.filter(x => !x.buco)).toEqual([expect.objectContaining({ momento: 'g1-aperitivo' }), expect.objectContaining({ momento: 'g1-cena', pasto: true })]);
         // CONTINUITA' — la mattina finisce presto e il pranzo comincia alle 12:30: un buco, dichiarato con la sua fascia.
         const buchi = res.days[0].stops.filter(x => x._tracciato?.buco);
         expect(buchi).toHaveLength(1);
         expect(buchi[0]).toMatchObject({ tempoLibero: true, moment: 'mattina' });
         expect(buchi[0].stayMinutes).toBe(buchi[0]._tracciato.buco);
-        // La cena e' sempre un pasto: c'e', scelta dalla tappa vera prima.
-        expect(st.cena).toBeTruthy();
-        expect(st.cena.tempoLibero).toBeUndefined();
+        // La cena e' sempre un pasto: senza un ristorante entro il tetto c'e' la riga approvata (T19, D1; prima: il ripiego a 7 km).
+        expect(st.cena).toMatchObject({ tempoLibero: true, description: 'Nessun locale aperto qui vicino a quest’ora.' });
         // L'ordine del giorno resta quello dei momenti, e il tempo libero non ha orario proprio di cammino.
         expect(senzaBuchi(res.days[0].stops).map(x => x.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
         // Dalla cache: il tempo libero resta tale, con lo stesso testo (non si ricompone come una tappa).
@@ -506,11 +506,13 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         // lontana e' il pranzo.
         // C8a — la ricerca della passeggiata (budget suo, +1) non e' una delle due dei momenti veri
         expect(res._momentReport.ricercheDopo.map(x => x.momento).filter(m => m !== 'g1-passeggiata')).toEqual(['g1-pranzo', 'g1-aperitivo']);
-        expect(st.cena._tracciato).toMatchObject({ scelta: 'ripiego', ripiego: 'distanza' });
-        expect(st.cena._tracciato.motivo).toMatch(/ricerche mirate esaurite/);
+        // T19 (D1): il ripiego «esaurite» a 9 km non resta nel giro: la cena e' la riga approvata, col motivo del tetto
+        expect(res._momentReport.ripieghi.find(x => x.momento === 'g1-cena').motivo).toMatch(/ricerche mirate esaurite/);
+        expect(st.cena._tracciato).toMatchObject({ scelta: 'tempo libero' });
+        expect(st.cena._tracciato.motivo).toMatch(/nessun locale entro il tetto di cammino/);
         // BANCO-DIFETTI (T19, D4): la riga di tempo libero dell'aperitivo durava meno di 15 minuti e non esce piu' (i suoi minuti restano attesa)
         expect(Object.keys(st)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'cena']);
-        expect(res.days[0].stops.filter(s => s.tempoLibero).every(s => s.stayMinutes >= 15)).toBe(true);
+        expect(res.days[0].stops.filter(s => s.tempoLibero && s.moment !== 'cena').every(s => s.stayMinutes >= 15)).toBe(true);
     });
 
     it('Roma: all\'aperitivo solo belvederi vicini e uno c\'e\' gia\' → ricerca mirata → un bar, nessuna famiglia ripetuta', async () => {

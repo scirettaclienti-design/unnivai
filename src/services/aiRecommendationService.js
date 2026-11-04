@@ -390,13 +390,13 @@ import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace, scheduleHoursSources,
     requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme, WALK_NATURA_BORGO_MINUTES,
-    applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule, fillGaps, gapRows, fillMinimum, belowMinimumRows,
+    applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule, fillGaps, gapRows, fillMinimum, belowMinimumRows, tettoNelPiano,
     isStoricaLista,
 } from './momentSelection';
 // ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta (lib/openingHours).
 import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO, romeMinutes, openStatus } from '../lib/openingHours';
 import { keepOpenStops } from '../lib/openStops';
-import { gruppoNelTetto, migliorePartenza, TETTO_PIEDI_KM } from '../lib/tettoCammino';
+import { gruppoNelTetto, migliorePartenza, TETTO_PIEDI_KM, TESTI_TETTO } from '../lib/tettoCammino';
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 import { PER_TE_TESTI } from '../lib/esitoVuoto';
@@ -2554,6 +2554,8 @@ export const aiRecommendationService = {
             let scalaNote = null;
             let sosteDnaReport = null; // DNA-3b
             let ordinePercorsoReport = null; // NAV-2
+            let trattiNote = null; // D1 (T19): «Da A a B sono 2,2 km a piedi, 29 minuti.» (la natura chiesta nel borgo)
+            let tettoReport = null;
             let esclusioneNote = null; // DNA-3b: «Ho tolto le chiese come chiesto: il giro è più corto.»
             let conferma = null;
             const w0 = tourWindow.windows[0];
@@ -3365,6 +3367,25 @@ export const aiRecommendationService = {
                                 for (const f of ord.report.file) console.info(`[NAV-2 ORDINE] ${city}: giorno ${f.giorno} ${f.momento}: ${f.kmPrima.toFixed(2)} → ${f.kmDopo.toFixed(2)} km`);
                             }
                             const { report } = repaired;
+                            // BANCO-DIFETTI (T19, D1) — l'ultima rete del tetto di 1,2 km nei giri a piedi (il ritmo Intenso usa qualche mezzo): un ripiego
+                            // oltre il tetto esce; un pasto rimasto senza locale ha la riga approvata («Nessun locale aperto qui vicino a quest'ora.»),
+                            // il resto lo dichiarano i buchi e il minimo. Il tratto lungo della natura chiesta nel borgo si dice nel giro.
+                            if (normalizePace(prefs?.pace) !== 'intenso') {
+                                // la natura chiesta in un borgo (BORGO-FIX, decisione 3): verso un luogo di natura o un panorama fino a 30 minuti, dichiarati
+                                const naturaNelBorgo = catStretta === 'natura' && (conferma?.scala === 'borgo' || (cityCenter?.isSmallTown ?? isSmallTown(city)));
+                                const tetto = tettoNelPiano(sched, { eccezione: naturaNelBorgo ? (a, c) => (isNaturaOPanorama(c) ? WALK_NATURA_BORGO_MINUTES : null) : null });
+                                sched = tetto.sched;
+                                tettoReport = { tolte: tetto.tolte, dichiarati: tetto.dichiarati };
+                                const conTappe = new Set(sched.days.flat().map(x => x.moment.id));
+                                for (const t of tetto.tolte) {
+                                    console.info(`[D1 TETTO] ${city}: tolta "${t.nome}" (${t.momento}): ${t.km} km da "${t.da}", oltre ${TETTO_PIEDI_KM} km`);
+                                    if (t.pasto && !conTappe.has(t.momento) && !(report.tempoLibero || []).some(x => x.momento === t.momento)) {
+                                        report.tempoLibero = [...(report.tempoLibero || []), { momento: t.momento, key: t.key, label: t.label, dayIndex: t.dayIndex, posto: 0, dopo: null, piuVicino: null,
+                                            chiuso: true, pasto: true, motivo: `nessun locale entro il tetto di cammino (${t.km} km da "${t.da}")` }];
+                                    }
+                                }
+                                if (tetto.dichiarati.length) trattiNote = tetto.dichiarati.map(d => TESTI_TETTO.trattoLungo(d)).join(' ');
+                            }
                             for (const a of minimo.aggiunte) console.info(`[C8b MINIMO] ${city}: tappa in piu' in ${a.momento} (giorno ${a.dayIndex + 1}: ${a.prima} → ${a.dopo} tappe, minimo ${minPerDay.get(a.dayIndex)})`);
                             for (const a of filled.aggiunte) console.info(`[CONTINUITA'] ${city}: tappa in piu' in ${a.momento} (buchi ${a.minutiPrima} → ${a.minutiDopo} min)`);
                             const hoursReport = openBuckets().report;
@@ -3407,7 +3428,7 @@ export const aiRecommendationService = {
                             };
                             const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, respinti: filled.respinti || [], dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })),
                                 minimo: { richiesto: Object.fromEntries(minPerDay), aggiunte: minimo.aggiunte, tentativi: minimo.tentativi, dichiarati: righeMinimo.map(x => ({ momento: x.momento, giorno: x.dayIndex + 1 })) } };
-                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, ordine: ordinePercorsoReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
+                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, ordine: ordinePercorsoReport, tetto: tettoReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
                             logMomentReport(city, momentReport);
                             // C7 — nel tracciato (interno, mai a schermo): cosa ha voluto il tema. Il pasto del tema, l'esperienza
                             // nello spirito del tema, il momento chiesto ESPLICITAMENTE dal testo, e per "tipico" se il posto e' locale.
@@ -3605,7 +3626,7 @@ export const aiRecommendationService = {
                         if (foodOn) console.info(`[P7b VINCOLI] ${city}: dieta=${food.dieta.join('+') || '-'} (${food.dietaFonte || '-'}), budget=${food.budget || '-'} (${food.budgetFonte || '-'}), stile=${food.stile || '-'} | pasti: ${tappePasto.map(x => `${x.title} [pl=${x.price_level ?? '?'}, ${x.criterio || 'senza criterio'}]`).join(' | ') || 'nessuno'}`);
                         if (dietNote) for (const d of narratedDays) d.dietNote = dietNote;
                         // C10b — il borgo che si gira in mezza giornata: la riga approvata, sul giorno
-                        const noteGiorno = [scalaNote, esclusioneNote].filter(Boolean).join(' ');
+                        const noteGiorno = [scalaNote, esclusioneNote, trattiNote].filter(Boolean).join(' ');
                         if (noteGiorno && narratedDays[0]) narratedDays[0].scalaNote = noteGiorno;
                         // BORGO-FIX — decisione 3: natura chiesta, giro che comincia dopo il tramonto, nessuna natura nel giro → la nota di Ivano
                         // (la seconda frase solo se un posto di natura verificato, nel pool, e' aperto domattina alle 9).

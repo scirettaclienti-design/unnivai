@@ -99,3 +99,26 @@ describe('D1 — keepOpenStops con maxLegKm', () => {
         expect(ids(r.stops)).toEqual(['a', 'b', 'lontana']);
     });
 });
+
+describe('D1 — tettoNelPiano: l\'ultima rete del tetto nel piano di Crea', async () => {
+    const { tettoNelPiano } = await import('../../services/momentSelection');
+    const m = (id, key, extra = {}) => ({ id, key, label: key, ...extra });
+    const voce = (c, mo, ora) => ({ candidate: c, moment: mo, start: new Date(`2026-11-05T${ora}:00+01:00`) });
+    it('il pranzo a 1,33 km (ripiego «il piu\' vicino») esce; il resto resta con le sue ore', () => {
+        const sched = { days: [[voce(a('teatro', 0), m('g1-mattina', 'mattina'), '10:59'), voce(a('trattoria', 1.33), m('g1-pranzo', 'pranzo'), '12:30'), voce(a('museo', 0.5), m('g1-pomeriggio', 'pomeriggio'), '14:30')]] };
+        const r = tettoNelPiano(sched);
+        expect(r.sched.days[0].map(x => x.candidate.place_id)).toEqual(['teatro', 'museo']);
+        expect(r.tolte).toEqual([expect.objectContaining({ place_id: 'trattoria', pasto: true, km: 1.33 })]);
+        expect(r.sched.days[0][1].start.toISOString()).toBe(new Date('2026-11-05T14:30:00+01:00').toISOString());
+    });
+    it('il momento col suo tetto (la natura chiesta nel borgo, 30 minuti) tiene il tratto e lo dichiara', () => {
+        const sched = { days: [[voce(a('belvedere', 0), m('g1-mattina', 'mattina'), '09:30'), voce(a('monte', 2.0), m('g1-pomeriggio', 'pomeriggio', { maxWalkMinutes: 30 }), '14:30')]] };
+        const r = tettoNelPiano(sched);
+        expect(r.tolte).toEqual([]);
+        expect(r.dichiarati).toEqual([expect.objectContaining({ da: 'belvedere', a: 'monte', minuti: 27 })]);
+    });
+    it('il testo del tratto dichiarato: il dato nudo', async () => {
+        const { TESTI_TETTO } = await import('../../lib/tettoCammino');
+        expect(TESTI_TETTO.trattoLungo({ da: 'Belvedere', a: 'Monte Muganà', km: 2.21, minuti: 29 })).toBe('Da Belvedere a Monte Muganà sono 2,2 km a piedi, 29 minuti.');
+    });
+});

@@ -42,7 +42,7 @@
 
 import { computeCandidateScore } from './candidateScoring';
 import { stayInMoment, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
-import { TETTO_PIEDI_MINUTI } from '../lib/tettoCammino';
+import { TETTO_PIEDI_MINUTI, TETTO_PIEDI_KM, kmTratto } from '../lib/tettoCammino';
 import { placeKind, KINDS, COMMERCIAL_KINDS, LOCALE_CATEGORIES } from '../lib/placeKind';
 import { FOOD_ONLY_MOMENT_KEYS, EXPANDABLE_KEYS, visitCount, visitCapOf } from '../lib/daySkeleton';
 import { momentAdmits, isLocale, isOutdoorWalk, isBreakfastPlace, isLightStop } from '../lib/mealRules';
@@ -2161,6 +2161,46 @@ export function gapRows({ moments, sched, tempoLibero = [] }) {
         });
     }
     return rows;
+}
+
+/**
+ * BANCO-DIFETTI (T19, D1) — L'ULTIMA RETE DEL TETTO nel piano messo in orario: la scelta ha un ripiego («nessun candidato entro il
+ * tetto: il piu' vicino») che in un giro a piedi lasciava tratti oltre 1,2 km (n-napoli-dna-cibo: il pranzo a 1,33 km; n-troina-natura:
+ * il Ponte di Failla a 2,7 km). Qui un tratto oltre il tetto toglie la tappa d'arrivo (e si ricontrolla: togliere una tappa unisce le
+ * due vicine). Eccezione dichiarata: un momento col suo tetto (`maxWalkMinutes`, la natura chiesta nel borgo — BORGO-FIX, decisione 3)
+ * tiene il tratto fino al suo tetto, e il tratto si dice nel giro (`dichiarati`); `eccezione(a, b, momento)` → minuti ammessi o null. Gli orari delle tappe restano; le attese si rifanno.
+ * @returns {{ sched: object, tolte: Array, dichiarati: Array }}
+ */
+export function tettoNelPiano(sched, { capKm = TETTO_PIEDI_KM, eccezione = null } = {}) {
+    const tolte = [], dichiarati = [];
+    const nome = (c) => c?.name || c?.title || null;
+    const days = (sched?.days || []).map((day, di) => {
+        let list = day.slice();
+        for (let giri = 0; giri < 30; giri++) {
+            let k = -1;
+            for (let i = 1; i < list.length; i++) {
+                const km = kmTratto(list[i - 1].candidate, list[i].candidate);
+                if (km == null || km <= capKm) continue;
+                // il tetto proprio del momento, o quello dell'eccezione dichiarata dal chiamante (la natura chiesta nel borgo)
+                const proprio = list[i].moment?.maxWalkMinutes ?? eccezione?.(list[i - 1].candidate, list[i].candidate, list[i].moment) ?? null;
+                if (Number.isFinite(proprio) && (travelMinutes(list[i - 1].candidate, list[i].candidate) ?? Infinity) <= proprio) continue;
+                k = i; break;
+            }
+            if (k < 0) break;
+            const s = list[k];
+            tolte.push({ momento: s.moment.id, key: s.moment.key, label: s.moment.label, dayIndex: di, place_id: idOf(s.candidate), nome: nome(s.candidate),
+                da: nome(list[k - 1].candidate), km: Math.round(kmTratto(list[k - 1].candidate, s.candidate) * 100) / 100,
+                pasto: FOOD_ONLY_MOMENT_KEYS.has(s.moment.key) });
+            list = list.filter((_, i) => i !== k);
+        }
+        for (let i = 1; i < list.length; i++) {
+            const km = kmTratto(list[i - 1].candidate, list[i].candidate);
+            if (km != null && km > capKm) dichiarati.push({ dayIndex: di, momento: list[i].moment.id, da: nome(list[i - 1].candidate), a: nome(list[i].candidate),
+                km: Math.round(km * 100) / 100, minuti: travelMinutes(list[i - 1].candidate, list[i].candidate) });
+        }
+        return list;
+    });
+    return { sched: tolte.length ? retimeWaits({ ...sched, days }) : sched, tolte, dichiarati };
 }
 
 /** Toglie dal piano messo in orario le tappe indicate (per place_id e momento): l'ultima rete, mai una tappa chiusa. */

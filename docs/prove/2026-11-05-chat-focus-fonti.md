@@ -73,7 +73,7 @@ Le «dubbie» sono frasi che il revisore ha passato e che non trovo nell'introdu
 |---|---|---|
 | Mediana della prima parola, 10 domande | **4,84 s** | **4,86 s** |
 | Minimo – massimo | 4,33 – 6,38 s | 4,35 – 8,37 s |
-| Risposte sotto i 4,5 s | 5 su 10 | 6 su 10 |
+| Risposte sotto i 4,5 s | 4 su 10 | 5 su 10 |
 | Vaghe sulla tappa giusta | 5 su 5 | 5 su 5 |
 | Frasi inventate (0 certe) / dubbie | 0 / 1 | 0 / 2 |
 | openai-proxy | v48 | v49 |

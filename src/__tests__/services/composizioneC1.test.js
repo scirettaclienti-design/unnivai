@@ -540,3 +540,26 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
     });
 });
 
+// BANCO-DIFETTI (T19, D3) — n-napoli-dna-cibo: Teatro di San Carlo → Trattoria Don Vincenzo a 1,62 km per il pranzo.
+// Il pranzo sta nel tetto di 1,2 km dalla tappa prima come ogni altra tappa: vince la trattoria a 1 km anche con un voto piu' basso.
+describe('D3 — il pranzo entro 1,2 km dalla tappa prima', () => {
+    const N = { lat: 40.8375, lng: 14.2496 };
+    const at = (id, name, types, km, rating) => ({ place_id: id, name, types, rating, user_ratings_total: 800, latitude: N.lat + km * 0.009, longitude: N.lng });
+    const ms = flat([
+        moment('mattina', 'Mattina', '2026-11-05T09:30:00+01:00', '2026-11-05T12:30:00+01:00'),
+        moment('pranzo', 'Pranzo', '2026-11-05T12:30:00+01:00', '2026-11-05T14:30:00+01:00'),
+    ]);
+    it('la trattoria a 1,35 km (18 min: dentro il tetto vecchio di 20, fuori da quello di 16) perde contro quella a 1,0 km', () => {
+        const teatro = at('teatro', 'Teatro di San Carlo', ['performing_arts_theater', 'tourist_attraction'], 0, 4.7);
+        const lontana = at('lontana', 'Trattoria Don Vincenzo', ['restaurant', 'food'], 1.35, 4.9);
+        const vicina = at('vicina', 'Trattoria Vicina', ['restaurant', 'food'], 1.0, 4.3);
+        const pool = [teatro, lontana, vicina];
+        const { plan } = repairMomentSelection({
+            moments: ms, buckets: bucketCandidates(ms, pool), pool,
+            aiStops: [{ place_id: 'teatro', moment: 'g1-mattina' }, { place_id: 'lontana', moment: 'g1-pranzo' }],
+        });
+        expect(plan[1].stops[0].candidate.place_id).toBe('vicina');
+        expect(travelMinutes(teatro, vicina)).toBeLessThanOrEqual(MAX_WALK_MINUTES);
+        expect(travelMinutes(teatro, lontana)).toBeGreaterThan(MAX_WALK_MINUTES);
+    });
+});

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onboarding e accesso</title>
+<meta name="color-scheme" content="dark">
+<style>
+:root { --bg:#0E0C0B; --card:#161311; --bordo:#26211E; --testo:#EDE7E1; --tenue:#A39A92; --arancio:#F97316; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--testo); font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; }
+header, section { max-width:1100px; margin:0 auto; padding:16px; }
+h1 { font-size:26px; line-height:1.1; margin:12px 0 6px; }
+h2 { font-size:20px; margin:28px 0 10px; }
+.n { font-family:ui-monospace,Menlo,monospace; color:var(--arancio); font-size:13px; letter-spacing:.2em; margin-right:6px; }
+p { color:var(--tenue); margin:6px 0; }
+nav a { display:inline-block; margin:4px 8px 4px 0; padding:8px 12px; border:1px solid var(--bordo); border-radius:999px; color:var(--testo); text-decoration:none; font-size:13px; min-height:36px; }
+.esito { display:flex; gap:10px; align-items:flex-start; margin:10px 0 8px; }
+.tag { flex:none; font:600 11px/1 ui-monospace,Menlo,monospace; letter-spacing:.15em; text-transform:uppercase; padding:6px 8px; border-radius:6px; }
+.prima { background:#2a1f1a; color:#d9b8a3; } .dopo { background:var(--arancio); color:#1A0A04; }
+.striscia { display:flex; gap:12px; overflow-x:auto; padding:4px 0 12px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; }
+figure { margin:0; flex:none; width:min(62vw,240px); scroll-snap-align:start; }
+img { width:100%; height:auto; display:block; border-radius:14px; border:1px solid var(--bordo); background:var(--card); }
+h3 { font-size:15px; margin:18px 0 4px; color:var(--testo); }
+figcaption { font-size:12px; color:var(--tenue); margin-top:6px; }
+footer { max-width:1100px; margin:0 auto; padding:24px 16px 48px; color:var(--tenue); font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+<p class="n">ONBOARDING-ACCESSO · 06/11/2026</p>
+<h1>I sei percorsi d'ingresso, prima e dopo</h1>
+<p>iPhone 14 in WebKit. «Prima» = il sito pubblicato (main 15fe93c); «dopo» = il ramo onboarding/accesso, build locale. In tutte e due Supabase è simulato (nessuna email vera, nessuna credenziale): le email finte portano il codice 123456. Scorri ogni striscia di lato.</p>
+<nav><a href="#p1">01 Utente nuovo con email</a><a href="#p2">02 Accesso esistente</a><a href="#p3">03 Password dimenticata</a><a href="#p4">04 Ospite che si registra a fine giro</a><a href="#p5">05 Secondo accesso dello stesso utente</a><a href="#p6">06 Accesso da un secondo dispositivo</a><a href="#email">07 Le email</a><a href="#icone">08 Le icone</a></nav>
+</header>
+<section id="p1">
+<h2><span class="n">01</span> Utente nuovo con email</h2>
+<div class="esito"><span class="tag prima">prima</span><p>Un passo in più («Scegli come vivere l&#x27;esperienza», un solo ruolo); regole della password solo dopo l&#x27;errore; conferma con link: oggi la mail parte solo verso il team (2 l&#x27;ora), chi si registra resta su «Controlla la tua Email!» senza poterla farsi rimandare; il consenso si apre SOPRA il primo ingresso e «Non adesso» esce dallo schermo; gli interessi sono obbligatori; passo e compagnia non si chiedono.</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/prima/p1-01-home.jpg" alt="la home di chi non è dentro"><figcaption>la home di chi non è dentro</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-02-login.jpg" alt="la prima schermata di /login"><figcaption>la prima schermata di /login</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-03-modulo.jpg" alt="il modulo di registrazione"><figcaption>il modulo di registrazione</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-04-errori.jpg" alt="email sbagliata e password debole"><figcaption>email sbagliata e password debole</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-05-gia-registrata.jpg" alt="email già registrata"><figcaption>email già registrata</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-06-controlla-posta.jpg" alt="dopo «registrati»: controlla la posta"><figcaption>dopo «registrati»: controlla la posta</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-07-non-confermata.jpg" alt="accesso prima di confermare l&#x27;email"><figcaption>accesso prima di confermare l&#x27;email</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-08-primo-01.jpg" alt="consenso AI"><figcaption>consenso AI</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-08-primo-02.jpg" alt="primo ingresso, passo 2"><figcaption>primo ingresso, passo 2</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-08-primo-03.jpg" alt="primo ingresso, passo 3"><figcaption>primo ingresso, passo 3</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-08-primo-04.jpg" alt="primo ingresso, passo 4"><figcaption>primo ingresso, passo 4</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-08-primo-05.jpg" alt="primo ingresso, passo 5"><figcaption>primo ingresso, passo 5</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-08-primo-06.jpg" alt="primo ingresso, passo 6"><figcaption>primo ingresso, passo 6</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-20-home.jpg" alt="la home dopo il primo ingresso"><figcaption>la home dopo il primo ingresso</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p1-21-profilo.jpg" alt="il Profilo: «Come giri» col punto di partenza"><figcaption>il Profilo: «Come giri» col punto di partenza</figcaption></figure></div>
+<div class="esito"><span class="tag dopo">dopo</span><p>Email → codice di 6 cifre → dentro: niente password, niente link. Primo ingresso: consenso, poi tre domande brevi (interessi, a tavola, come giri), ognuna saltabile, tasti sempre in vista. Il Profilo mostra «Al primo ingresso: Tranquillo, In coppia».</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/dopo/p1-01-home.jpg" alt="la home di chi non è dentro"><figcaption>la home di chi non è dentro</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p1-02-login.jpg" alt="la prima schermata di /login"><figcaption>la prima schermata di /login</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p1-03-email-sbagliata.jpg" alt="email scritta male"><figcaption>email scritta male</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p1-04-codice.jpg" alt="il codice di 6 cifre"><figcaption>il codice di 6 cifre</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p1-05-codice-sbagliato.jpg" alt="codice sbagliato o scaduto"><figcaption>codice sbagliato o scaduto</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p1-08-primo-01.jpg" alt="consenso AI"><figcaption>consenso AI</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p1-08-primo-02.jpg" alt="primo ingresso, passo 2"><figcaption>primo ingresso, passo 2</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p1-08-primo-03.jpg" alt="primo ingresso, passo 3"><figcaption>primo ingresso, passo 3</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p1-08-primo-04.jpg" alt="primo ingresso, passo 4"><figcaption>primo ingresso, passo 4</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p1-20-home.jpg" alt="la home dopo il primo ingresso"><figcaption>la home dopo il primo ingresso</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p1-21-profilo.jpg" alt="il Profilo: «Come giri» col punto di partenza"><figcaption>il Profilo: «Come giri» col punto di partenza</figcaption></figure></div>
+</section><section id="p2">
+<h2><span class="n">02</span> Accesso esistente</h2>
+<div class="esito"><span class="tag prima">prima</span><p>Prima la scelta del ruolo, poi la scheda «Accedi». Funziona.</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/prima/p2-01-accedi.jpg" alt="il modulo di accesso"><figcaption>il modulo di accesso</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p2-02-password-sbagliata.jpg" alt="password sbagliata"><figcaption>password sbagliata</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p2-03-home.jpg" alt="dentro: la home"><figcaption>dentro: la home</figcaption></figure></div>
+<div class="esito"><span class="tag dopo">dopo</span><p>Email e codice; chi ha una password la usa ancora («Hai una password? Accedi →»): nessun account bloccato.</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/dopo/p2-01-accedi.jpg" alt="accesso: email"><figcaption>accesso: email</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p2-02-codice.jpg" alt="il codice per entrare"><figcaption>il codice per entrare</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p2-03-home.jpg" alt="dentro: la home"><figcaption>dentro: la home</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p2-04-password-sbagliata.jpg" alt="con la password: sbagliata"><figcaption>con la password: sbagliata</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p2-05-home-password.jpg" alt="con la password: dentro"><figcaption>con la password: dentro</figcaption></figure></div>
+</section><section id="p3">
+<h2><span class="n">03</span> Password dimenticata</h2>
+<div class="esito"><span class="tag prima">prima</span><p>Link per email (stesso limite di invio di oggi); la pagina della password nuova è bianca, fuori dal tema; «Email inviata!».</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/prima/p3-01-link-scaduto.jpg" alt="/update-password senza un link valido"><figcaption>/update-password senza un link valido</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p3-02-recupero.jpg" alt="password dimenticata"><figcaption>password dimenticata</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p3-03-email-sbagliata.jpg" alt="email scritta male"><figcaption>email scritta male</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p3-04-posta.jpg" alt="link mandato"><figcaption>link mandato</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p3-05-nuova-password.jpg" alt="il link «reimposta la password»: nuova password"><figcaption>il link «reimposta la password»: nuova password</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p3-06-debole.jpg" alt="password debole"><figcaption>password debole</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p3-07-uguale.jpg" alt="la stessa password di prima"><figcaption>la stessa password di prima</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p3-08-dentro.jpg" alt="password cambiata: dentro"><figcaption>password cambiata: dentro</figcaption></figure></div>
+<div class="esito"><span class="tag dopo">dopo</span><p>«Password dimenticata? Entra col codice»: nessun link da aspettare. I vecchi link «reimposta la password» aprono una pagina col marchio.</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/dopo/p3-01-link-scaduto.jpg" alt="/update-password senza un link valido"><figcaption>/update-password senza un link valido</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p3-02-recupero.jpg" alt="password dimenticata: si entra col codice"><figcaption>password dimenticata: si entra col codice</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p3-03-codice.jpg" alt="il codice al posto della password"><figcaption>il codice al posto della password</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p3-04-dentro.jpg" alt="dentro, senza password"><figcaption>dentro, senza password</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p3-05-nuova-password.jpg" alt="il link «reimposta la password»: nuova password"><figcaption>il link «reimposta la password»: nuova password</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p3-06-debole.jpg" alt="password debole"><figcaption>password debole</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p3-07-uguale.jpg" alt="la stessa password di prima"><figcaption>la stessa password di prima</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p3-08-dentro.jpg" alt="password cambiata: dentro"><figcaption>password cambiata: dentro</figcaption></figure></div>
+</section><section id="p4">
+<h2><span class="n">04</span> Ospite che si registra a fine giro</h2>
+<div class="esito"><span class="tag prima">prima</span><p>Sul sito pubblicato oggi il giro di prova non parte (accessi anonimi spenti: qui Supabase è simulato). La registrazione chiede email, codice E password.</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/prima/p4-01-primo-01.jpg" alt="consenso AI"><figcaption>consenso AI</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-01-primo-02.jpg" alt="primo ingresso, passo 2"><figcaption>primo ingresso, passo 2</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-01-primo-03.jpg" alt="primo ingresso, passo 3"><figcaption>primo ingresso, passo 3</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-01-primo-04.jpg" alt="primo ingresso, passo 4"><figcaption>primo ingresso, passo 4</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-01-primo-05.jpg" alt="primo ingresso, passo 5"><figcaption>primo ingresso, passo 5</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-01-primo-06.jpg" alt="primo ingresso, passo 6"><figcaption>primo ingresso, passo 6</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-10-home-ospite.jpg" alt="la home dell&#x27;ospite"><figcaption>la home dell&#x27;ospite</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-11-invito.jpg" alt="fine giro: «Salva questo giro»"><figcaption>fine giro: «Salva questo giro»</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-12-email-usata.jpg" alt="email di un account che esiste già"><figcaption>email di un account che esiste già</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-13-codice.jpg" alt="il codice di 6 cifre"><figcaption>il codice di 6 cifre</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-14-codice-scaduto.jpg" alt="codice scaduto"><figcaption>codice scaduto</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-15-fatto.jpg" alt="account creato"><figcaption>account creato</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-16-profilo.jpg" alt="il Profilo dopo la registrazione"><figcaption>il Profilo dopo la registrazione</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p4-17-altro-telefono.jpg" alt="la stessa persona da un altro telefono"><figcaption>la stessa persona da un altro telefono</figcaption></figure></div>
+<div class="esito"><span class="tag dopo">dopo</span><p>Email e codice, niente password; stesso account: giro, gusti e primo ingresso restano; da un altro telefono si entra col codice e il primo ingresso non torna.</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/dopo/p4-01-primo-01.jpg" alt="consenso AI"><figcaption>consenso AI</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-01-primo-02.jpg" alt="primo ingresso, passo 2"><figcaption>primo ingresso, passo 2</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-01-primo-03.jpg" alt="primo ingresso, passo 3"><figcaption>primo ingresso, passo 3</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-01-primo-04.jpg" alt="primo ingresso, passo 4"><figcaption>primo ingresso, passo 4</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-10-home-ospite.jpg" alt="la home dell&#x27;ospite"><figcaption>la home dell&#x27;ospite</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-11-invito.jpg" alt="fine giro: «Salva questo giro»"><figcaption>fine giro: «Salva questo giro»</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-12-email-usata.jpg" alt="email di un account che esiste già"><figcaption>email di un account che esiste già</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-13-codice.jpg" alt="il codice di 6 cifre"><figcaption>il codice di 6 cifre</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-14-codice-scaduto.jpg" alt="codice scaduto"><figcaption>codice scaduto</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-15-fatto.jpg" alt="account creato"><figcaption>account creato</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-16-profilo.jpg" alt="il Profilo dopo la registrazione"><figcaption>il Profilo dopo la registrazione</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p4-17-altro-telefono.jpg" alt="la stessa persona da un altro telefono"><figcaption>la stessa persona da un altro telefono</figcaption></figure></div>
+</section><section id="p5">
+<h2><span class="n">05</span> Secondo accesso dello stesso utente</h2>
+<div class="esito"><span class="tag prima">prima</span><p>Funziona: il seme sul server dice «fatto».</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/prima/p5-01-primo-accesso.jpg" alt="primo accesso su questo telefono"><figcaption>primo accesso su questo telefono</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p5-03-secondo-accesso.jpg" alt="secondo accesso: dritto alla home"><figcaption>secondo accesso: dritto alla home</figcaption></figure></div>
+<div class="esito"><span class="tag dopo">dopo</span><p>Uguale, e in più il segno «primo_ingresso_fatto_at» nei metadati dell&#x27;account: si sa subito, senza aspettare la rete.</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/dopo/p5-01-primo-accesso.jpg" alt="primo accesso su questo telefono"><figcaption>primo accesso su questo telefono</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p5-03-secondo-accesso.jpg" alt="secondo accesso: dritto alla home"><figcaption>secondo accesso: dritto alla home</figcaption></figure></div>
+</section><section id="p6">
+<h2><span class="n">06</span> Accesso da un secondo dispositivo</h2>
+<div class="esito"><span class="tag prima">prima</span><p>Funziona; il caricamento è una schermata BIANCA con «Loading Unnivai...» in inglese.</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/prima/p6-01-secondo-telefono.jpg" alt="un altro telefono, stesso account"><figcaption>un altro telefono, stesso account</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/prima/p6-02-caricamento.jpg" alt="la schermata di caricamento"><figcaption>la schermata di caricamento</figcaption></figure></div>
+<div class="esito"><span class="tag dopo">dopo</span><p>Il caricamento è il marchio sul fondo scuro dell&#x27;app.</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/dopo/p6-01-secondo-telefono.jpg" alt="un altro telefono, stesso account"><figcaption>un altro telefono, stesso account</figcaption></figure>
+<figure><img loading="lazy" src="dati/onboarding/dopo/p6-02-caricamento.jpg" alt="la schermata di caricamento"><figcaption>la schermata di caricamento</figcaption></figure></div>
+</section>
+<section id="email">
+<h2><span class="n">07</span> Le email, in chiaro e in scuro</h2>
+<div class="esito"><span class="tag dopo">dopo</span><p>Logo PNG del nostro sito (https://unnivai.vercel.app/brand/logo-email.png, 141×40 a doppia densità; esiste dal merge della PR #50), titoli in Bricolage Grotesque dove il client la carica, codice di 6 cifre in un riquadro a cifre larghe, pulsante arancione Unnivai, modalità scura coi colori del sito. Con le immagini bloccate resta «Unnivai» in arancione. Anteprime WebKit con valori finti; il logo qui lo serve il repo.</p></div>
+<h3>Conferma (account nuovo): codice e link</h3><div class="striscia"><figure><img loading="lazy" src="dati/onboarding/email/conferma-chiaro.jpg" alt="chiaro"><figcaption>chiaro</figcaption></figure><figure><img loading="lazy" src="dati/onboarding/email/conferma-scuro.jpg" alt="scuro"><figcaption>scuro</figcaption></figure></div><h3>Accesso con codice (account che c&#x27;è): codice e link</h3><div class="striscia"><figure><img loading="lazy" src="dati/onboarding/email/accesso-chiaro.jpg" alt="chiaro"><figcaption>chiaro</figcaption></figure><figure><img loading="lazy" src="dati/onboarding/email/accesso-scuro.jpg" alt="scuro"><figcaption>scuro</figcaption></figure></div><h3>Codice dell&#x27;ospite che crea l&#x27;account</h3><div class="striscia"><figure><img loading="lazy" src="dati/onboarding/email/codice-ospite-chiaro.jpg" alt="chiaro"><figcaption>chiaro</figcaption></figure><figure><img loading="lazy" src="dati/onboarding/email/codice-ospite-scuro.jpg" alt="scuro"><figcaption>scuro</figcaption></figure></div><h3>Reimposta la password (vecchi account)</h3><div class="striscia"><figure><img loading="lazy" src="dati/onboarding/email/password-chiaro.jpg" alt="chiaro"><figcaption>chiaro</figcaption></figure><figure><img loading="lazy" src="dati/onboarding/email/password-scuro.jpg" alt="scuro"><figcaption>scuro</figcaption></figure></div><h3>Lista d&#x27;attesa (unnivai.com)</h3><div class="striscia"><figure><img loading="lazy" src="dati/onboarding/email/lista-attesa-chiaro.jpg" alt="chiaro"><figcaption>chiaro</figcaption></figure><figure><img loading="lazy" src="dati/onboarding/email/lista-attesa-scuro.jpg" alt="scuro"><figcaption>scuro</figcaption></figure></div><h3>Avvisi: riepilogo del giorno</h3><div class="striscia"><figure><img loading="lazy" src="dati/onboarding/email/riepilogo-chiaro.jpg" alt="chiaro"><figcaption>chiaro</figcaption></figure><figure><img loading="lazy" src="dati/onboarding/email/riepilogo-scuro.jpg" alt="scuro"><figcaption>scuro</figcaption></figure></div><h3>Avvisi: avviso immediato</h3><div class="striscia"><figure><img loading="lazy" src="dati/onboarding/email/avviso-chiaro.jpg" alt="chiaro"><figcaption>chiaro</figcaption></figure><figure><img loading="lazy" src="dati/onboarding/email/avviso-scuro.jpg" alt="scuro"><figcaption>scuro</figcaption></figure></div><h3>Accesso con le immagini bloccate: resta il nome in arancione</h3><div class="striscia"><figure><img loading="lazy" src="dati/onboarding/email/senza-immagini-chiaro.jpg" alt="chiaro"><figcaption>chiaro</figcaption></figure><figure><img loading="lazy" src="dati/onboarding/email/senza-immagini-scuro.jpg" alt="scuro"><figcaption>scuro</figcaption></figure></div>
+</section>
+<section id="icone">
+<h2><span class="n">08</span> Le icone</h2>
+<div class="esito"><span class="tag dopo">dopo</span><p>Prima: la favicon era il logo di Vite e non c'erano né icona per la Home né manifest; l'icona iOS era la proposta disegnata di APP-NATIVA. Dopo: favicon (ico 16/32/48 e png 32), apple-touch-icon 180, icone 192 e 512 anche «maskable» nel manifest, colore del tema #0E0C0B, icona iOS 1024 senza trasparenza, tutte dal marchio. Le due immagini sono RIPRODUZIONI (WebKit senza interfaccia non ha la Home di iOS né le schede): i file sono quelli veri, alle misure vere.</p></div>
+<div class="striscia"><figure><img loading="lazy" src="dati/onboarding/email/icona-home.jpg" alt="l&#x27;icona 180 sulla Home (riproduzione)"><figcaption>l&#x27;icona 180 sulla Home (riproduzione)</figcaption></figure><figure><img loading="lazy" src="dati/onboarding/email/icona-favicon.jpg" alt="favicon nella scheda, icona iOS, maskable"><figcaption>favicon nella scheda, icona iOS, maskable</figcaption></figure></div>
+</section>
+<footer>Report: docs/prove/2026-11-06-onboarding-accesso.md · Script: scripts/prova-nav/onboarding-accesso.webkit.mjs (simulato), onboarding-accesso-vero.webkit.mjs (Supabase vero).</footer>
+</body>
+</html>

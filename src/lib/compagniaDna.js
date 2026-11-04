@@ -52,7 +52,7 @@ export function compagniaDalTesto(testo) {
  * @param {{ testo?: string, scelta?: string|null, profilo?: string|null, scelte?: string|null }} p
  * @returns {{ valore: string, fonte: 'testo'|'richiesta'|'profilo'|'scelte', gruppo: string }|null}
  */
-export function compagniaDelGiro({ testo = '', scelta = null, profilo = null, scelte = null } = {}) {
+export function compagniaDelGiro({ testo = '', scelta = null, profilo = null, scelte = null, iniziale = null } = {}) {
     const dalTesto = compagniaDalTesto(testo);
     if (dalTesto) return { valore: dalTesto, fonte: 'testo', gruppo: GRUPPO_DI[dalTesto] };
     const daScelta = compagniaDa(scelta);
@@ -65,6 +65,9 @@ export function compagniaDelGiro({ testo = '', scelta = null, profilo = null, sc
         const quante = scelte && typeof scelte === 'object' && scelte.totale ? { k: Number(scelte.conteggi?.[daScelte]) || 0, tot: scelte.totale } : null;
         return { valore: daScelte, fonte: 'scelte', gruppo: GRUPPO_DI[daScelte], ...(quante ? { quante } : {}) };
     }
+    // ONBOARDING-ACCESSO — la compagnia detta al primo ingresso: ultima, vale finché le scelte vere non dicono altro.
+    const daInizio = compagniaDa(iniziale);
+    if (daInizio) return { valore: daInizio, fonte: 'primo ingresso', gruppo: GRUPPO_DI[daInizio] };
     return null;
 }
 

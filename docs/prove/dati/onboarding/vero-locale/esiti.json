@@ -1,0 +1,25 @@
+{
+ "base": "http://localhost:4378",
+ "tutto": false,
+ "iniziato": "2026-11-04T19:18:03.910Z",
+ "passi": {
+  "accesso-esistente": {
+   "ok": true,
+   "onboarding": false,
+   "consenso": false,
+   "foto": "v1-accesso-esistente"
+  },
+  "secondo-dispositivo": {
+   "ok": true,
+   "onboarding": false,
+   "consenso": false,
+   "secondoAccessoOnboarding": false,
+   "meta": {
+    "consenso": true,
+    "primoIngresso": false
+   },
+   "foto": "v2-secondo-dispositivo"
+  }
+ },
+ "finito": "2026-11-04T19:18:22.652Z"
+}

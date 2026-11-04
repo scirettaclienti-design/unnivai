@@ -12,10 +12,12 @@ vi.mock('framer-motion', async () => {
 });
 
 const signInWithPassword = vi.fn();
-const signUp = vi.fn();
+const signInWithOtp = vi.fn();
+const verifyOtp = vi.fn();
 const updateUser = vi.fn();
-vi.mock('@/lib/supabase', () => ({ supabase: { auth: { signInWithPassword: (...a) => signInWithPassword(...a), signUp: (...a) => signUp(...a), updateUser: (...a) => updateUser(...a) }, from: vi.fn() } }));
-vi.mock('../../lib/supabase', () => ({ supabase: { auth: { signInWithPassword: (...a) => signInWithPassword(...a), signUp: (...a) => signUp(...a), updateUser: (...a) => updateUser(...a) }, from: vi.fn() } }));
+const finto = () => ({ supabase: { auth: { signInWithPassword: (...a) => signInWithPassword(...a), signInWithOtp: (...a) => signInWithOtp(...a), verifyOtp: (...a) => verifyOtp(...a), updateUser: (...a) => updateUser(...a) }, from: vi.fn() } });
+vi.mock('@/lib/supabase', () => finto());
+vi.mock('../../lib/supabase', () => finto());
 
 let auth = { user: null, role: null, refreshRole: vi.fn(), resetPassword: vi.fn(), isPasswordRecovery: false, fineRecupero: vi.fn() };
 vi.mock('../../context/AuthContext', () => ({ useAuth: () => auth }));
@@ -23,6 +25,7 @@ vi.mock('../../hooks/use-toast', () => ({ useToast: () => ({ toast: vi.fn() }) }
 
 const Login = (await import('@/pages/Login')).default;
 const UpdatePassword = (await import('@/pages/UpdatePassword')).default;
+const { ACCESSO, NUOVA_PASSWORD } = await import('@/lib/testiAccount');
 
 const Dove = () => { const l = useLocation(); return <div data-testid="dove">{l.pathname}{l.search}</div>; };
 const monta = (path = '/login') => render(
@@ -34,104 +37,139 @@ const monta = (path = '/login') => render(
         </Routes>
     </MemoryRouter>
 );
-const apriLogin = () => {
-    fireEvent.click(screen.getByText('Voglio Esplorare'));
-    fireEvent.click(screen.getAllByRole('button', { name: /^Accedi$/ })[0]);
-};
+const conPassword = () => fireEvent.click(screen.getByTestId('accesso-con-password'));
+const invia = () => fireEvent.click(screen.getByTestId('accesso-invia'));
 
 beforeEach(() => {
     vi.resetAllMocks();
     auth = { user: null, role: null, refreshRole: vi.fn(), resetPassword: vi.fn(), isPasswordRecovery: false, fineRecupero: vi.fn() };
 });
 
-describe('ACCESSO-1 — Login', () => {
-    it('difetto 1: una password corta arriva a Supabase (nessun controllo di complessità)', async () => {
+describe('ONBOARDING-ACCESSO — si entra con email e codice', () => {
+    it('la prima schermata è l\'email: niente scelta del ruolo, niente password', () => {
+        monta();
+        expect(screen.getByPlaceholderText('Email')).toBeInTheDocument();
+        expect(screen.queryByPlaceholderText('Password')).toBeNull();
+        expect(screen.queryByText('Voglio Esplorare')).toBeNull();
+        expect(screen.getByText(ACCESSO.TITOLO)).toBeInTheDocument();
+    });
+
+    it('email → codice: signInWithOtp crea l\'account se manca, verifyOtp type email apre la sessione', async () => {
+        signInWithOtp.mockResolvedValue({ data: {}, error: null });
+        verifyOtp.mockResolvedValue({ data: { session: { access_token: 'x' } }, error: null });
+        monta();
+        fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: ' anna@example.com ' } });
+        invia();
+        await screen.findByTestId('accesso-codice-campo');
+        expect(signInWithOtp).toHaveBeenCalledWith(expect.objectContaining({ email: 'anna@example.com', options: expect.objectContaining({ shouldCreateUser: true, data: { role: 'explorer' } }) }));
+        expect(screen.getByText(ACCESSO.CODICE_TESTO('anna@example.com'))).toBeInTheDocument();
+        fireEvent.change(screen.getByTestId('accesso-codice-campo'), { target: { value: '12 34 56' } });
+        invia();
+        await waitFor(() => expect(verifyOtp).toHaveBeenCalledWith({ email: 'anna@example.com', token: '123456', type: 'email' }));
+    });
+
+    it('codice corto: lo dice e non chiama Supabase; codice sbagliato o scaduto: frase umana', async () => {
+        signInWithOtp.mockResolvedValue({ data: {}, error: null });
+        verifyOtp.mockResolvedValue({ data: null, error: { code: 'otp_expired', message: 'Token has expired or is invalid' } });
+        monta();
+        fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'anna@example.com' } });
+        invia();
+        await screen.findByTestId('accesso-codice-campo');
+        fireEvent.change(screen.getByTestId('accesso-codice-campo'), { target: { value: '123' } });
+        invia();
+        expect(await screen.findByText(ACCESSO.CODICE_CORTO)).toBeInTheDocument();
+        expect(verifyOtp).not.toHaveBeenCalled();
+        fireEvent.change(screen.getByTestId('accesso-codice-campo'), { target: { value: '000000' } });
+        invia();
+        expect(await screen.findByText(ACCESSO.CODICE_SBAGLIATO)).toBeInTheDocument();
+        expect(screen.queryByText(/Token has expired/)).toBeNull();
+    });
+
+    it('«Mandamene un altro» aspetta un minuto (il limite di Supabase), poi rimanda', async () => {
+        signInWithOtp.mockResolvedValue({ data: {}, error: null });
+        monta();
+        fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'anna@example.com' } });
+        invia();
+        await screen.findByTestId('accesso-codice-campo');
+        const rimanda = screen.getByTestId('accesso-rimanda');
+        expect(rimanda).toBeDisabled();
+        expect(rimanda).toHaveTextContent(ACCESSO.RIMANDA_TRA(60));
+    });
+
+    it('troppe richieste: il messaggio dell\'app, mai l\'inglese', async () => {
+        signInWithOtp.mockResolvedValue({ data: {}, error: { status: 429, message: 'For security purposes, you can only request this after 42 seconds.' } });
+        monta();
+        fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'anna@example.com' } });
+        invia();
+        expect(await screen.findByText('Troppi tentativi. Riprova tra qualche minuto.')).toBeInTheDocument();
+    });
+
+    it('email non valida → messaggio dell\'app, nessuna chiamata a Supabase; form senza validazione nativa', async () => {
+        const { container } = monta();
+        expect(container.querySelector('form').hasAttribute('novalidate')).toBe(true);
+        fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'mario@' } });
+        invia();
+        expect(await screen.findByText(/Email non valida/)).toBeInTheDocument();
+        expect(signInWithOtp).not.toHaveBeenCalled();
+    });
+
+    it('arrivando da un vecchio link scaduto: messaggio chiaro e si entra col codice', () => {
+        monta('/login?recupero=1');
+        expect(screen.getByText(ACCESSO.LINK_SCADUTO)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Email')).toBeInTheDocument();
+    });
+});
+
+describe('ACCESSO-1 — chi ha una password la usa ancora (nessun account bloccato)', () => {
+    it('una password corta arriva a Supabase (nessun controllo di complessità all\'accesso)', async () => {
         signInWithPassword.mockResolvedValue({ error: null });
         monta();
-        apriLogin();
+        conPassword();
         fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'a@b.it' } });
         fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'abc' } });
-        fireEvent.click(screen.getByRole('button', { name: /Accedi Ora/ }));
+        fireEvent.click(screen.getByRole('button', { name: /Accedi ora/ }));
         await waitFor(() => expect(signInWithPassword).toHaveBeenCalledWith({ email: 'a@b.it', password: 'abc' }));
     });
 
-    it('difetto 3: credenziali errate → errore in italiano, mai «Invalid login credentials»', async () => {
+    it('credenziali errate → errore in italiano, mai «Invalid login credentials»', async () => {
         signInWithPassword.mockResolvedValue({ error: { code: 'invalid_credentials', message: 'Invalid login credentials' } });
         monta();
-        apriLogin();
+        conPassword();
         fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'a@b.it' } });
         fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'x' } });
-        fireEvent.click(screen.getByRole('button', { name: /Accedi Ora/ }));
+        invia();
         expect(await screen.findByText('Email o password non corrette.')).toBeInTheDocument();
         expect(screen.queryByText(/Invalid login credentials/)).toBeNull();
     });
 
-    it('difetto 4: email non valida → messaggio dell\'app, nessuna chiamata a Supabase', async () => {
+    it('«Password dimenticata?» porta al codice, senza email di reset', () => {
         monta();
-        apriLogin();
-        fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'mario@' } });
-        fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'x' } });
-        fireEvent.click(screen.getByRole('button', { name: /Accedi Ora/ }));
-        expect(await screen.findByText(/Email non valida/)).toBeInTheDocument();
-        expect(signInWithPassword).not.toHaveBeenCalled();
-    });
-
-    it('difetto 4: i form non usano la validazione nativa del browser', () => {
-        const { container } = monta();
-        apriLogin();
-        expect(container.querySelector('form').hasAttribute('novalidate')).toBe(true);
-    });
-
-    it('difetto 6: con password corta alla registrazione il messaggio compare UNA volta', async () => {
-        monta();
-        fireEvent.click(screen.getByText('Voglio Esplorare'));
-        fireEvent.change(screen.getByPlaceholderText('Nome Completo'), { target: { value: 'Mario Rossi' } });
-        fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'a@b.it' } });
-        fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'abc' } });
-        fireEvent.click(screen.getByRole('button', { name: /Registrati Gratuitamente/ }));
-        expect(await screen.findAllByText('La password deve avere almeno 8 caratteri')).toHaveLength(1);
-        expect(signUp).not.toHaveBeenCalled();
-    });
-
-    it('difetto 3: «già registrata» (utente esistente senza identità) in italiano', async () => {
-        signUp.mockResolvedValue({ data: { user: { identities: [] } }, error: null });
-        monta();
-        fireEvent.click(screen.getByText('Voglio Esplorare'));
-        fireEvent.change(screen.getByPlaceholderText('Nome Completo'), { target: { value: 'Mario Rossi' } });
-        fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'a@b.it' } });
-        fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'Abcdefg1' } });
-        fireEvent.click(screen.getByRole('button', { name: /Registrati Gratuitamente/ }));
-        expect(await screen.findByText('Email già registrata. Prova ad accedere.')).toBeInTheDocument();
-    });
-
-    it('difetto 2: arrivando da un link scaduto si apre «password dimenticata» col messaggio chiaro', () => {
-        monta('/login?recupero=1');
-        expect(screen.getByText(/Il link non è valido o è scaduto/)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Invia Link di Reset/ })).toBeInTheDocument();
-    });
-
-    it('difetto 4: anche «password dimenticata» con email non valida dà il messaggio dell\'app', async () => {
-        monta('/login?recupero=1');
-        fireEvent.change(screen.getByPlaceholderText('La tua email'), { target: { value: 'mario@' } });
-        fireEvent.click(screen.getByRole('button', { name: /Invia Link di Reset/ }));
-        expect(await screen.findByText(/Email non valida/)).toBeInTheDocument();
+        conPassword();
+        fireEvent.click(screen.getByTestId('accesso-dimenticata'));
+        expect(screen.queryByPlaceholderText('Password')).toBeNull();
+        expect(screen.getByText(ACCESSO.TITOLO)).toBeInTheDocument();
         expect(auth.resetPassword).not.toHaveBeenCalled();
+    });
+
+    it('i testi usati dagli script WebKit restano trovabili («Accedi →», «Accedi ora»)', () => {
+        expect(ACCESSO.HAI_PASSWORD).toContain('Accedi →');
+        expect(ACCESSO.INVIA_PASSWORD.toLowerCase()).toBe('accedi ora');
     });
 });
 
-describe('ACCESSO-1 difetto 2 — UpdatePassword', () => {
-    it('senza sessione di recupero rimanda a «password dimenticata»', () => {
+describe('ACCESSO-1 difetto 2 — UpdatePassword (vecchi link «reimposta la password»)', () => {
+    it('senza sessione di recupero torna all\'accesso col codice', () => {
         auth.isPasswordRecovery = false;
         monta('/update-password');
-        expect(screen.getByText(/Il link non è valido o è scaduto/)).toBeInTheDocument();
-        expect(screen.queryByPlaceholderText('Nuova Password')).toBeNull();
+        expect(screen.getByText(ACCESSO.LINK_SCADUTO)).toBeInTheDocument();
+        expect(screen.queryByPlaceholderText(NUOVA_PASSWORD.CAMPO)).toBeNull();
     });
 
     it('con la sessione di recupero: 6 minuscole rifiutate, nessuna chiamata a Supabase', async () => {
         auth.isPasswordRecovery = true;
         monta('/update-password');
-        fireEvent.change(screen.getByPlaceholderText('Nuova Password'), { target: { value: 'abcdef' } });
-        fireEvent.click(screen.getByRole('button', { name: /Salva Password/ }));
+        fireEvent.change(screen.getByPlaceholderText(NUOVA_PASSWORD.CAMPO), { target: { value: 'abcdef' } });
+        invia();
         expect(await screen.findByRole('alert')).toHaveTextContent('La password deve avere almeno 8 caratteri');
         expect(updateUser).not.toHaveBeenCalled();
     });
@@ -140,8 +178,8 @@ describe('ACCESSO-1 difetto 2 — UpdatePassword', () => {
         auth.isPasswordRecovery = true;
         updateUser.mockResolvedValue({ error: null });
         monta('/update-password');
-        fireEvent.change(screen.getByPlaceholderText('Nuova Password'), { target: { value: 'Abcdefg1' } });
-        fireEvent.click(screen.getByRole('button', { name: /Salva Password/ }));
+        fireEvent.change(screen.getByPlaceholderText(NUOVA_PASSWORD.CAMPO), { target: { value: 'Abcdefg1' } });
+        invia();
         await waitFor(() => expect(updateUser).toHaveBeenCalledWith({ password: 'Abcdefg1' }));
         await waitFor(() => expect(screen.getByTestId('dove')).toHaveTextContent('/'));
         expect(auth.fineRecupero).toHaveBeenCalled();
@@ -151,8 +189,8 @@ describe('ACCESSO-1 difetto 2 — UpdatePassword', () => {
         auth.isPasswordRecovery = true;
         updateUser.mockResolvedValue({ error: { code: 'same_password', message: 'New password should be different from the old password.' } });
         monta('/update-password');
-        fireEvent.change(screen.getByPlaceholderText('Nuova Password'), { target: { value: 'Abcdefg1' } });
-        fireEvent.click(screen.getByRole('button', { name: /Salva Password/ }));
+        fireEvent.change(screen.getByPlaceholderText(NUOVA_PASSWORD.CAMPO), { target: { value: 'Abcdefg1' } });
+        invia();
         expect(await screen.findByText('Scegli una password diversa da quella di prima.')).toBeInTheDocument();
     });
 });

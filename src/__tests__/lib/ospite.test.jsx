@@ -25,7 +25,7 @@ vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: vi.fn() }) }));
 
 import {
     isOspite, entraComeOspite, segnaGiroDiProva, giroDiProva, secondoGiroDaOspite, ospiteDaFermare, chiediRegistrazione,
-    confermaEPassword, erroreRegistrazione, EVENTO_REGISTRATI, INVITO, TESTI_OSPITE,
+    confermaCodice, erroreRegistrazione, EVENTO_REGISTRATI, INVITO, TESTI_OSPITE,
 } from '@/lib/ospite';
 import RegistrazioneOspite from '@/components/RegistrazioneOspite';
 import ProvaSenzaAccount from '@/components/ProvaSenzaAccount';
@@ -156,11 +156,10 @@ describe('la registrazione tiene lo stesso account', () => {
         expect(screen.queryByTestId('registrazione-ospite')).toBeNull();
     });
 
-    it('email → codice di 6 cifre + password → «Fatto», sullo stesso account (updateUser, verifyOtp email_change, updateUser password)', async () => {
+    it('email → codice di 6 cifre → «Fatto», sullo stesso account, senza password (updateUser email, verifyOtp email_change)', async () => {
         sessione.user = OSPITE;
         auth.updateUser.mockResolvedValueOnce({ data: { user: OSPITE }, error: null }); // email
         auth.verifyOtp.mockResolvedValue({ data: { user: { ...OSPITE, is_anonymous: false } }, error: null });
-        auth.updateUser.mockResolvedValueOnce({ data: { user: { id: 'anon-1', is_anonymous: false } }, error: null }); // password
         const { rerender } = render(<RegistrazioneOspite />);
         apri('fine');
         expect(screen.getByRole('heading').textContent).toBe(INVITO.fine.titolo);
@@ -168,24 +167,23 @@ describe('la registrazione tiene lo stesso account', () => {
         fireEvent.click(screen.getByTestId('registrazione-invia'));
         await screen.findByTestId('registrazione-inviata');
         expect(auth.updateUser).toHaveBeenNthCalledWith(1, { email: 'anna@example.com' });
+        expect(screen.queryByTestId('registrazione-password')).toBeNull();
 
         fireEvent.change(screen.getByTestId('registrazione-codice'), { target: { value: '12 34 56' } });
-        fireEvent.change(screen.getByTestId('registrazione-password'), { target: { value: 'Giro2026x' } });
         // dopo il codice l'account non è più anonimo: il foglio deve restare fino al «Fatto»
         sessione.user = { ...OSPITE, is_anonymous: false };
         rerender(<RegistrazioneOspite />);
         fireEvent.click(screen.getByTestId('registrazione-conferma'));
         await screen.findByTestId('registrazione-fatta');
         expect(auth.verifyOtp).toHaveBeenCalledWith({ email: 'anna@example.com', token: '123456', type: 'email_change' });
-        expect(auth.updateUser).toHaveBeenNthCalledWith(2, { password: 'Giro2026x' });
+        expect(auth.updateUser).toHaveBeenCalledTimes(1); // nessuna password
         fireEvent.click(screen.getByTestId('registrazione-profilo'));
         expect(naviga).toHaveBeenCalledWith('/profile');
     });
 
-    it('codice sbagliato: lo dice e non tocca la password', async () => {
+    it('codice sbagliato: lo dice in italiano', async () => {
         auth.verifyOtp.mockResolvedValue({ data: null, error: { code: 'otp_expired', message: 'Token has expired or is invalid' } });
-        const r = await confermaEPassword('anna@example.com', '000000', 'Giro2026x');
-        expect(r.passo).toBe('codice');
+        const r = await confermaCodice('anna@example.com', '000000');
         expect(erroreRegistrazione(r.error, erroreAuthItaliano)).toBe(TESTI_OSPITE.CODICE_SBAGLIATO);
         expect(auth.updateUser).not.toHaveBeenCalled();
     });
@@ -193,28 +191,6 @@ describe('la registrazione tiene lo stesso account', () => {
     it('email che ha già un account: lo dice in chiaro (il giro di prova non passa a quell\'account)', () => {
         expect(erroreRegistrazione({ code: 'email_exists' }, erroreAuthItaliano)).toBe(TESTI_OSPITE.EMAIL_GIA_USATA);
         expect(erroreRegistrazione({ message: 'A user with this email address has already been registered' }, erroreAuthItaliano)).toBe(TESTI_OSPITE.EMAIL_GIA_USATA);
-    });
-
-    it('password debole dopo un codice giusto: si rifà solo la password', async () => {
-        sessione.user = OSPITE;
-        auth.updateUser.mockResolvedValueOnce({ data: {}, error: null });
-        auth.verifyOtp.mockResolvedValue({ data: {}, error: null });
-        auth.updateUser.mockResolvedValueOnce({ data: null, error: { code: 'weak_password' } });
-        auth.updateUser.mockResolvedValueOnce({ data: {}, error: null });
-        render(<RegistrazioneOspite />);
-        apri('salva');
-        fireEvent.change(screen.getByTestId('registrazione-email'), { target: { value: 'anna@example.com' } });
-        fireEvent.click(screen.getByTestId('registrazione-invia'));
-        await screen.findByTestId('registrazione-inviata');
-        fireEvent.change(screen.getByTestId('registrazione-codice'), { target: { value: '123456' } });
-        fireEvent.change(screen.getByTestId('registrazione-password'), { target: { value: 'Giro2026x' } });
-        sessione.user = { ...OSPITE, is_anonymous: false };
-        fireEvent.click(screen.getByTestId('registrazione-conferma'));
-        await screen.findByText("L'email è confermata. Manca la password.");
-        fireEvent.change(screen.getByTestId('registrazione-password'), { target: { value: 'Giro2026xx' } });
-        fireEvent.click(screen.getByText('Salva la password'));
-        await screen.findByTestId('registrazione-fatta');
-        expect(auth.verifyOtp).toHaveBeenCalledTimes(1);
     });
 
     it('il limite del server porta il suo testo nell\'invito', () => {

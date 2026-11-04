@@ -28,6 +28,11 @@ export default function RitmoCompagniaEditor({ value, onSave, toast }) {
     const [ritmo, setRitmo] = useState(value?.ritmo || null);
     const [compagnia, setCompagnia] = useState(value?.compagnia || null);
     const [saving, setSaving] = useState(false);
+    // ONBOARDING-ACCESSO: quello detto al primo ingresso (se il Profilo non ha una scelta sua)
+    const inizio = [
+        !value?.ritmo && RITMI_PROFILO[value?.ritmoIniziale],
+        !value?.compagnia && COMPAGNIE_PROFILO[value?.compagniaIniziale],
+    ].filter(Boolean);
 
     useEffect(() => {
         setRitmo(value?.ritmo || null);
@@ -75,6 +80,9 @@ export default function RitmoCompagniaEditor({ value, onSave, toast }) {
             </div>
 
             <p className="text-xs text-obsidian-secondary">{TESTI_RITMO_COMPAGNIA.nota}</p>
+            {inizio.length > 0 && (
+                <p className="text-xs text-obsidian-secondary" data-testid="come-giri-inizio">{TESTI_RITMO_COMPAGNIA.inizio(inizio)}</p>
+            )}
 
             <button
                 type="button"

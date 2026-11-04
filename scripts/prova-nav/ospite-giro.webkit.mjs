@@ -180,7 +180,9 @@ try {
         if (!codice) throw new Error('codice non arrivato in 10 minuti');
         fs.unlinkSync(CODICE_FILE);
         await page.getByTestId('registrazione-codice').fill(codice);
-        await page.getByTestId('registrazione-password').fill(`Ospite${crypto.randomBytes(9).toString('base64url')}9`);
+        // ONBOARDING-ACCESSO: dopo il cambio la registrazione è solo email + codice; la password c'è solo nel codice di prima
+        const pw = page.getByTestId('registrazione-password');
+        if (await pw.isVisible().catch(() => false)) await pw.fill(`Ospite${crypto.randomBytes(9).toString('base64url')}9`);
         await page.getByTestId('registrazione-conferma').click();
         await page.getByTestId('registrazione-fatta').waitFor({ timeout: 30000 });
         const u = await idUtente();

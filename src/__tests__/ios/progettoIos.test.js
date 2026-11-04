@@ -97,8 +97,10 @@ describe('icona e schermata di avvio', () => {
         expect(c.images).toHaveLength(3);
         for (const i of c.images) expect(ihdr(`${s}/${i.filename}`)).toMatchObject({ w: 2732, h: 2732, colore: 2 });
     });
-    it('icona e avvio sono quelli dello script (riproducibili)', () => {
-        const out = execFileSync(process.execPath, ['scripts/ios/genera-icona.mjs', '--controlla'], { cwd: R, encoding: 'utf8' });
-        expect(out).toContain('uguali');
-    }, 30_000);
+    it('avvio dallo script di APP-NATIVA, icona dal marchio (scripts/brand/genera-icone.mjs): riproducibili', () => {
+        const avvio = execFileSync(process.execPath, ['scripts/ios/genera-icona.mjs', '--controlla'], { cwd: R, encoding: 'utf8' });
+        expect(avvio).toContain('uguale');
+        const icone = execFileSync(process.execPath, ['scripts/brand/genera-icone.mjs', '--controlla'], { cwd: R, encoding: 'utf8' });
+        expect(icone).toContain('uguali');
+    }, 60_000);
 });

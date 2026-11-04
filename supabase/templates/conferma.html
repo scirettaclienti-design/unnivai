@@ -7,8 +7,9 @@
 <meta name="format-detection" content="telephone=no,address=no,email=no,date=no">
 <meta name="color-scheme" content="light dark">
 <meta name="supported-color-schemes" content="light dark">
-<title>Conferma la tua email</title>
+<title>Il tuo codice</title>
 <style>
+@font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:800;src:url('https://unnivai.vercel.app/brand/fonts/bricolage-grotesque-latin-800-normal.woff2') format('woff2');}
 :root{color-scheme:light dark;supported-color-schemes:light dark}
 body{margin:0;padding:0;-webkit-text-size-adjust:100%;}
 a{color:#B4401A;}
@@ -18,34 +19,43 @@ a{color:#B4401A;}
   .testo{color:#EAF2F0 !important;}
   .tenue{color:#9BB5BC !important;}
   .tenue a,.testo a,a.link{color:#FF8A5B !important;}
+  .codice{background:#0A2733 !important;border-color:#FF8A5B !important;}
+  .codice span{color:#EAF2F0 !important;}
 }
 [data-ogsc] .sfondo{background:#06161E !important;}
 [data-ogsc] .scheda{background:#0B2029 !important;}
 [data-ogsc] .testo{color:#EAF2F0 !important;}
 [data-ogsc] .tenue{color:#9BB5BC !important;}
+[data-ogsc] .codice{background:#0A2733 !important;}
+[data-ogsc] .codice span{color:#EAF2F0 !important;}
 </style>
 </head>
 <body class="sfondo" style="margin:0;padding:0;background:#F3F1EC;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Un tocco e l'account è attivo. Il link vale un'ora.</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Scrivilo nell'app e l'account è attivo. Vale un'ora.</div>
 <table role="presentation" class="sfondo" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F3F1EC;">
 <tr><td align="center" style="padding:28px 16px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
 <tr><td style="padding:0 4px 18px;">
-<a href="https://unnivai.com/" target="_blank"><img src="https://unnivai.com/logo.png" width="141" height="40" alt="Unnivai" style="display:block;border:0;outline:none;width:141px;height:40px;"></a>
+<a href="https://unnivai.com/" target="_blank" style="text-decoration:none;"><img src="https://unnivai.vercel.app/brand/logo-email.png" width="141" height="40" alt="Unnivai" style="display:block;border:0;outline:none;width:141px;height:40px;font-family:'Bricolage Grotesque',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;line-height:40px;color:#FF6B3D;"></a>
 </td></tr>
 <tr><td class="scheda" style="background:#FFFFFF;border:1px solid #E4E0D8;border-radius:16px;padding:28px 24px 14px;">
-<h1 class="testo" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;line-height:1.25;color:#06161E;">Conferma la tua email</h1>
-<p class="testo" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#06161E;">Hai creato un account Unnivai con {{ .Email }}.</p>
-<p class="testo" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#06161E;">Tocca il pulsante per attivarlo. Poi entri con la tua password.</p>
+<h1 class="testo titolo" style="margin:0 0 14px;font-family:'Bricolage Grotesque',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:26px;font-weight:800;line-height:1.2;letter-spacing:-0.01em;color:#06161E;">Il tuo codice</h1>
+<p class="testo" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#06161E;">Stai creando il tuo account Unnivai con {{ .Email }}.</p>
+<p class="testo" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#06161E;">Scrivi questo codice nell'app:</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 18px;">
+<tr><td class="codice" bgcolor="#FFF3EC" style="background:#FFF3EC;border:2px solid #FF6B3D;border-radius:14px;padding:14px 22px;">
+<span style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,'Courier New',monospace;font-size:34px;font-weight:700;letter-spacing:8px;line-height:1.1;color:#06161E;">{{ .Token }}</span>
+</td></tr></table>
+<p class="testo" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#06161E;">Oppure apri questo link:</p>
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px;">
 <tr><td class="pulsante" bgcolor="#FF6B3D" style="background:#FF6B3D;border-radius:999px;">
 <a href="{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email" target="_blank" style="display:inline-block;padding:14px 26px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;line-height:1.2;color:#1A0A04;text-decoration:none;border-radius:999px;">Conferma l'email</a>
 </td></tr></table>
-<p class="tenue" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A5A60;">Il link vale un'ora e funziona una volta. Se il pulsante non si apre, copia questo indirizzo nel browser:</p>
+<p class="tenue" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A5A60;">Codice e link valgono un'ora e funzionano una volta. Se il pulsante non si apre, copia questo indirizzo nel browser:</p>
 <p class="tenue" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A5A60;"><a class="link" href="{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email" target="_blank" style="color:#B4401A;word-break:break-all;">{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email</a></p>
 </td></tr>
 <tr><td style="padding:18px 4px 0;">
-<p class="tenue" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#4A5A60;">Non hai creato tu l'account? Ignora questa email: senza conferma non si attiva.</p>
+<p class="tenue" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#4A5A60;">Non l'hai chiesto tu? Ignora questa email: senza conferma l'account non si attiva.</p>
 <p class="tenue" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#4A5A60;"><a class="link" href="{{ .SiteURL }}" target="_blank" style="color:#B4401A;">Apri Unnivai</a></p>
 </td></tr>
 </table>

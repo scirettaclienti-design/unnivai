@@ -35,12 +35,15 @@ const SEED_KEY = 'unnivai_onboarding_seed_v1';
 const readSeed = () => JSON.parse(localStorage.getItem(SEED_KEY));
 const clickByText = (text) => fireEvent.click(screen.getByText(text).closest('button'));
 
-// welcome → interessi
-const gotoInterests = () => clickByText('Iniziamo!');
-// interessi → dieta → a tavola → pronto (P7b: due schermate in piu', saltabili)
-const gotoReady = () => { clickByText('Continua'); clickByText('Continua'); clickByText('Continua'); };
-// pronto → salva (handleComplete)
-const finish = () => clickByText('Entra in Unnivai');
+// ONBOARDING-ACCESSO — consenso → interessi
+const gotoInterests = async () => {
+    clickByText('Va bene');
+    await screen.findByText('Cosa ti fa fermare?');
+};
+// interessi → a tavola → come giri (saltabili)
+const gotoReady = () => { fireEvent.click(screen.getByTestId('primo-avanti')); fireEvent.click(screen.getByTestId('primo-avanti')); };
+// come giri → salva
+const finish = () => clickByText('Fatto, si parte');
 
 beforeEach(() => {
     localStorage.clear();
@@ -50,7 +53,7 @@ beforeEach(() => {
 describe('Gate SEME (L1) — derivazione seme dalle voci INTERESTS (via UI)', () => {
     it('selezione ["cultura"] → seme ["cultura","arte"] (accorpamento)', async () => {
         render(createElement(Onboarding));
-        gotoInterests();
+        await gotoInterests();
         clickByText('Storia e arte'); // voce id "cultura", seeds ['cultura','arte']
         gotoReady();
         finish();
@@ -63,7 +66,7 @@ describe('Gate SEME (L1) — derivazione seme dalle voci INTERESTS (via UI)', ()
 
     it('selezione di tutte e 7 le voci → 7 id CORE + arte, deduplicati (8 unici)', async () => {
         render(createElement(Onboarding));
-        gotoInterests();
+        await gotoInterests();
         ['Mangiare e bere', 'Storia e arte', 'Natura e panorami', 'Vita notturna',
             'Camminare e scoprire', 'Ritmo lento', 'Shopping e mercati'].forEach(clickByText);
         gotoReady();
@@ -78,18 +81,15 @@ describe('Gate SEME (L1) — derivazione seme dalle voci INTERESTS (via UI)', ()
         expect(new Set(seed).size).toBe(seed.length);
     });
 
-    it('path "Salta per ora" → seme [] (chiave presente, distinguibile da assente)', () => {
+    it('path "Salta per ora" → seme [] (chiave presente, distinguibile da assente)', async () => {
         render(createElement(Onboarding));
-        // "Salta per ora" e' visibile fin dallo step 0
+        // "Salta per ora" e' visibile da ogni domanda (il consenso è un passo a sé)
+        await gotoInterests();
         clickByText('Salta per ora');
         expect(localStorage.getItem(SEED_KEY)).toBe('[]');
         expect(readSeed()).toEqual([]);
     });
 
-    // NOTA onesta: "selezione vuota → []" via handleComplete NON e' raggiungibile
-    // dalla UI (il bottone Continua/Entra e' disabilitato senza almeno 1 scelta).
-    // Il caso "nessun gusto" e' coperto dal path Salta qui sopra. Analogamente
-    // "['cultura','arte'] via UI": la voce 'arte' non esiste come voce a se'
-    // (arte e' solo un seed di 'cultura'), quindi il caso non e' producibile —
-    // la de-duplicazione cross-voce e' comunque garantita dal Set (test sopra).
+    // ONBOARDING-ACCESSO: anche gli interessi ora si saltano («Avanti» senza scelte); il caso «nessun gusto»
+    // dichiarato resta lo skip [] qui sopra, i vincoli vuoti li prova onboarding_seed_save_failure.
 });

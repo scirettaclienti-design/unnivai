@@ -1,0 +1,50 @@
+[
+ {
+  "id": "conferma",
+  "titolo": "Conferma (account nuovo): codice e link",
+  "chiaro": "conferma-chiaro.jpg",
+  "scuro": "conferma-scuro.jpg"
+ },
+ {
+  "id": "accesso",
+  "titolo": "Accesso con codice (account che c'è): codice e link",
+  "chiaro": "accesso-chiaro.jpg",
+  "scuro": "accesso-scuro.jpg"
+ },
+ {
+  "id": "codice-ospite",
+  "titolo": "Codice dell'ospite che crea l'account",
+  "chiaro": "codice-ospite-chiaro.jpg",
+  "scuro": "codice-ospite-scuro.jpg"
+ },
+ {
+  "id": "password",
+  "titolo": "Reimposta la password (vecchi account)",
+  "chiaro": "password-chiaro.jpg",
+  "scuro": "password-scuro.jpg"
+ },
+ {
+  "id": "lista-attesa",
+  "titolo": "Lista d'attesa (unnivai.com)",
+  "chiaro": "lista-attesa-chiaro.jpg",
+  "scuro": "lista-attesa-scuro.jpg"
+ },
+ {
+  "id": "riepilogo",
+  "titolo": "Avvisi: riepilogo del giorno",
+  "chiaro": "riepilogo-chiaro.jpg",
+  "scuro": "riepilogo-scuro.jpg"
+ },
+ {
+  "id": "avviso",
+  "titolo": "Avvisi: avviso immediato",
+  "chiaro": "avviso-chiaro.jpg",
+  "scuro": "avviso-scuro.jpg"
+ },
+ {
+  "id": "senza-immagini",
+  "titolo": "Accesso con le immagini bloccate: resta il nome in arancione",
+  "chiaro": "senza-immagini-chiaro.jpg",
+  "scuro": "senza-immagini-scuro.jpg"
+ }
+]

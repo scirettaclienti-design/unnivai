@@ -1,528 +1,304 @@
 /**
- * DVAI-011 / Blocco Estetica — Onboarding Wizard (Direzione A: Inchiostro & Ossidiana)
- * Full-screen immersivo, contrasto netto bianco/nero, zero radio button, bottoni in caso normale.
+ * ONBOARDING-ACCESSO — il PRIMO INGRESSO, una volta per account: il consenso ai servizi AI (se manca), poi tre domande
+ * brevi e saltabili — interessi, a tavola, come giri (passo e compagnia). È quello che il DNA già usa: interessi nel seme,
+ * dieta/budget/stile come vincoli e gusti, passo e compagnia come PUNTO DI PARTENZA (`ritmo_iniziale`,
+ * `compagnia_iniziale`: poi decidono i giri e le scelte vere). Tutto si cambia dal Profilo.
+ *
+ * «Fatto» sta sul server due volte: il seme in user_preferences.onboarding_seed (ONB-1, [] = saltato) e il segno
+ * `primo_ingresso_fatto_at` nei metadati dell'account (lib/onboardingStatus.js). Così non ricompare cambiando telefono o
+ * reinstallando; un ospite che crea l'account tiene lo stesso id, quindi risposte e giro di prova restano.
+ *
+ * Gate SEME (L2): un salvataggio fallito BLOCCA con «Riprova» (mai un «fatto» falso).
  */
-import React, { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import {
-    ArrowRight,
-    ArrowLeft,
-    AlertTriangle,
-    RefreshCw,
-    Ban,
-    Leaf,
-    Sprout,
-    Wheat,
-    Moon as MoonIcon,
-    Wallet,
-    ChefHat,
-    Soup,
-    Sandwich,
-} from 'lucide-react';
+import { ArrowRight, ArrowLeft, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { dataService } from '@/services/dataService';
-import { buildSeed } from '@/lib/foodPrefs';
+import { buildSeed, DIETE, STILI, RITMI_PROFILO, COMPAGNIE_PROFILO } from '@/lib/foodPrefs';
 import { INTERESTS, computeSeed } from '@/lib/interests';
-import { markOnboardingDone } from '@/lib/onboardingStatus';
+import { markOnboardingDone, segnaPrimoIngressoSulServer } from '@/lib/onboardingStatus';
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
-
-// P7b — vincoli (dieta, budget) e gusti (stile) a tavola. Tutto saltabile:
-// nessuna scelta = nessun vincolo. Il seme si salva separando le due cose
-// (lib/foodPrefs.js buildSeed): { interessi, vincoli: { dieta, budget }, gusti: { stile } }.
-const DIETE_OPTIONS = [
-    { id: 'nessuna',       icon: Ban,      label: 'Nessuna restrizione' },
-    { id: 'vegetariano',   icon: Leaf,     label: 'Vegetariano' },
-    { id: 'vegano',        icon: Sprout,   label: 'Vegano' },
-    { id: 'senza_glutine', icon: Wheat,    label: 'Senza glutine' },
-    { id: 'halal',         icon: MoonIcon, label: 'Halal' },
-];
-const BUDGET_OPTIONS = [
-    { id: '€',   label: '€',   hint: 'Spendere poco' },
-    { id: '€€',  label: '€€',  hint: 'Una via di mezzo' },
-    { id: '€€€', label: '€€€', hint: "Per un'occasione" },
-];
-const STILE_OPTIONS = [
-    { id: 'autore',    icon: ChefHat,  label: "Cucina d'autore" },
-    { id: 'trattoria', icon: Soup,     label: 'Trattoria' },
-    { id: 'street',    icon: Sandwich, label: 'Street food' },
-];
-// Ultimo passo (manifesto 0, interessi 1, dieta 2, budget e stile 3, strada 4).
-const LAST_STEP = 4;
+import { haConsensoAi, daiConsensoAi, rimandaConsensoAi } from '@/lib/consensoAi';
+import { CONSENSO_AI, PRIMO_INGRESSO as T } from '@/lib/testiAccount';
+import { LogoUnnivai, FondoMarchio, EtichettaPasso } from '@/components/marchio/Marchio';
 
 const ONBOARDING_SEED_KEY = 'unnivai_onboarding_seed_v1';
+const BUDGET = [
+    { id: '€', label: '€', hint: 'Poco' },
+    { id: '€€', label: '€€', hint: 'Il giusto' },
+    { id: '€€€', label: '€€€', hint: 'Un\'occasione' },
+];
 
-const slideVariants = {
-    enter: (dir) => ({ x: dir > 0 ? 30 : -30, opacity: 0 }),
+const slide = {
+    enter: (dir) => ({ x: dir > 0 ? 24 : -24, opacity: 0 }),
     center: { x: 0, opacity: 1 },
-    exit:  (dir) => ({ x: dir > 0 ? -30 : 30, opacity: 0 }),
+    exit: (dir) => ({ x: dir > 0 ? -24 : 24, opacity: 0 }),
 };
 
-// Gate SEME (L2): cache locale del seme. Best-effort DI PROPOSITO — la fonte
-// di verita' e' user_preferences.onboarding_seed sul server. Se il localStorage
-// e' pieno il seme e' gia' salvato dove conta, quindi un fallimento qui non
-// deve bloccare l'utente ne' essere mostrato come errore.
+// Gate SEME (L2): cache locale del seme, best-effort: la fonte è il server.
 const writeLocalSeedCache = (seed) => {
-    try {
-        localStorage.setItem(ONBOARDING_SEED_KEY, JSON.stringify(seed));
-    } catch {
-        /* quota: il server ha gia' il dato, la cache si ricostruisce al prossimo mount */
-    }
+    try { localStorage.setItem(ONBOARDING_SEED_KEY, JSON.stringify(seed)); } catch { /* quota: il server ha già il dato */ }
 };
+
+/** Una scelta a pillola (multipla o singola): ≥ 44 px, stato con aria-pressed. */
+function Pillola({ selected, onClick, children, icon: Icona, className = '' }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-pressed={selected}
+            className={`min-h-[48px] px-4 rounded-2xl border text-left text-[15px] font-corpo font-semibold transition-colors flex items-center gap-2.5 cursor-pointer ${
+                selected
+                    ? 'bg-brand-orange/15 border-brand-orange text-obsidian-primary'
+                    : 'bg-obsidian-card/80 border-obsidian-border text-obsidian-primary hover:bg-obsidian-raised'
+            } ${className}`}
+        >
+            {Icona && <Icona className={`w-4 h-4 shrink-0 stroke-[2.2] ${selected ? 'text-brand-orange' : 'text-obsidian-secondary'}`} aria-hidden="true" />}
+            <span>{children}</span>
+        </button>
+    );
+}
+
+const Domanda = ({ children }) => <p className="font-etichetta text-[11px] tracking-[0.18em] uppercase text-obsidian-secondary mb-2">{children}</p>;
 
 export default function Onboarding() {
-    const [step, setStep] = useState(0);
-    const [direction, setDirection] = useState(1);
-    const [selectedInterests, setSelectedInterests] = useState([]);
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    // Il consenso è il primo passo solo se manca (deciso all'apertura: dopo il «Va bene» il passo resta nell'elenco).
+    const [conConsenso] = useState(() => !haConsensoAi(user));
+    const passi = conConsenso ? ['consenso', 'interessi', 'tavola', 'giro'] : ['interessi', 'tavola', 'giro'];
+    const [indice, setIndice] = useState(0);
+    const [dir, setDir] = useState(1);
+    const [interessi, setInteressi] = useState([]);
     const [dieta, setDieta] = useState([]);
     const [budget, setBudget] = useState(null);
     const [stile, setStile] = useState(null);
+    const [ritmo, setRitmo] = useState(null);
+    const [compagnia, setCompagnia] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
-    // Gate SEME (L2): un fallimento di salvataggio del seme NON e' piu' un
-    // console.warn. Vive qui e viene renderizzato: l'utente lo vede e riprova.
     const [saveError, setSaveError] = useState(null);
-    // Ricordiamo quale seme stava salvando, cosi' "Riprova" ritenta ESATTAMENTE
-    // quello (vale anche per lo skip, che salva []): senza, il retry dopo uno
-    // skip fallito ripartirebbe dagli interessi selezionati, cioe' salverebbe
-    // una cosa diversa da quella che l'utente aveva chiesto.
+    // «Riprova» ritenta ESATTAMENTE il seme che stava salvando (anche lo skip, che salva []).
     const [pendingSeed, setPendingSeed] = useState(null);
+    const uscito = useRef(false);
+    const passo = passi[indice];
+    const ultimo = indice === passi.length - 1;
 
-    const navigate = useNavigate();
-    const { user } = useAuth();
-
-    // ONB-1: l'onboarding si vede UNA volta per account. Chi l'ha gia' fatto (lo
-    // dice il DB, anche da un altro browser) e arriva qui per URL diretto torna a
-    // '/'. Gli interessi si cambiano solo dal Profilo.
-    const onboardingStatus = useOnboardingStatus(user?.id);
+    // ONB-1: una volta per account. Chi l'ha già fatto (DB o metadati dell'account) e arriva qui per URL torna a '/'.
+    const stato = useOnboardingStatus(user?.id, user?.user_metadata);
     useEffect(() => {
-        if (onboardingStatus === 'done' && !isSaving) navigate('/', { replace: true });
-    }, [onboardingStatus, isSaving, navigate]);
+        if (stato === 'done' && !isSaving && !uscito.current) navigate('/', { replace: true });
+    }, [stato, isSaving, navigate]);
 
-    const goNext = () => {
-        setDirection(1);
-        setStep(s => Math.min(s + 1, LAST_STEP));
-    };
-    const goBack = () => {
-        setDirection(-1);
-        setStep(s => Math.max(s - 1, 0));
+    const vai = (d) => {
+        setDir(d);
+        setIndice((i) => Math.min(Math.max(i + d, 0), passi.length - 1));
+        try { document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } catch { /* niente pagina */ }
     };
 
-    const toggleInterest = (id) => {
-        setSelectedInterests(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
-    };
-
-    /**
-     * Gate SEME (L2) — unico punto di salvataggio del seme, per TUTTE le uscite
-     * dall'onboarding (conferma con gusti scelti e "Salta per ora" con []).
-     *
-     * PRIMA scriveva su profiles.interests / profiles.onboarding_complete:
-     * colonne che non sono mai esistite. L'upsert falliva SEMPRE, l'errore
-     * finiva in un console.warn, e si navigava lo stesso al dashboard. Il seme
-     * sopravviveva solo nel localStorage di quel device, e AuthContext lo
-     * cancella al logout: quello che l'utente dichiarava moriva al primo
-     * logout e non e' mai esistito su un secondo device.
-     *
-     * Ora: il server e' la fonte di verita' (user_preferences.onboarding_seed),
-     * il localStorage e' solo cache, e un fallimento BLOCCA. Niente navigate,
-     * niente 'dvai_onboarding_done' — segnare "onboarding fatto" dopo un
-     * salvataggio fallito sarebbe la stessa bugia di prima, spostata di una
-     * riga.
-     */
     const persistSeed = async (seed) => {
         setIsSaving(true);
         setSaveError(null);
         setPendingSeed(seed);
-
-        // Utente non autenticato. Puo' succedere: /onboarding e' una route
-        // PUBBLICA (App.jsx:130, fuori da RoleGuard), quindi raggiungibile per
-        // URL diretto senza sessione — il RootDispatcher ci manda solo utenti
-        // loggati, ma non e' l'unica porta. Qui non c'e' nessuna riga da
-        // scrivere e le RLS di user_preferences (auth.uid() = user_id)
-        // rifiuterebbero comunque la scrittura. Bloccare con "Riprova"
-        // intrappolerebbe l'utente per sempre: nessun numero di tentativi crea
-        // una sessione. Si salva la sola cache locale e si prosegue —
-        // RoleGuard su /dashboard-user lo mandera' a /login, e al primo login
-        // vero il seme locale e' ancora li' per essere sincronizzato.
+        // /onboarding è pubblica: senza sessione si salva la sola cache e si prosegue (RoleGuard porta al login).
         if (!user?.id) {
             writeLocalSeedCache(seed);
-            localStorage.setItem('dvai_onboarding_done', '1');
+            try { localStorage.setItem('dvai_onboarding_done', '1'); } catch { /* storage ko */ }
+            uscito.current = true;
             setIsSaving(false);
             navigate('/dashboard-user', { replace: true });
             return;
         }
-
         const result = await dataService.upsertOnboardingSeed(user.id, seed);
-
         if (!result?.success) {
-            // L'errore diventa visibile. Nessun navigate, nessun flag "fatto".
             setSaveError(result?.error || 'Errore sconosciuto');
             setIsSaving(false);
             return;
         }
-
         writeLocalSeedCache(seed);
         markOnboardingDone(user.id);
+        await segnaPrimoIngressoSulServer(); // il segno sull'account: best-effort, il seme dice già «fatto»
+        uscito.current = true;
         setIsSaving(false);
         navigate('/dashboard-user', { replace: true });
     };
 
-    const handleComplete = () => persistSeed(buildSeed({
-        interessi: computeSeed(selectedInterests), dieta, budget, stile,
+    const completa = () => persistSeed(buildSeed({
+        interessi: computeSeed(interessi), dieta, budget, stile, ritmoIniziale: ritmo, compagniaIniziale: compagnia,
     }));
-
-    // "Nessuna restrizione" esclude le altre, e le altre escludono lei.
-    const toggleDieta = (id) => {
-        if (id === 'nessuna') { setDieta([]); return; }
-        setDieta(prev => (prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]));
-    };
-    // "Salta questa domanda": si passa oltre senza vincolo.
-    const skipQuestion = () => {
-        if (step === 2) setDieta([]);
-        if (step === 3) { setBudget(null); setStile(null); }
-        goNext();
-    };
-
-    // "Salta per ora" passa dallo STESSO meccanismo e scrive [] sul server.
-    // Uno skip esplicito e' un dato dell'utente quanto una scelta di gusti
-    // ("ho deciso di non dichiarare nulla"): se restasse locale morirebbe al
-    // logout esattamente come il bug che stiamo chiudendo, e su un secondo
-    // device l'utente si vedrebbe richiedere l'onboarding all'infinito. Il
-    // server distingue NULL (mai fatto) da [] (fatto, saltato) proprio per
-    // questo.
-    const handleSkip = () => persistSeed([]);
-
+    // «Salta per ora»: [] sul server = fatto, senza gusti dichiarati (ONB-1).
+    const saltaTutto = () => persistSeed([]);
     const retry = () => { if (pendingSeed) persistSeed(pendingSeed); };
 
-    const canProceed = () => {
-        if (step === 1) return selectedInterests.length > 0;
-        return true;
+    const avanti = () => (ultimo ? completa() : vai(1));
+    const saltaDomanda = () => {
+        if (passo === 'interessi') setInteressi([]);
+        if (passo === 'tavola') { setDieta([]); setBudget(null); setStile(null); }
+        if (passo === 'giro') { setRitmo(null); setCompagnia(null); }
+        if (ultimo) persistSeed(buildSeed({ interessi: computeSeed(interessi), dieta, budget, stile }));
+        else vai(1);
     };
 
+    const consensoOk = async () => { await daiConsensoAi(user); vai(1); };
+    const consensoDopo = () => { rimandaConsensoAi(); vai(1); };
+
+    const toggle = (lista, set, id) => set(lista.includes(id) ? lista.filter((x) => x !== id) : [...lista, id]);
+    const numero = indice + 1;
+
     return (
-        <div className="min-h-svh w-full bg-obsidian-bg text-obsidian-primary flex flex-col justify-between p-6 sm:p-8 font-quicksand relative overflow-hidden selection:bg-brand-orange selection:text-obsidian-bg">
-            {/* Header: Brand & Minimal Step indicator */}
-            <header className="w-full max-w-md mx-auto pt-2 flex items-center justify-between z-10">
-                <span className="text-xs font-black tracking-widest uppercase text-obsidian-secondary">
-                    Unnivai
-                </span>
-                <div className="flex items-center space-x-2" aria-label={`Passo ${step + 1} di ${LAST_STEP + 1}`}>
-                    {Array.from({ length: LAST_STEP + 1 }, (_, i) => i).map((i) => (
-                        <span
-                            key={i}
-                            className={`h-1 rounded-full transition-all duration-300 ${
-                                i === step
-                                    ? 'w-8 bg-brand-orange'
-                                    : i < step
-                                    ? 'w-2 bg-obsidian-secondary'
-                                    : 'w-2 bg-obsidian-raised'
-                            }`}
-                        />
+        <div className="min-h-svh w-full bg-obsidian-bg text-obsidian-primary font-corpo relative overflow-x-clip flex flex-col" data-testid="primo-ingresso" data-passo={passo}>
+            <FondoMarchio />
+            <header className="relative z-10 w-full max-w-md mx-auto px-6 pt-6 flex items-center justify-between gap-3">
+                <LogoUnnivai className="h-7 w-auto" />
+                <div className="flex items-center gap-1.5" aria-label={`Passo ${numero} di ${passi.length}`}>
+                    {passi.map((p, i) => (
+                        <span key={p} className={`h-1 rounded-full transition-all duration-300 ${i === indice ? 'w-7 bg-brand-orange' : i < indice ? 'w-2 bg-obsidian-secondary' : 'w-2 bg-obsidian-border-elevated'}`} />
                     ))}
                 </div>
             </header>
 
-            {/* Main Stage (equilibrato verticalmente) */}
-            <main className="w-full max-w-md mx-auto my-auto py-6 z-10">
-                <AnimatePresence mode="wait" custom={direction}>
-                    <motion.div
-                        key={step}
-                        custom={direction}
-                        variants={slideVariants}
-                        initial="enter"
-                        animate="center"
-                        exit="exit"
-                        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                        className="w-full"
-                    >
-                        {/* ─── STEP 0: Il Manifesto ─── */}
-                        {step === 0 && (
-                            <div className="space-y-5">
-                                <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-obsidian-primary leading-[1.08]">
-                                    Non è per tutti.<br />
-                                    È per te.
-                                </h1>
-                                <p className="text-obsidian-secondary text-base sm:text-lg leading-relaxed font-medium max-w-sm pt-1">
-                                    Percorsi a piedi sui luoghi che gli altri superano. Solo posti veri, nessun filtro da guida.
-                                </p>
-                            </div>
+            <main className="relative z-10 w-full max-w-md mx-auto px-6 pt-8 pb-4 flex-1">
+                <AnimatePresence mode="wait" custom={dir}>
+                    <motion.div key={passo} custom={dir} variants={slide} initial="enter" animate="center" exit="exit" transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}>
+                        {passo === 'consenso' && (
+                            <section data-testid="consenso-ai" aria-labelledby="consenso-titolo">
+                                <EtichettaPasso numero={numero} testo={T.PASSI.consenso} />
+                                <h1 id="consenso-titolo" className="font-marchio font-extrabold text-[30px] leading-[1.05] tracking-tight mt-3">{CONSENSO_AI.TITOLO}</h1>
+                                <p className="mt-3 text-[15px] text-obsidian-secondary leading-relaxed">{CONSENSO_AI.INTRO}</p>
+                                <ul className="mt-5 space-y-3">
+                                    {CONSENSO_AI.SERVIZI.map((s) => (
+                                        <li key={s.nome} className="rounded-2xl border border-obsidian-border bg-obsidian-card/80 px-4 py-3">
+                                            <p className="text-sm font-semibold text-obsidian-primary">{s.nome}</p>
+                                            <p className="mt-1 text-[13px] text-obsidian-secondary leading-relaxed">{s.ricevono}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="mt-3 text-[13px] text-obsidian-secondary leading-relaxed">{CONSENSO_AI.NON_RICEVONO}</p>
+                                <a href="/privacy" className="mt-2 inline-block text-sm font-semibold text-brand-orange underline underline-offset-4 min-h-[44px] leading-[44px]" data-testid="consenso-ai-privacy">{CONSENSO_AI.PRIVACY_LINK}</a>
+                            </section>
                         )}
 
-                        {/* ─── STEP 1: Come ti muovi? ─── */}
-                        {step === 1 && (
-                            <div className="space-y-4">
-                                <div>
-                                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-obsidian-primary">
-                                        Come ti muovi?
-                                    </h2>
-                                    <p className="text-obsidian-secondary text-xs sm:text-sm mt-1 font-medium">
-                                        Dichiara cosa cercare.
-                                    </p>
-                                </div>
-
-                                <div className="space-y-2.5 max-h-[54vh] overflow-y-auto pr-1 scrollbar-hide pt-1">
-                                    {INTERESTS.map(interest => {
-                                        const isSelected = selectedInterests.includes(interest.id);
-                                        const IconComponent = interest.icon;
-                                        return (
-                                            <motion.button
-                                                key={interest.id}
-                                                type="button"
-                                                onClick={() => toggleInterest(interest.id)}
-                                                className={`w-full p-4 rounded-2xl flex items-center transition-all border text-left ${
-                                                    isSelected
-                                                        ? 'bg-ivory-bg border-ivory-bg text-ivory-text font-black shadow-md'
-                                                        : 'bg-obsidian-card border-obsidian-border text-obsidian-primary font-bold hover:bg-obsidian-raised'
-                                                }`}
-                                                whileTap={{ scale: 0.98 }}
-                                            >
-                                                <div className="flex items-center space-x-3.5">
-                                                    <div className={`p-2 rounded-xl transition-colors ${
-                                                        isSelected ? 'bg-ivory-badge' : 'bg-obsidian-raised'
-                                                    }`}>
-                                                        <IconComponent className={`w-4 h-4 stroke-[2.4] ${
-                                                            isSelected ? 'text-ivory-icon' : 'text-brand-orange'
-                                                        }`} />
-                                                    </div>
-                                                    <span className="text-sm tracking-tight">
-                                                        {interest.label}
-                                                    </span>
-                                                </div>
-                                            </motion.button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ─── STEP 2: Cosa non mangi? (P7b, scelta multipla) ─── */}
-                        {step === 2 && (
-                            <div className="space-y-4">
-                                <div>
-                                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-obsidian-primary">
-                                        Cosa non mangi?
-                                    </h2>
-                                    <p className="text-obsidian-secondary text-xs sm:text-sm mt-1 font-medium">
-                                        Cerchiamo i locali con questo criterio. Puoi sceglierne più d'uno.
-                                    </p>
-                                </div>
-                                <div className="space-y-2.5 pt-1">
-                                    {DIETE_OPTIONS.map(opt => (
-                                        <ChoiceButton
-                                            key={opt.id}
-                                            icon={opt.icon}
-                                            label={opt.label}
-                                            selected={opt.id === 'nessuna' ? dieta.length === 0 : dieta.includes(opt.id)}
-                                            onClick={() => toggleDieta(opt.id)}
-                                        />
+                        {passo === 'interessi' && (
+                            <section>
+                                <EtichettaPasso numero={numero} testo={T.PASSI.interessi} />
+                                <h1 className="font-marchio font-extrabold text-[32px] leading-[1.05] tracking-tight mt-3">{T.INTERESSI_TITOLO}</h1>
+                                <p className="mt-2 text-[15px] text-obsidian-secondary leading-relaxed">{T.INTERESSI_SOTTO}</p>
+                                <div className="mt-5 grid grid-cols-1 gap-2.5">
+                                    {INTERESTS.map((it) => (
+                                        <Pillola key={it.id} icon={it.icon} selected={interessi.includes(it.id)} onClick={() => toggle(interessi, setInteressi, it.id)}>{it.label}</Pillola>
                                     ))}
                                 </div>
-                            </div>
+                            </section>
                         )}
 
-                        {/* ─── STEP 3: Budget a pasto e stile a tavola (P7b) ─── */}
-                        {step === 3 && (
-                            <div className="space-y-5">
-                                <div>
-                                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-obsidian-primary">
-                                        A tavola
-                                    </h2>
-                                </div>
-                                <div className="space-y-2">
-                                    <p className="text-sm font-black tracking-tight text-obsidian-primary">Quanto vuoi spendere a pasto?</p>
-                                    <div className="grid grid-cols-3 gap-2.5">
-                                        {BUDGET_OPTIONS.map(opt => {
-                                            const isSelected = budget === opt.id;
-                                            return (
-                                                <motion.button
-                                                    key={opt.id}
-                                                    type="button"
-                                                    onClick={() => setBudget(isSelected ? null : opt.id)}
-                                                    className={`p-3 rounded-2xl border text-center transition-all ${
-                                                        isSelected
-                                                            ? 'bg-ivory-bg border-ivory-bg text-ivory-text font-black shadow-md'
-                                                            : 'bg-obsidian-card border-obsidian-border text-obsidian-primary font-bold hover:bg-obsidian-raised'
-                                                    }`}
-                                                    whileTap={{ scale: 0.98 }}
-                                                >
-                                                    <span className="block text-base tracking-tight">{opt.label}</span>
-                                                    <span className={`block text-[11px] font-medium mt-0.5 ${isSelected ? 'text-ivory-text' : 'text-obsidian-secondary'}`}>{opt.hint}</span>
-                                                </motion.button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <p className="text-sm font-black tracking-tight text-obsidian-primary">Che stile a tavola?</p>
-                                    <div className="space-y-2.5">
-                                        {STILE_OPTIONS.map(opt => (
-                                            <ChoiceButton
-                                                key={opt.id}
-                                                icon={opt.icon}
-                                                label={opt.label}
-                                                selected={stile === opt.id}
-                                                onClick={() => setStile(stile === opt.id ? null : opt.id)}
-                                            />
+                        {passo === 'tavola' && (
+                            <section>
+                                <EtichettaPasso numero={numero} testo={T.PASSI.tavola} />
+                                <h1 className="font-marchio font-extrabold text-[32px] leading-[1.05] tracking-tight mt-3">{T.TAVOLA_TITOLO}</h1>
+                                <div className="mt-5">
+                                    <Domanda>{T.DIETA}</Domanda>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Pillola selected={dieta.length === 0} onClick={() => setDieta([])}>{T.NESSUNA}</Pillola>
+                                        {Object.entries(DIETE).map(([id, d]) => (
+                                            <Pillola key={id} selected={dieta.includes(id)} onClick={() => toggle(dieta, setDieta, id)}>{d.label}</Pillola>
                                         ))}
                                     </div>
                                 </div>
-                            </div>
+                                <div className="mt-5">
+                                    <Domanda>{T.BUDGET}</Domanda>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {BUDGET.map((b) => (
+                                            <Pillola key={b.id} selected={budget === b.id} onClick={() => setBudget(budget === b.id ? null : b.id)} className="justify-center flex-col !gap-0 py-2 text-center">
+                                                <span className="block">{b.label}</span>
+                                                <span className="block text-[11px] font-normal text-obsidian-secondary">{b.hint}</span>
+                                            </Pillola>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="mt-5">
+                                    <Domanda>{T.STILE}</Domanda>
+                                    <div className="flex flex-wrap gap-2">
+                                        {Object.entries(STILI).map(([id, st]) => (
+                                            <Pillola key={id} selected={stile === id} onClick={() => setStile(stile === id ? null : id)}>{st.label}</Pillola>
+                                        ))}
+                                    </div>
+                                </div>
+                            </section>
                         )}
 
-                        {/* ─── STEP 4: Passaggio alla Strada ─── */}
-                        {step === LAST_STEP && (
-                            <div className="space-y-5">
-                                <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-obsidian-primary leading-[1.08]">
-                                    Ora tocca<br />alla strada.
-                                </h2>
-                                <p className="text-obsidian-secondary text-base sm:text-lg leading-relaxed font-medium max-w-sm pt-1">
-                                    Ci serve solo sapere dove sei. Il percorso parte da lì.
-                                </p>
-                            </div>
+                        {passo === 'giro' && (
+                            <section>
+                                <EtichettaPasso numero={numero} testo={T.PASSI.giro} />
+                                <h1 className="font-marchio font-extrabold text-[32px] leading-[1.05] tracking-tight mt-3">{T.GIRO_TITOLO}</h1>
+                                <div className="mt-5">
+                                    <Domanda>{T.RITMO}</Domanda>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {Object.entries(RITMI_PROFILO).map(([id, label]) => (
+                                            <Pillola key={id} selected={ritmo === id} onClick={() => setRitmo(ritmo === id ? null : id)} className="justify-center">{label}</Pillola>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="mt-5">
+                                    <Domanda>{T.COMPAGNIA}</Domanda>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {Object.entries(COMPAGNIE_PROFILO).map(([id, label]) => (
+                                            <Pillola key={id} selected={compagnia === id} onClick={() => setCompagnia(compagnia === id ? null : id)} className="justify-center">{label}</Pillola>
+                                        ))}
+                                    </div>
+                                </div>
+                                <p className="mt-5 text-[13px] text-obsidian-secondary">{T.NOTA}</p>
+                            </section>
                         )}
                     </motion.div>
                 </AnimatePresence>
             </main>
 
-            {/* Bottom Navigation Actions */}
-            <footer className="w-full max-w-md mx-auto pb-4 space-y-4 z-10">
-                {/* Gate SEME (L2): il fallimento di salvataggio e' VISIBILE.
-                    Finche' questo blocco e' a schermo l'utente non e' passato al
-                    dashboard e nulla e' stato marcato come fatto. */}
+            {/* I tasti restano in vista anche quando il passo è più lungo dello schermo (il consenso su un iPhone 14). */}
+            <footer className="sticky bottom-0 z-10 w-full max-w-md mx-auto px-6 pt-6 space-y-3 bg-gradient-to-t from-obsidian-bg via-obsidian-bg/95 to-transparent" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}>
+                {/* Gate SEME (L2): il fallimento si vede; finché è qui nulla è segnato come fatto. */}
                 {saveError && (
-                    <div
-                        role="alert"
-                        className="rounded-2xl bg-obsidian-card border border-status-error/40 p-4 space-y-3"
-                    >
-                        <div className="flex items-start space-x-2.5">
-                            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 stroke-[2.4] text-status-error" />
+                    <div role="alert" className="rounded-2xl bg-obsidian-card border border-status-error/40 p-4 space-y-3">
+                        <div className="flex items-start gap-2.5">
+                            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 stroke-[2.4] text-status-error" aria-hidden="true" />
                             <div className="space-y-1">
-                                <p className="text-sm font-black tracking-tight text-obsidian-primary">
-                                    Non siamo riusciti a salvare le tue scelte.
-                                </p>
-                                <p className="text-xs font-medium leading-relaxed text-obsidian-secondary">
-                                    Non le abbiamo perse, ma non sono ancora al sicuro: senza salvarle
-                                    andrebbero via al prossimo accesso. Controlla la connessione e riprova.
-                                </p>
-                                <p className="text-[11px] font-mono text-obsidian-secondary/80 break-words pt-0.5">
-                                    {saveError}
-                                </p>
+                                <p className="text-sm font-semibold text-obsidian-primary">{T.ERRORE_TITOLO}</p>
+                                <p className="text-xs leading-relaxed text-obsidian-secondary">{T.ERRORE_TESTO}</p>
+                                <p className="text-[11px] font-mono text-obsidian-secondary/80 break-words pt-0.5">{saveError}</p>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            onClick={retry}
-                            disabled={isSaving}
-                            className="w-full flex items-center justify-center space-x-2 py-3 rounded-xl bg-brand-orange text-obsidian-bg font-black text-sm hover:bg-brand-orange-hover transition-all disabled:opacity-50 active:scale-98"
-                        >
-                            {isSaving ? (
-                                <div className="w-4 h-4 border-2 border-obsidian-bg border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                                <>
-                                    <RefreshCw className="w-4 h-4 stroke-[2.5]" />
-                                    <span>Riprova</span>
-                                </>
-                            )}
+                        <button type="button" onClick={retry} disabled={isSaving} className="w-full min-h-[48px] flex items-center justify-center gap-2 rounded-full bg-brand-orange text-obsidian-bg font-semibold text-sm disabled:opacity-50 cursor-pointer">
+                            {isSaving ? <span className="w-4 h-4 border-2 border-obsidian-bg border-t-transparent rounded-full animate-spin" /> : <><RefreshCw className="w-4 h-4" aria-hidden="true" /><span>{T.RIPROVA}</span></>}
                         </button>
                     </div>
                 )}
 
-                <div className="flex space-x-3">
-                    {step > 0 && step < LAST_STEP && (
-                        <button
-                            type="button"
-                            onClick={goBack}
-                            className="flex items-center justify-center px-5 py-4 rounded-2xl bg-obsidian-card border border-obsidian-border text-obsidian-primary font-bold text-sm hover:bg-obsidian-raised transition-colors active:scale-98"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-1.5 stroke-[2.2]" />
-                            <span>Indietro</span>
-                        </button>
-                    )}
-
-                    {step < LAST_STEP ? (
-                        <button
-                            type="button"
-                            onClick={goNext}
-                            disabled={!canProceed()}
-                            className={`flex-1 flex items-center justify-center space-x-2 py-4 rounded-2xl font-black text-sm transition-all active:scale-98 ${
-                                canProceed()
-                                    ? 'bg-brand-orange text-obsidian-bg hover:bg-brand-orange-hover'
-                                    : 'bg-obsidian-raised border border-obsidian-border text-obsidian-secondary cursor-not-allowed'
-                            }`}
-                        >
-                            <span>{step === 0 ? 'Iniziamo!' : 'Continua'}</span>
-                            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                        </button>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={handleComplete}
-                            disabled={isSaving}
-                            className="flex-1 flex items-center justify-center space-x-2 py-4 rounded-2xl bg-brand-orange text-obsidian-bg font-black text-sm hover:bg-brand-orange-hover transition-all disabled:opacity-50 active:scale-98"
-                        >
-                            {isSaving ? (
-                                <div className="w-4 h-4 border-2 border-obsidian-bg border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                                <>
-                                    <span>Entra in Unnivai</span>
-                                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                                </>
+                {passo === 'consenso' ? (
+                    <>
+                        <button type="button" onClick={consensoOk} className="w-full min-h-[52px] rounded-full bg-brand-orange text-obsidian-bg font-semibold text-[15px] cursor-pointer shadow-lg shadow-brand-orange/20" data-testid="consenso-ai-ok">{CONSENSO_AI.OK}</button>
+                        <button type="button" onClick={consensoDopo} className="w-full min-h-[44px] text-sm font-semibold text-obsidian-secondary cursor-pointer" data-testid="consenso-ai-no">{CONSENSO_AI.NON_ADESSO}</button>
+                    </>
+                ) : (
+                    <>
+                        <div className="flex gap-3">
+                            {indice > 0 && passi[indice - 1] !== 'consenso' && (
+                                <button type="button" onClick={() => vai(-1)} aria-label={T.INDIETRO} className="min-h-[52px] w-[52px] shrink-0 inline-flex items-center justify-center rounded-full border border-obsidian-border bg-obsidian-card text-obsidian-primary cursor-pointer">
+                                    <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                                </button>
                             )}
-                        </button>
-                    )}
-                </div>
-
-                {(step === 2 || step === 3) && (
-                    <div className="text-center">
-                        <button
-                            type="button"
-                            onClick={skipQuestion}
-                            disabled={isSaving}
-                            className="text-xs font-bold text-obsidian-secondary hover:text-obsidian-primary transition-colors py-1 disabled:opacity-50"
-                        >
-                            Salta questa domanda
-                        </button>
-                    </div>
-                )}
-
-                {step < 2 && (
-                    <div className="text-center">
-                        <button
-                            type="button"
-                            onClick={handleSkip}
-                            disabled={isSaving}
-                            className="text-xs font-bold text-obsidian-secondary hover:text-obsidian-primary transition-colors py-1 disabled:opacity-50"
-                        >
-                            Salta per ora
-                        </button>
-                    </div>
+                            <button type="button" onClick={avanti} disabled={isSaving} data-testid="primo-avanti" className="flex-1 min-h-[52px] inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange text-obsidian-bg font-semibold text-[15px] disabled:opacity-50 cursor-pointer shadow-lg shadow-brand-orange/20">
+                                {isSaving
+                                    ? <span className="w-4 h-4 border-2 border-obsidian-bg border-t-transparent rounded-full animate-spin" />
+                                    : <><span>{ultimo ? T.FINE : T.AVANTI}</span><ArrowRight className="w-4 h-4" aria-hidden="true" /></>}
+                            </button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <button type="button" onClick={saltaDomanda} disabled={isSaving} className="min-h-[44px] text-[13px] font-semibold text-obsidian-secondary hover:text-obsidian-primary disabled:opacity-50 cursor-pointer">{T.SALTA}</button>
+                            <button type="button" onClick={saltaTutto} disabled={isSaving} className="min-h-[44px] text-[13px] font-semibold text-obsidian-secondary hover:text-obsidian-primary disabled:opacity-50 cursor-pointer" data-testid="primo-salta-tutto">{T.SALTA_TUTTO}</button>
+                        </div>
+                    </>
                 )}
             </footer>
         </div>
-    );
-}
-
-// P7b — lo stesso bottone delle scelte di interessi (stile grafico esistente).
-function ChoiceButton({ icon: IconComponent, label, selected, onClick }) {
-    return (
-        <motion.button
-            type="button"
-            onClick={onClick}
-            aria-pressed={selected}
-            className={`w-full p-4 rounded-2xl flex items-center transition-all border text-left ${
-                selected
-                    ? 'bg-ivory-bg border-ivory-bg text-ivory-text font-black shadow-md'
-                    : 'bg-obsidian-card border-obsidian-border text-obsidian-primary font-bold hover:bg-obsidian-raised'
-            }`}
-            whileTap={{ scale: 0.98 }}
-        >
-            <div className="flex items-center space-x-3.5">
-                <div className={`p-2 rounded-xl transition-colors ${selected ? 'bg-ivory-badge' : 'bg-obsidian-raised'}`}>
-                    <IconComponent className={`w-4 h-4 stroke-[2.4] ${selected ? 'text-ivory-icon' : 'text-brand-orange'}`} />
-                </div>
-                <span className="text-sm tracking-tight">{label}</span>
-            </div>
-        </motion.button>
     );
 }

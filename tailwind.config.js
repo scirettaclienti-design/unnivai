@@ -138,6 +138,10 @@ export default {
             }),
             fontFamily: {
                 quicksand: ['Quicksand', 'sans-serif'],
+                // ONBOARDING-ACCESSO — i caratteri del marchio (src/assets/brand/fonts)
+                marchio: ['"Bricolage Grotesque"', '"Arial Narrow"', 'system-ui', 'sans-serif'],
+                corpo: ['"Instrument Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+                etichetta: ['"IBM Plex Mono"', 'ui-monospace', 'Menlo', 'monospace'],
             },
             keyframes: {
                 "accordion-down": {

@@ -12,6 +12,7 @@ import GiroInCorso from './components/GiroInCorso';
 // OSPITE-GIRO: l'invito a creare l'account (fine giro, secondo giro, salvataggio), uno solo per tutta l'app
 import RegistrazioneOspite from './components/RegistrazioneOspite';
 import ConsensoAi from './components/ConsensoAi';
+import { SchermataCaricamento } from './components/marchio/Marchio';
 // Gate K — Guard che redirige rotte V2/V3 (Guide/Business/BecomeGuide) a
 // /dashboard-user con toast onesto "Disponibile prossimamente."
 import V1LockedGuard from './components/V1LockedGuard';
@@ -66,39 +67,15 @@ const queryClient = new QueryClient({
   },
 });
 
-// DoveVAI Branded Loading
-const GlobalLoading = () => (
-  <div className="flex items-center justify-center min-h-screen bg-obsidian-bg">
-    <div className="flex flex-col items-center gap-5">
-      <div className="relative">
-        <div className="w-16 h-16 rounded-2xl bg-brand-orange flex items-center justify-center shadow-lg">
-          <span className="text-3xl">🗺️</span>
-        </div>
-        <div className="absolute -inset-2 rounded-3xl border-2 border-brand-orange/40 animate-ping" />
-      </div>
-      <div className="flex flex-col items-center gap-2">
-        <h2 className="text-lg font-bold text-obsidian-primary" style={{ fontFamily: 'Quicksand, sans-serif' }}>Unnivai</h2>
-        <div className="flex gap-1">
-          {[0, 1, 2].map(i => (
-            <div
-              key={i}
-              className="w-2 h-2 rounded-full bg-brand-orange"
-              style={{ animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite` }}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-    <style>{`@keyframes pulse { 0%,80%,100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1.2); } }`}</style>
-  </div>
-);
+// ONBOARDING-ACCESSO — il caricamento col marchio (logo, curve di livello), lo stesso di AuthContext.
+const GlobalLoading = SchermataCaricamento;
 
 // 🛡️ ROOT DISPATCHER: Instant Redirect Logic
 const RootDispatcher = () => {
   const { user, loading, role, isPasswordRecovery } = useAuth();
   // ONB-1: "onboarding fatto" lo decide il DB (account), non il localStorage.
   // Hook chiamato prima di ogni early-return (Rules of Hooks).
-  const onboarding = useOnboardingStatus(user?.id);
+  const onboarding = useOnboardingStatus(user?.id, user?.user_metadata);
 
   if (loading) return <GlobalLoading />;
   if (isPasswordRecovery) return <Navigate to="/update-password" replace />;

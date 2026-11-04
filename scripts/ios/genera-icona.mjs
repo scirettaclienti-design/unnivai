@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * APP-NATIVA — icona dell'app (1024×1024) e schermata di avvio (2732×2732), PROPOSTA da far approvare a Ivano.
+ * APP-NATIVA — schermata di avvio (2732×2732), PROPOSTA da far approvare a Ivano. L'icona dell'app (1024×1024) dal
+ * 05/11 è quella del marchio (ONBOARDING-ACCESSO): la fa scripts/brand/genera-icone.mjs dal file icon-512 del sito.
  *
  * Il segno è il segnaposto del logo di unnivai.com (pin con il cerchio vuoto e i quadratini che si staccano in alto
  * a destra), ridisegnato in vettoriale: il logo pubblicato è 441×125 e ingrandito si sgrana. Colori: fondo Ossidiana
@@ -128,15 +129,12 @@ function png(w, h, righe) {
 // ─── main ───────────────────────────────────────────────────────────────────────────────────
 const principale = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 if (principale) {
-    const icona = disegna(1024, 1, 4);
     const avvio = disegna(2732, 0.5, 2);
     if (process.argv.includes('--controlla')) {
-        const uguali = readFileSync(FILE_ICONA).equals(icona) && FILE_AVVIO.every((f) => readFileSync(f).equals(avvio));
-        console.log(uguali ? 'icona e avvio: uguali ai file' : 'icona o avvio diversi dai file: rilancia senza --controlla');
+        const uguali = FILE_AVVIO.every((f) => readFileSync(f).equals(avvio));
+        console.log(uguali ? 'avvio: uguale ai file' : 'avvio diverso dai file: rilancia senza --controlla');
         process.exit(uguali ? 0 : 1);
     }
-    writeFileSync(FILE_ICONA, icona);
     for (const f of FILE_AVVIO) writeFileSync(f, avvio);
-    console.log(`icona: ${FILE_ICONA} (${icona.length} byte)`);
     console.log(`avvio: ${FILE_AVVIO.length} file da 2732×2732 (${avvio.length} byte)`);
 }

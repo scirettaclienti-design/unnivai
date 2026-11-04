@@ -4367,7 +4367,7 @@ export const aiRecommendationService = {
                     if (tappe.length > voluti) {
                         const inOrdine = riordina(tappe);
                         const tenuti = new Set(inOrdine.slice(0, voluti).map(x => x.place_id));
-                        for (const x of tappe.filter(t => !tenuti.has(t.place_id))) scarta(themeType, x.title, `oltre le ${giroDna.tappePerTe} tappe del ritmo ${giroDna.ritmo.valore} del DNA`);
+                        for (const x of tappe.filter(t => !tenuti.has(t.place_id))) scarta(themeType, x.title, `oltre le ${giroDna.tappePerTe} tappe ${giroDna.famiglia ? 'della famiglia (T23)' : `del ritmo ${giroDna.ritmo?.valore} del DNA`}`);
                         tappe = tappe.filter(t => tenuti.has(t.place_id));
                     }
                     quante = voluti;

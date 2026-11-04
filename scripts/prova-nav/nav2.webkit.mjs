@@ -13,6 +13,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.NAV_BASE || 'http://localhost:5187';
 const TAG = process.env.NAV_TAG || 'prova';
@@ -124,7 +125,7 @@ const misuraPagina = (page) => page.evaluate(() => {
     };
 });
 
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const esito = { tag: TAG, base: BASE, fasi: {} };
 try {
     // la porta e il titolo, prima di qualunque credenziale

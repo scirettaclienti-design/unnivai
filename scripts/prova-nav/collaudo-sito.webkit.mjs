@@ -12,6 +12,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.COLLAUDO_BASE || 'https://unnivai.vercel.app';
 const PUNTI = (process.argv[2] || '1,2,3,4,5,6,7,8,11,12,13').split(',').map(Number);
@@ -62,7 +63,7 @@ async function consensoAi(page, attesa = 8000) {
 }
 
 const esito = { base: BASE, iniziato: new Date().toISOString(), commitSito: null, punti: {} };
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 let statePath = null;
 
 async function controllaTitolo() {

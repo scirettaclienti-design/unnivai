@@ -12,6 +12,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.COLLAUDO_BASE || 'https://unnivai.vercel.app';
 const OUT = path.resolve('docs/prove/schermate/chat-accesso');
@@ -56,7 +57,7 @@ const sovrapposti = (a, b) => !!(a && b) && !(a.x + a.width <= b.x || b.x + b.wi
 const box = (b) => (b ? { x: Math.round(b.x), y: Math.round(b.y), width: Math.round(b.width), height: Math.round(b.height) } : null);
 
 const esito = { base: BASE, iniziato: new Date().toISOString(), titolo: null, panoramica: {}, scheda: {}, richieste: [] };
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const foto = async (page, nome) => { const f = path.join(OUT, `${nome}.png`); await page.screenshot({ path: f }); return path.relative(process.cwd(), f); };
 const chatTesto = (page) => page.locator('.fixed.bottom-0').last().innerText().catch(() => null);
 

@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.COLLAUDO_BASE || 'https://unnivai.vercel.app';
 const EMAIL = process.env.OSPITE_EMAIL || '';
@@ -43,7 +44,7 @@ const GPS_FINTO = (inizio) => {
 
 const esito = { base: BASE, iniziato: new Date().toISOString(), passi: {}, ok: false };
 const salva = () => fs.writeFileSync(ESITI, JSON.stringify(esito, null, 1));
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const ctx = await browser.newContext({ ...devices['iPhone 14'], locale: 'it-IT', timezoneId: 'Europe/Rome', permissions: ['geolocation'], geolocation: { latitude: PARTENZA.lat, longitude: PARTENZA.lng } });
 await ctx.addInitScript(GPS_FINTO, PARTENZA);
 const page = await ctx.newPage();

@@ -13,6 +13,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.NAV_BASE || 'http://localhost:5181';
 const ETICHETTA = process.argv[2] || 'prova';
@@ -133,7 +134,7 @@ async function caricaGiro(page, giro) {
     await page.reload({ waitUntil: 'domcontentloaded' });
 }
 
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 try {
     await controllaPorta(browser);
     const statePath = await accedi(browser);

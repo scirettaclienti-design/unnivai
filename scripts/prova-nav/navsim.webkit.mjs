@@ -30,6 +30,7 @@ import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.NAV_BASE || 'http://localhost:5181';
 const GIRI_FILE = 'docs/prove/dati/2026-10-16-nav-sim-giri.json';
@@ -561,7 +562,7 @@ async function camminata(browser, statePath, nome) {
     };
 }
 
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 let codice = 0;
 const esiti = [];
 try {

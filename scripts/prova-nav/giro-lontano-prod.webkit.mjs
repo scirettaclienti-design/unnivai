@@ -4,12 +4,13 @@
 //   riprendi = il giro salvato e «Riprendi»; avvia = il giro sulla mappa come «Vedi su Mappa» (stato del router), panoramica e «Avvia».
 import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
+import { conVoceTelefono } from './voce-telefono.mjs';
 const BASE = process.argv[4] || 'https://unnivai.vercel.app';
 const OUT = process.argv[2];
 const g = JSON.parse(fs.readFileSync('docs/prove/dati/2026-10-16-nav-sim-giri.json', 'utf8')).casi.find(x => x.id === 'navsim-catania');
 const steps = g.tours[0].stops.filter(s => !s.tempoLibero).map((s, i) => ({ id: `s${i}`, title: s.title, lat: s.lat, lng: s.lng, latitude: s.lat, longitude: s.lng, moment: s.moment, types: s.types, stayMinutes: s.stay, scheduledTime: s.at, description: s.description }));
 const tour = { id: 'tour-prova-lontano', title: 'Il tuo giro a Catania', city: 'Catania', steps };
-const browser = await webkit.launch();
+const browser = conVoceTelefono(await webkit.launch());
 const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'it-IT', timezoneId: 'Europe/Rome', geolocation: { latitude: 41.9009, longitude: 12.4833 }, permissions: ['geolocation'] });
 await ctx.clock.install({ time: new Date(process.argv[3] || '2026-10-30T19:30:00+01:00') });
 const env = Object.fromEntries(fs.readFileSync('.env.local', 'utf8').split('\n').map(l => l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/)).filter(Boolean).map(m => [m[1], m[2].replace(/^["']|["']$/g, '')]));

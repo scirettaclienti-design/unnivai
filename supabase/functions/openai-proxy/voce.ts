@@ -66,3 +66,13 @@ export function costoStimatoUsd(testo: string): number {
   const sec = normalizzaTesto(testo).length / CARATTERI_AL_SECONDO;
   return Math.round((sec / 60) * COSTO_AL_MINUTO_USD * 1e6) / 1e6;
 }
+
+/**
+ * VOCE-TEST — gli account di prova non consumano il credito della voce. Il secret `VOCE_TELEFONO_USER_IDS` elenca gli id utente
+ * (separati da virgola o spazio) a cui il percorso voce risponde «usa la voce del telefono» senza chiamare OpenAI.
+ * Secret assente o vuoto = nessuno: il comportamento resta quello di sempre.
+ */
+export function utenteConVoceTelefono(raw: string | undefined | null, id: string | undefined | null): boolean {
+  if (!raw || !id) return false;
+  return raw.split(/[\s,;]+/).map(x => x.trim().toLowerCase()).filter(Boolean).includes(String(id).toLowerCase());
+}

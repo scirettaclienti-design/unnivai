@@ -27,7 +27,7 @@ beforeEach(async () => {
   vi.spyOn(console, 'error').mockImplementation((...a) => logs.push(a.join(' ')));
 
   globalThis.__edgeSupabaseFactory = () => ({
-    auth: { getUser: async (t) => (t === 'tok-anna' ? { data: { user: { id: 'u1' } }, error: null } : { data: { user: null }, error: { status: 401, message: 'invalid JWT' } }) },
+    auth: { getUser: async (t) => (t === 'tok-anna' ? { data: { user: { id: 'u1' } }, error: null } : t === 'tok-prova' ? { data: { user: { id: 'cee972ab-prova' } }, error: null } : t === 'tok-ivano' ? { data: { user: { id: '813d9dc6-ivano' } }, error: null } : t === 'tok-ospite' ? { data: { user: { id: 'o1', is_anonymous: true } }, error: null } : { data: { user: null }, error: { status: 401, message: 'invalid JWT' } }) },
     rpc: async (name) => {
       if (name !== 'voce_consuma') return { data: null, error: { message: `rpc inattesa ${name}` } };
       if (usoNuovi >= tetto) return { data: false, error: null };
@@ -163,5 +163,42 @@ describe('voce — rifiuti e guasti (il client torna alla voce del browser)', ()
   it('un utente loggato non consuma la quota dei percorsi (nessuna rpc ai_quota_*)', async () => {
     const r = await voce({ testo: 'Ciao Anna.', voce: 'marin' }, 'tok-anna');
     expect(r.status).toBe(200);
+  });
+});
+
+describe('VOCE-TEST — l\'account di prova usa la voce del telefono (secret VOCE_TELEFONO_USER_IDS)', () => {
+  const frase = { testo: 'Fra cinquanta metri gira a sinistra.', voce: 'marin' };
+
+  it('account di prova nell\'elenco: «usa la voce del telefono», OpenAI e tetto non toccati', async () => {
+    env.VOCE_TELEFONO_USER_IDS = 'altro-id, cee972ab-prova';
+    const r = await voce(frase, 'tok-prova');
+    expect(r.status).toBe(200);
+    expect(await r.json()).toMatchObject({ usaVoceTelefono: true, source: 'telefono' });
+    expect(speechBodies).toHaveLength(0);
+    expect(usoNuovi).toBe(0);
+    expect(files.size).toBe(0);
+  });
+
+  it('account di Ivano (non nell\'elenco): voce OpenAI', async () => {
+    env.VOCE_TELEFONO_USER_IDS = 'cee972ab-prova';
+    const r = await voce(frase, 'tok-ivano');
+    expect((await r.json()).source).toBe('nuova');
+    expect(speechBodies).toHaveLength(1);
+  });
+
+  it('utente qualsiasi e ospite: voce OpenAI', async () => {
+    env.VOCE_TELEFONO_USER_IDS = 'cee972ab-prova';
+    expect((await (await voce(frase, 'tok-anna')).json()).source).toBe('nuova');
+    expect((await (await voce({ ...frase, testo: 'Un\'altra frase.' }, 'tok-ospite')).json()).source).toBe('nuova');
+    expect(speechBodies).toHaveLength(2);
+  });
+
+  it('secret assente o vuoto: comportamento di oggi anche per l\'account di prova', async () => {
+    const a = await voce(frase, 'tok-prova');
+    expect((await a.json()).source).toBe('nuova');
+    env.VOCE_TELEFONO_USER_IDS = '';
+    const b = await voce({ ...frase, testo: 'Altra frase ancora.' }, 'tok-prova');
+    expect((await b.json()).source).toBe('nuova');
+    expect(speechBodies).toHaveLength(2);
   });
 });

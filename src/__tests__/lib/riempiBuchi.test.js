@@ -1,6 +1,7 @@
 // BANCO-DIFETTI-2 (T23, D7) — niente buchi muti di oltre 2 ore: visite vicine coerenti col giro, o il motivo sulla riga.
 import { describe, it, expect } from 'vitest';
-import { riempiBuchi, testoBucoLungo, attesaPrima, SOGLIA_BUCO_MINUTI } from '@/lib/riempiBuchi';
+import { riempiBuchi, testoBucoLungo, attesaPrima, SOGLIA_BUCO_MINUTI, ripristinaPasti } from '@/lib/riempiBuchi';
+import { tettoNelPiano } from '@/services/momentSelection';
 import { kmFra } from '@/lib/inserisciTappa';
 import { TETTO_PIEDI_KM } from '@/lib/tettoCammino';
 
@@ -71,5 +72,46 @@ describe('D7 — le attese di oltre 2 ore', () => {
         expect(testoBucoLungo({ stayMinutes: 165 }, { coda: true, rimasti: [{ coda: true, motivo: 'nessun posto' }], capKm: 1.2 }))
             .toBe('Il giro finisce qui: dopo l\'ultima tappa entro 1,2 km non ci sono altri posti aperti adatti al giro.');
         expect(testoBucoLungo({ stayMinutes: 100 }, { coda: true })).toBeNull();
+    });
+
+    it('un pasto tolto dal tetto torna con un locale entro 1,2 km, nel suo momento; senza locale vicino resta tolto', () => {
+        const PRANZO = M('pranzo', '12:30', '14:30');
+        const teatro = posto('Teatro di San Carlo', 40.8375, 14.2496);
+        const chiesa = posto('Santa Chiara', 40.8433, 14.2526);
+        const sched = { days: [[voce(teatro, momenti[0], '10:59'), voce(chiesa, POMERIGGIO, '15:03')]] };
+        const tolte = [{ momento: 'g1-pranzo', dayIndex: 0, nome: 'Antica Trattoria del Nilo' }];
+        const vicina = posto('Trattoria da Concetta', 40.8400, 14.2480, { types: ['restaurant'], primaryType: 'restaurant' });
+        const lontana = posto('Trattoria Lontana', 40.86, 14.27, { types: ['restaurant'], primaryType: 'restaurant' });
+        const momentiP = () => [momenti[0], PRANZO, POMERIGGIO];
+        const r = ripristinaPasti({ sched, tolte, candidati: [lontana, vicina], aperto: () => true, capKm: TETTO_PIEDI_KM, momentiDi: momentiP, fineDi: () => T('22:30') });
+        const day = r.sched.days[0];
+        expect(day.map(e => e.candidate.name)).toEqual(['Teatro di San Carlo', 'Trattoria da Concetta', 'Santa Chiara']);
+        expect(day[1].start.getTime()).toBe(PRANZO.start.getTime());
+        expect(day[1].moment.key).toBe('pranzo');
+        expect(r.report).toEqual([{ momento: 'g1-pranzo', tolto: 'Antica Trattoria del Nilo', nome: 'Trattoria da Concetta' }]);
+        const senza = ripristinaPasti({ sched, tolte, candidati: [lontana], aperto: () => true, capKm: TETTO_PIEDI_KM, momentiDi: momentiP, fineDi: () => T('22:30') });
+        expect(senza.sched.days[0]).toHaveLength(2);
+        expect(senza.report[0].nome).toBeNull();
+    });
+});
+
+describe('T23 — l\'ultima rete del tetto: una prima tappa isolata esce lei, non tutta la giornata (a-milano)', () => {
+    it('la colazione a 3 km da tutto il resto esce; le altre tappe restano ai loro orari', () => {
+        const MATTINA = momenti[0];
+        const forno = posto('Panificio', 45.4500, 9.1500, { types: ['bakery'] });
+        const brera = posto('Pinacoteca di Brera', 45.4719, 9.1879);
+        const mercanti = posto('Piazza Mercanti', 45.4654, 9.1897);
+        const duomo = posto('Duomo', 45.4642, 9.1916);
+        const sched = { days: [[{ ...voce(forno, MATTINA, '09:30'), waitMinutesBefore: 0 }, voce(brera, MATTINA, '10:29'), voce(mercanti, MATTINA, '11:40'), voce(duomo, POMERIGGIO, '14:30')]] };
+        const r = tettoNelPiano(sched, { capKm: TETTO_PIEDI_KM });
+        expect(r.sched.days[0].map(e => e.candidate.name)).toEqual(['Pinacoteca di Brera', 'Piazza Mercanti', 'Duomo']);
+        expect(r.tolte.map(t => t.nome)).toEqual(['Panificio']);
+        expect(r.sched.days[0][0].start.getTime()).toBe(T('10:29').getTime());
+        expect(r.sched.days[0][0].waitMinutesBefore).toBe(59);
+    });
+    it('di regola esce la tappa d\'arrivo (come prima)', () => {
+        const a = posto('A', 45.4719, 9.1879), b = posto('B', 45.4654, 9.1897), lontana = posto('Lontana', 45.43, 9.15);
+        const sched = { days: [[voce(a, momenti[0], '09:30'), voce(b, momenti[0], '10:30'), voce(lontana, POMERIGGIO, '14:30')]] };
+        expect(tettoNelPiano(sched, { capKm: TETTO_PIEDI_KM }).tolte.map(t => t.nome)).toEqual(['Lontana']);
     });
 });

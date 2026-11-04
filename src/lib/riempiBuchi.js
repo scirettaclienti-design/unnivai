@@ -110,3 +110,38 @@ export function testoBucoLungo(riga, { coda = false, prima = null, rimasti = [],
     if (r?.motivo === 'tetto visite') return TESTI_GIRO.buco.tettoVisite({ visite: r.visite });
     return TESTI_GIRO.buco.nessunPosto({ capKm: cap });
 }
+
+/**
+ * D7 — I PASTI TOLTI DAL TETTO. L'ultima rete del tetto (T19, tettoNelPiano) toglie un pranzo o una cena il cui locale e' oltre 1,2 km dalla
+ * tappa prima, e la giornata restava senza pasto (Napoli: 199 minuti «Nessun locale aperto qui vicino a quest'ora.»). Qui il pasto torna con
+ * un altro locale gia' verificato, entro 1,2 km dalla tappa prima e dalla dopo, aperto per tutta la sosta, nel suo momento. Senza, resta la riga.
+ * @param {{ sched, tolte: Array<{ momento, dayIndex, nome }>, candidati: Array, aperto, capKm, momentiDi, fineDi }} p
+ * @returns {{ sched: object, report: Array<{ momento, tolto, nome: string|null }> }}
+ */
+export function ripristinaPasti({ sched, tolte = [], candidati = [], aperto, capKm = null, momentiDi = () => [], fineDi: fineFinestraDi = () => null }) {
+    const days = (sched?.days || []).map(d => [...d]);
+    const usati = usatiNelGiro(sched);
+    const report = [];
+    for (const t of tolte) {
+        const di = t.dayIndex ?? 0;
+        const m = momentiDi(di).find(x => x.id === t.momento);
+        const day = days[di];
+        if (!m || !day || day.some(e => e.moment?.id === m.id)) continue;
+        // la posizione: prima della prima tappa che comincia dopo l'inizio del pasto (in coda se non ce n'e')
+        let i = day.findIndex(e => ms(e.start) >= ms(m.start));
+        if (i < 0) i = day.length;
+        let messa = null;
+        const ordinati = candidati.filter(c => idDi(c) && !giaUsato(usati, c))
+            .sort((x, y) => (kmFra(day[i - 1]?.candidate, x) ?? 9) - (kmFra(day[i - 1]?.candidate, y) ?? 9) || (Number(y.rating) || 0) - (Number(x.rating) || 0));
+        for (const c of ordinati) {
+            const e = provaInserire(day, i, c, { capKm, aperto, momenti: momentiDi(di), fineFinestra: fineFinestraDi(di), momento: m });
+            if (e.ok) { messa = { c, e }; break; }
+        }
+        if (messa) {
+            days[di] = inserisci(day, i, messa.c, messa.e, { source: 'riempimento', trace: { riempimento: { pasto: m.key, alPostoDi: t.nome ?? null } } });
+            usati.add(idDi(messa.c));
+        }
+        report.push({ momento: t.momento, tolto: t.nome ?? null, nome: messa ? (messa.c.name || messa.c.title) : null });
+    }
+    return { sched: { ...sched, days }, report };
+}

@@ -78,6 +78,11 @@ export function provaInserire(day, i, c, { capKm, aperto, momenti = [], fineFine
             arrivo = ms(poi.start);
         }
     }
+    // un momento dato (il pasto da rimettere): si arriva non prima del suo inizio e mai dopo la sua fine
+    if (momento) {
+        if (arrivo < ms(momento.start)) arrivo = ms(momento.start);
+        if (arrivo >= ms(momento.end)) return { ok: false, perche: 'tempo' };
+    }
     const m = momento || momentoDiVisita(arrivo, a, b, momenti);
     if (!m) return { ok: false, perche: 'posizione' };
     const sosta = stayInMoment(c, m);

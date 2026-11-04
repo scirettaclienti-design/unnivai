@@ -416,7 +416,7 @@ import { placeKind, COMMERCIAL_KINDS } from '../lib/placeKind';
 import { riordinaPerPercorso, ordinePercorsoSpento } from '../lib/ordinePercorso';
 // BANCO-DIFETTI-2 (T23) — la richiesta precisa nel giro (D6) e niente buchi muti di oltre 2 ore (D7)
 import { vociDellaRichiesta, rispettaRichiesta, isTransito } from '../lib/richiestaNelGiro';
-import { riempiBuchi, testoBucoLungo } from '../lib/riempiBuchi';
+import { riempiBuchi, testoBucoLungo, ripristinaPasti } from '../lib/riempiBuchi';
 // DNA-3c — una ricerca di testo di Google Places (listino del banco): il costo massimo di una ricerca della sosta
 const COSTO_RICERCA_SOSTA_USD = 0.032;
 // DNA-5 — la merenda della famiglia: dalle 15:30.
@@ -2577,6 +2577,7 @@ export const aiRecommendationService = {
             let richiestaReport = null; // BANCO-DIFETTI-2 (D6): le cose precise chieste e cosa ne e' stato
             let notaRichiesta = null;   // D6: le righe «X: …» di quello che il giro non ha potuto contenere
             let buchiReport = null;     // D7: le attese di oltre 2 ore riempite e quelle rimaste (dichiarate)
+            let pastiRipristinati = null; // D7: i pasti tolti dal tetto e rimessi con un locale entro il tetto
             let conferma = null;
             const w0 = tourWindow.windows[0];
             const minuti0 = w0 ? (w0.end.getTime() - w0.start.getTime()) / 60000 : 0;
@@ -3400,8 +3401,36 @@ export const aiRecommendationService = {
                                 const sosteIds = new Set(sosteDnaReport.aggiunte.map(x => x.place_id));
                                 candidates = [...candidates, ...poolSoste.filter(c => sosteIds.has(c.place_id || c.googlePlaceId) && !candidates.includes(c))];
                             }
-                            // BANCO-DIFETTI-2 (T23) — LA RICHIESTA PRECISA E I BUCHI LUNGHI, sul giro gia' in orario (dopo soste e minimi, prima
-                            // dell'ordine del percorso e dell'ultima rete del tetto). Per Te (`giornata: false`) resta com'era.
+                            // NAV-2 — L'ORDINE DEL PERCORSO: ultimo passo dell'ordine. Dentro ogni momento di mattina e pomeriggio le tappe si camminano
+                            // nell'ordine che fa meno strada; pasti, aperitivo, colazione e soste del DNA restano dove sono, con i loro orari.
+                            if (!ordinePercorsoSpento()) {
+                                const ord = riordinaPerPercorso(sched);
+                                sched = ord.sched;
+                                ordinePercorsoReport = ord.report;
+                                for (const f of ord.report.file) console.info(`[NAV-2 ORDINE] ${city}: giorno ${f.giorno} ${f.momento}: ${f.kmPrima.toFixed(2)} → ${f.kmDopo.toFixed(2)} km`);
+                            }
+                            const { report } = repaired;
+                            // BANCO-DIFETTI (T19, D1) — l'ultima rete del tetto di 1,2 km nei giri a piedi (il ritmo Intenso usa qualche mezzo): un ripiego
+                            // oltre il tetto esce; un pasto rimasto senza locale ha la riga approvata («Nessun locale aperto qui vicino a quest'ora.»),
+                            // il resto lo dichiarano i buchi e il minimo. Il tratto lungo della natura chiesta nel borgo si dice nel giro.
+                            if (normalizePace(prefs?.pace) !== 'intenso') {
+                                // la natura chiesta in un borgo (BORGO-FIX, decisione 3): verso un luogo di natura o un panorama fino a 30 minuti, dichiarati
+                                const naturaNelBorgo = catStretta === 'natura' && (conferma?.scala === 'borgo' || (cityCenter?.isSmallTown ?? isSmallTown(city)));
+                                const tetto = tettoNelPiano(sched, { eccezione: naturaNelBorgo ? (a, c) => (isNaturaOPanorama(c) ? WALK_NATURA_BORGO_MINUTES : null) : null });
+                                sched = tetto.sched;
+                                tettoReport = { tolte: tetto.tolte, dichiarati: tetto.dichiarati };
+                                const conTappe = new Set(sched.days.flat().map(x => x.moment.id));
+                                for (const t of tetto.tolte) {
+                                    console.info(`[D1 TETTO] ${city}: tolta "${t.nome}" (${t.momento}): ${t.km} km da "${t.da}", oltre ${TETTO_PIEDI_KM} km`);
+                                    if (t.pasto && !conTappe.has(t.momento) && !(report.tempoLibero || []).some(x => x.momento === t.momento)) {
+                                        report.tempoLibero = [...(report.tempoLibero || []), { momento: t.momento, key: t.key, label: t.label, dayIndex: t.dayIndex, posto: 0, dopo: null, piuVicino: null,
+                                            chiuso: true, pasto: true, motivo: `nessun locale entro il tetto di cammino (${t.km} km da "${t.da}")` }];
+                                    }
+                                }
+                                if (tetto.dichiarati.length) trattiNote = tetto.dichiarati.map(d => TESTI_TETTO.trattoLungo(d)).join(' ');
+                            }
+                            // BANCO-DIFETTI-2 (T23) — LA RICHIESTA PRECISA E I BUCHI LUNGHI, sul giro gia' in orario e gia' passato dall'ordine del
+                            // percorso e dall'ultima rete del tetto (ogni tappa nuova sta nel tetto da se'). Per Te (`giornata: false`) resta com'era.
                             if (opts.giornata !== false) {
                                 const intensoGiro = normalizePace(prefs?.pace) === 'intenso';
                                 // il tetto per tratto: 1,2 km a piedi (T19, non si tocca); il ritmo Intenso usa qualche mezzo (5 km, come il banco)
@@ -3446,6 +3475,20 @@ export const aiRecommendationService = {
                                     richiestaReport = { voci: voci.map(v => ({ tipo: v.tipo, id: v.id, cosa: v.cosa })), esiti: r.report, note: r.note };
                                     for (const x of r.report) console.info(`[D6 RICHIESTA] ${city}: ${x.voce} → ${x.esito}${x.nome ? ` (${x.nome}${x.alPostoDi ? ` al posto di ${x.alPostoDi}` : ''})` : ''}${x.motivo ? ` — ${x.motivo}` : ''}`);
                                 }
+                                // D7 — un pasto che l'ultima rete del tetto ha tolto (il locale scelto era oltre 1,2 km) torna con un locale entro il tetto,
+                                // aperto per tutta la sosta, dai posti gia' verificati; senza, resta la riga «Nessun locale aperto qui vicino a quest'ora.»
+                                const pastiTolti = (tettoReport?.tolte || []).filter(t => t.pasto);
+                                if (pastiTolti.length) {
+                                    const visti8 = new Map();
+                                    for (const c of [...candidates, ...candidatiGenerazione]) { const id = c.place_id || c.googlePlaceId; if (id && !visti8.has(id)) visti8.set(id, c); }
+                                    const rp = ripristinaPasti({ sched, tolte: pastiTolti, candidati: [...visti8.values()].filter(c => isSitDownMeal(c) && ammessoGiro(c) && true),
+                                        aperto: apertoGiro, capKm: capKmGiro, momentiDi, fineDi: fineFinestraDi });
+                                    sched = rp.sched;
+                                    pastiRipristinati = rp.report;
+                                    for (const x of rp.report) console.info(`[D7 PASTO] ${city}: ${x.momento} → ${x.nome ?? `nessun locale entro ${capKmGiro} km`}`);
+                                    const conPasto = new Set(sched.days.flat().map(x => x.moment.id));
+                                    report.tempoLibero = (report.tempoLibero || []).filter(e => !(e.chiuso && e.pasto && conPasto.has(e.momento)));
+                                }
                                 // D7 — le attese di oltre 2 ore: visite vicine coerenti col giro, o il motivo sulla riga
                                 const vociTema = voci.filter(v => v.tipo === 'tipo' && v.tutte);
                                 const dnaShare = dnaShareOf(opts.dnaWeights || {});
@@ -3472,40 +3515,12 @@ export const aiRecommendationService = {
                                     tettoVisite: rilassato ? MAX_VISITS_RILASSATO : MAX_VISITS_PER_DAY, soloDichiara,
                                 });
                                 sched = rb.sched;
-                                buchiReport = { ...rb.report, capKm: capKmGiro };
+                                buchiReport = { ...rb.report, capKm: capKmGiro, ...(pastiRipristinati ? { pasti: pastiRipristinati } : {}) };
                                 for (const x of rb.report.aggiunte) console.info(`[D7 BUCO] ${city}: ${x.nome} in ${x.momento} (attesa di ${x.buco} min)`);
                                 for (const x of rb.report.rimasti) console.info(`[D7 BUCO] ${city}: ${x.minuti} min ${x.coda ? 'in coda' : 'fra due tappe'} restano: ${x.motivo}`);
                                 // le tappe nuove devono stare fra i candidati: la canonicalizzazione scarta ogni tappa che non e' nel pool
                                 const nuove = sched.days.flat().filter(e => e.source === 'richiesta' || e.source === 'riempimento').map(e => e.candidate);
                                 candidates = [...candidates, ...nuove.filter(c => !candidates.some(x => (x.place_id || x.googlePlaceId) === (c.place_id || c.googlePlaceId)))];
-                            }
-                            // NAV-2 — L'ORDINE DEL PERCORSO: ultimo passo dell'ordine. Dentro ogni momento di mattina e pomeriggio le tappe si camminano
-                            // nell'ordine che fa meno strada; pasti, aperitivo, colazione e soste del DNA restano dove sono, con i loro orari.
-                            if (!ordinePercorsoSpento()) {
-                                const ord = riordinaPerPercorso(sched);
-                                sched = ord.sched;
-                                ordinePercorsoReport = ord.report;
-                                for (const f of ord.report.file) console.info(`[NAV-2 ORDINE] ${city}: giorno ${f.giorno} ${f.momento}: ${f.kmPrima.toFixed(2)} → ${f.kmDopo.toFixed(2)} km`);
-                            }
-                            const { report } = repaired;
-                            // BANCO-DIFETTI (T19, D1) — l'ultima rete del tetto di 1,2 km nei giri a piedi (il ritmo Intenso usa qualche mezzo): un ripiego
-                            // oltre il tetto esce; un pasto rimasto senza locale ha la riga approvata («Nessun locale aperto qui vicino a quest'ora.»),
-                            // il resto lo dichiarano i buchi e il minimo. Il tratto lungo della natura chiesta nel borgo si dice nel giro.
-                            if (normalizePace(prefs?.pace) !== 'intenso') {
-                                // la natura chiesta in un borgo (BORGO-FIX, decisione 3): verso un luogo di natura o un panorama fino a 30 minuti, dichiarati
-                                const naturaNelBorgo = catStretta === 'natura' && (conferma?.scala === 'borgo' || (cityCenter?.isSmallTown ?? isSmallTown(city)));
-                                const tetto = tettoNelPiano(sched, { eccezione: naturaNelBorgo ? (a, c) => (isNaturaOPanorama(c) ? WALK_NATURA_BORGO_MINUTES : null) : null });
-                                sched = tetto.sched;
-                                tettoReport = { tolte: tetto.tolte, dichiarati: tetto.dichiarati };
-                                const conTappe = new Set(sched.days.flat().map(x => x.moment.id));
-                                for (const t of tetto.tolte) {
-                                    console.info(`[D1 TETTO] ${city}: tolta "${t.nome}" (${t.momento}): ${t.km} km da "${t.da}", oltre ${TETTO_PIEDI_KM} km`);
-                                    if (t.pasto && !conTappe.has(t.momento) && !(report.tempoLibero || []).some(x => x.momento === t.momento)) {
-                                        report.tempoLibero = [...(report.tempoLibero || []), { momento: t.momento, key: t.key, label: t.label, dayIndex: t.dayIndex, posto: 0, dopo: null, piuVicino: null,
-                                            chiuso: true, pasto: true, motivo: `nessun locale entro il tetto di cammino (${t.km} km da "${t.da}")` }];
-                                    }
-                                }
-                                if (tetto.dichiarati.length) trattiNote = tetto.dichiarati.map(d => TESTI_TETTO.trattoLungo(d)).join(' ');
                             }
                             for (const a of minimo.aggiunte) console.info(`[C8b MINIMO] ${city}: tappa in piu' in ${a.momento} (giorno ${a.dayIndex + 1}: ${a.prima} → ${a.dopo} tappe, minimo ${minPerDay.get(a.dayIndex)})`);
                             for (const a of filled.aggiunte) console.info(`[CONTINUITA'] ${city}: tappa in piu' in ${a.momento} (buchi ${a.minutiPrima} → ${a.minutiDopo} min)`);

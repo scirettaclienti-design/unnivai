@@ -100,7 +100,7 @@ describe('banco 40 — i controlli', () => {
         const altro = esitoDi(caso([stop('Colosseo', 41.89, 12.49, '2026-11-05T09:10:00+01:00')]), meta, config);
         expect(confrontaEsiti([e], [altro])[0].uguale).toBe(false);
         expect(riepilogo([e]).totale).toBe(1);
-        expect(CONTROLLI40).toHaveLength(5);
+        expect(CONTROLLI40).toHaveLength(6); // T23: il sesto, la richiesta (ordinato da Ivano)
     });
 });
 

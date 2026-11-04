@@ -308,6 +308,8 @@ export default function SurpriseTourPage() {
                 dietNote: surpriseTour.dietNote || null,
                 // BORGO-FIX (decisione 3) — la nota «La natura di notte non si vede…», se il motore l'ha scritta
                 naturaNote: surpriseTour.naturaNote || null,
+                // BANCO-DIFETTI-2 (T23) — le righe della richiesta che il giro non contiene
+                notaGiro: surpriseTour.notaGiro || null,
             }, {
                 cityFallback: city || 'Roma',
                 // DVAI-055-b: doppio filtro innocuo — generateItinerary ha già filtrato con
@@ -520,6 +522,9 @@ export default function SurpriseTourPage() {
                             )}
                             {mappedTour.naturaNote && (
                                 <p data-natura-note className="text-obsidian-secondary text-xs px-1">{mappedTour.naturaNote}</p>
+                            )}
+                            {mappedTour.notaGiro && (
+                                <p data-nota-giro className="text-obsidian-secondary text-xs px-1">{mappedTour.notaGiro}</p>
                             )}
 
                             {/* Tappe Generate (Linguaggio QuickPath) */}

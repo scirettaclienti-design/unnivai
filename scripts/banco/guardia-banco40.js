@@ -1,5 +1,5 @@
 // BANCO-40 — la parte del banco che entra nella GUARDIA (`npm run banco:guardia`): alcuni dei 40 casi, rigiocati a 0 $ dai tracciati
-// (docs/prove/dati/banco-40-tracciati.json.gz), con gli stessi cinque controlli del banco. Passa solo se ogni caso della lista passa tutti e cinque.
+// (docs/prove/dati/banco-40-tracciati.json.gz), con gli stessi controlli del banco (i cinque di sempre + il sesto, la richiesta: T23). Passa solo se ogni caso della lista li passa tutti.
 //
 // Quali casi: quelli che hanno passato tutti e cinque i controlli nel giro vero del 4/11/2026, uno o due per casella della griglia, scelti perché
 // il replay costa pochi secondi. Un caso che il giro vero ha trovato con un difetto dell'app NON entra: sta nell'elenco per Ivano
@@ -32,6 +32,6 @@ export function controllaGuardiaBanco40(replay, cfg) {
 }
 
 export const tabellaGuardiaBanco40 = ({ ok, righe }) => [
-    `GUARDIA DEL BANCO 40: ${ok ? 'PASSATA' : 'FALLITA'} (${righe.filter(r => r.ok).length}/${righe.length} casi con tutti e cinque i controlli)`,
+    `GUARDIA DEL BANCO 40: ${ok ? 'PASSATA' : 'FALLITA'} (${righe.filter(r => r.ok).length}/${righe.length} casi con tutti i controlli)`,
     ...righe.map(r => `  ${r.ok ? '✅' : '❌'} ${r.id}: ${r.ok ? `${r.tappe} tappe` : r.motivo}`),
 ].join('\n');

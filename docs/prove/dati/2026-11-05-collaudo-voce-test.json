@@ -1,0 +1,720 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-04T15:02:01.932Z",
+ "commitSito": null,
+ "punti": {
+  "1": {
+   "nome": "freccia sparisce dopo 10 m",
+   "allAvvio": "Parti da qui verso Porta Uzeda",
+   "fotoAvvio": "docs/prove/schermate/collaudo-sito/1-avvio.png",
+   "a5m": "Parti da qui verso Porta Uzeda",
+   "a15m": null,
+   "ok": true,
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/1-dopo-15m.png",
+   "errori": [],
+   "secondi": 17
+  },
+  "2": {
+   "nome": "tappa 2 dopo «Salta»: niente freccia",
+   "allAvvio": "Parti da qui verso Porta Uzeda",
+   "tappa2": null,
+   "pillola": "55 m · verso Basilica Cattedrale di Sant'Agata",
+   "ok": true,
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/2-tappa-2.png",
+   "errori": [],
+   "secondi": 17
+  },
+  "3": {
+   "nome": "GPS muto 60 s e ripresa: niente freccia",
+   "allAvvio": "Parti da qui verso Porta Uzeda",
+   "avvisoDuranteSilenzio": "Ho perso il segnale. Continua pure: quando torna, riparto da dove sei.",
+   "frecciaDuranteSilenzio": null,
+   "fotoSilenzio": "docs/prove/schermate/collaudo-sito/3-silenzio.png",
+   "dopoRipresa": null,
+   "avvisoDopo": null,
+   "ok": true,
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/3-ripresa.png",
+   "errori": [],
+   "secondi": 79
+  },
+  "4": {
+   "nome": "curiosità del cammino: Roma con fonte di Roma, Catania mai Roma, niente fontanelle",
+   "roma": {
+    "metri": 552,
+    "toast": [
+     "🎧 Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno."
+    ],
+    "voceCuriosita": [
+     "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno."
+    ],
+    "voceNasoni": [],
+    "curiosita": [
+     {
+      "esito": "passata",
+      "luogo": "Trastevere",
+      "fonte": "https://it.wikipedia.org/wiki/Trastevere"
+     }
+    ],
+    "foto": "docs/prove/schermate/collaudo-sito/4-roma.png",
+    "errori": []
+   },
+   "catania": {
+    "metri": 723,
+    "toast": [
+     "🎧 Piazza Stesicoro ha un pezzo di Anfiteatro Romano a circa dieci metri sotto il livello della strada: è stato riportato alla luce nel 1903 e aperto al pubblico nel 1907. Il Palazzo della Borsa, inaugurato nel 1933, era la sede dei fasci e delle corporazioni, e oggi ospita la Camera di Commercio. Il Corso Sicilia, largo più di venti metri, è nato dallo Sventramento di San Berillo, la demolizione parziale del quartiere tra il maggio 1956 e il 1958."
+    ],
+    "voceCuriosita": [
+     "Piazza Stesicoro ha un pezzo di Anfiteatro Romano a circa dieci metri sotto il livello della strada: è stato riportato alla luce nel 1903 e aperto al pubblico nel 1907. Il Palazzo della Borsa, inaugurato nel 1933, era la sede dei fasci e delle corporazioni, e oggi ospita la Camera di Commercio. Il Corso Sicilia, largo più di venti metri, è nato dallo Sventramento di San Berillo, la demolizione parziale del quartiere tra il maggio 1956 e il 1958."
+    ],
+    "voceNasoni": [],
+    "curiosita": [
+     {
+      "esito": "passata",
+      "luogo": "Piazza Stesicoro",
+      "fonte": "https://it.wikipedia.org/wiki/Piazza_Stesicoro"
+     }
+    ],
+    "foto": "docs/prove/schermate/collaudo-sito/4-catania.png",
+    "errori": []
+   },
+   "ok": true,
+   "romaOk": true,
+   "cataniaOk": true,
+   "secondi": 37
+  },
+  "5": {
+   "nome": "schede: racconto o frase breve; riga in place_racconti",
+   "schede": [
+    {
+     "tappa": "Orto Botanico di Roma",
+     "place_id": "ChIJa-FrY0BgLxMRDN1UR07SMIE",
+     "racconto": "IL RACCONTO Fermati: sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo qui abitava Cristina di Svezia. Oggi l'Orto dipende dall'Università di Roma \"La Sapienza\", dal Dipartimento di Biologia Ambientale. Dentro trovi 7.000 specie di piante da tutto il mondo, fontane, un boschetto di bambù e un giardino del tè giapponese. Il racconto 0:00 / 0:21",
+     "perche": null,
+     "server": {
+      "nome": "Orto Botanico di Roma",
+      "place_id": "ChIJa-FrY0BgLxMRDN1UR07SMIE",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Fermati: sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo qui abitava Cristina di Svezia. Oggi l'Orto dipende dall'Università di Roma \"La Sapienza\", dal Dipartimento di Biologia Ambientale. Dentro trovi 7.000 specie di piante da tutto il mondo, fontane, un boschetto di ba"
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-roma-1.png"
+    },
+    {
+     "tappa": "Villa Sciarra",
+     "place_id": "ChIJ4ya6TTxgLxMR8atV3UYz5ZA",
+     "racconto": "IL RACCONTO Qui sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, con le Mura gianicolensi proprio a ridosso della villa. Sono sette ettari e mezzo di piccoli giardini, sculture e fontane. Uno dei due ingressi è su piazzale Wurts, progettato da Pio Piacentini, e prende il nome dall'ultimo proprietario, George Washington Wurts: a lui si deve la disposizione del giardino e dei monumenti. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra. Il racconto 0:00 / 0:30",
+     "perche": null,
+     "server": {
+      "nome": "Villa Sciarra",
+      "place_id": "ChIJ4ya6TTxgLxMR8atV3UYz5ZA",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Qui sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, con le Mura gianicolensi proprio a ridosso della villa. Sono sette ettari e mezzo di piccoli giardini, sculture e fontane. Uno dei due ingressi è su piazzale Wurts, progettato da Pio Piacentini, e prende il nome dall'ultimo pr"
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-roma-2.png"
+    },
+    {
+     "tappa": "Palazzo Massimo alle Colonne",
+     "place_id": "ChIJn7lmdk9gLxMR-uB8_zP3zPE",
+     "racconto": "IL RACCONTO Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Una cappella associata a un presunto miracolo del XVI secolo è aperta solo il 16 marzo. Il racconto 0:00 / 0:13",
+     "perche": null,
+     "server": {
+      "nome": "Palazzo Massimo alle Colonne",
+      "place_id": "ChIJn7lmdk9gLxMR-uB8_zP3zPE",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Una cappella associata a un presunto miracolo del XVI secolo è aperta solo il 16 marzo."
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-roma-2-1.png"
+    },
+    {
+     "tappa": "Piazza del Campidoglio",
+     "place_id": "ChIJOclom0xgLxMRURy9OLL7Hg4",
+     "racconto": "IL RACCONTO Tappa del collaudo. Il racconto 0:00 / 0:05",
+     "perche": null,
+     "server": {
+      "nome": "Piazza del Campidoglio",
+      "place_id": "ChIJOclom0xgLxMRURy9OLL7Hg4",
+      "stato": 200,
+      "esito": "scartato",
+      "errore": null,
+      "testo": null
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-roma-2-2.png"
+    },
+    {
+     "tappa": "Basilica Cattedrale di Sant'Agata",
+     "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+     "racconto": "IL RACCONTO Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. Sta sul lato sud-est di piazza del Duomo. Dentro conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico. Il racconto 0:00 / 0:18",
+     "perche": null,
+     "server": {
+      "nome": "Basilica Cattedrale di Sant'Agata",
+      "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. Sta sul lato sud-est di piazza del Duomo. Dentro conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-catania-1.png"
+    },
+    {
+     "tappa": "Fontana dell'Elefante (uʻ Liotru)",
+     "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+     "racconto": "IL RACCONTO Guarda l'elefante di basalto nero: i catanesi lo chiamano U Liotru. Sopra la fontana l'ha messa Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi quell'elefante è l'emblema di Catania. Il racconto 0:00 / 0:12",
+     "perche": null,
+     "server": {
+      "nome": "Fontana dell'Elefante (uʻ Liotru)",
+      "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano U Liotru. Sopra la fontana l'ha messa Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi quell'elefante è l'emblema di Catania."
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-catania-2.png"
+    },
+    {
+     "tappa": "Terrazza delle Quadrighe",
+     "place_id": "ChIJsQeLTbNhLxMRj2ZP6qu4fd0",
+     "racconto": "IL RACCONTO Sei in cima al Vittoriano: questa è la terrazza più alta del monumento. Dal giugno 2007 ci sali con l'ascensore. Se preferisci i gradini, sono 196 e partono dal sommoportico. Da qui la vista sulla città è completa. Il racconto 0:00 / 0:15",
+     "perche": null,
+     "server": {
+      "nome": "Terrazza delle Quadrighe",
+      "place_id": "ChIJsQeLTbNhLxMRj2ZP6qu4fd0",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Sei in cima al Vittoriano: questa è la terrazza più alta del monumento. Dal giugno 2007 ci sali con l'ascensore. Se preferisci i gradini, sono 196 e partono dal sommoportico. Da qui la vista sulla città è completa."
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-fonti-roma-1.png"
+    },
+    {
+     "tappa": "Galleria Colonna",
+     "place_id": "ChIJoZRZT01gLxMR0C1IBGiGv1c",
+     "racconto": "IL RACCONTO Guarda, è l'ala più famosa del palazzo. Antonio Del Grande la inizia nel 1654, Girolamo Fontana la riprende nel 1693. Il connestabile Filippo II la inaugura nel 1703. Dentro c'è la collezione di famiglia, cominciata da Filippo I. Il racconto 0:00 / 0:15",
+     "perche": null,
+     "server": {
+      "nome": "Galleria Colonna",
+      "place_id": "ChIJoZRZT01gLxMR0C1IBGiGv1c",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Guarda, è l'ala più famosa del palazzo. Antonio Del Grande la inizia nel 1654, Girolamo Fontana la riprende nel 1693. Il connestabile Filippo II la inaugura nel 1703. Dentro c'è la collezione di famiglia, cominciata da Filippo I."
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-fonti-roma-2.png"
+    },
+    {
+     "tappa": "Torre Capitania",
+     "place_id": "ChIJSdi3PqbLFhMRevZmDu4FnbQ",
+     "racconto": "IL RACCONTO Guarda: la Torre Capitania ha un impianto del XII secolo. Nel tempo è stata torre difensiva, capitanato di giustizia, carcere e cineteatro. Oggi dentro c'è un museo civico: un Antiquarium Archeologico, un Lapidarium architettonico, una mostra del Libro Antico e una Pinacoteca d'arte Moderna. Il racconto 0:00 / 0:18",
+     "perche": null,
+     "server": {
+      "nome": "Torre Capitania",
+      "place_id": "ChIJSdi3PqbLFhMRevZmDu4FnbQ",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Guarda: la Torre Capitania ha un impianto del XII secolo. Nel tempo è stata torre difensiva, capitanato di giustizia, carcere e cineteatro. Oggi dentro c'è un museo civico: un Antiquarium Archeologico, un Lapidarium architettonico, una mostra del Libro Antico e una Pinacoteca d'arte Moderna."
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-fonti-troina-1.png"
+    },
+    {
+     "tappa": "Chiesa Madre di Maria Santissima Assunta",
+     "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+     "racconto": "IL RACCONTO Fermati: questa è la chiesa madre di Troina, il principale luogo di culto della città. Nel 1082 fu elevata a cattedrale, e fu la prima cattedrale normanna della Sicilia. La volle Ruggero I per ringraziare l'Assunta dopo la vittoria sugli arabi, quando conquistò la città liberandola dal dominio saraceno. Nel 1088 qui arrivò papa Urbano II, che celebrò messa e consacrò la sede. Il racconto 0:00 / 0:25",
+     "perche": null,
+     "server": {
+      "nome": "Chiesa Madre di Maria Santissima Assunta",
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Fermati: questa è la chiesa madre di Troina, il principale luogo di culto della città. Nel 1082 fu elevata a cattedrale, e fu la prima cattedrale normanna della Sicilia. La volle Ruggero I per ringraziare l'Assunta dopo la vittoria sugli arabi, quando conquistò la città liberandola dal dominio sarac"
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-fonti-troina-2.png"
+    }
+   ],
+   "schedeOk": true,
+   "ok": null,
+   "secondi": 64
+  },
+  "6": {
+   "nome": "«Fine» a 2/3: nota, Profilo +1, nessun doppione",
+   "prima": 33,
+   "arrivo1": {
+    "rito": true,
+    "riparti": true
+   },
+   "arrivo2": {
+    "rito": true,
+    "riparti": true
+   },
+   "salvato": {
+    "fatte": [
+     "s1",
+     "s2"
+    ],
+    "saltate": []
+   },
+   "nota": "Sei arrivato a 2 tappe su 3.",
+   "fotoFine": "docs/prove/schermate/collaudo-sito/6-fine.png",
+   "dopo": 34,
+   "dopoRicarica": 34,
+   "proposteRipresa": 0,
+   "dopoHome": 34,
+   "tourId": "collaudo-fine-1793804753981",
+   "ok": true,
+   "errori": [],
+   "secondi": 48
+  },
+  "7": {
+   "nome": "«Salta» fino in fondo + 3 tocchi (anche da ospite, fino alla fine giro)",
+   "ospite": {
+    "ospite": true,
+    "ok": false,
+    "errore": "page.waitForURL: Timeout 20000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================"
+   },
+   "account": {
+    "ospite": false,
+    "via": "riprendi",
+    "url": "/map",
+    "fineGiro": true,
+    "nota": "Hai saltato tutte le tappe: il giro finisce qui.",
+    "login": false,
+    "testo": "1 2 3 4 Scorciatoie da tastiera Dati mappa ©2026 Google Termini Il tuo giro a Catania AUTO PIEDI 4 min BICI Percorso Consigliato 4 min a piedi · 282 m Avvia Navigazione In pausa Giro completato FINE T",
+    "salvaOspite": false,
+    "ok": true,
+    "foto": "docs/prove/schermate/collaudo-sito/7-account.png",
+    "errori": []
+   },
+   "ok": false,
+   "secondi": 33
+  },
+  "8": {
+   "nome": "GPS a Roma, Crea «un giro a Catania»: «Domani · 9:30 · cambia»",
+   "ok": true,
+   "partenza": "Domani · 9:30 · cambia",
+   "orari": [
+    "9:30",
+    "09:30",
+    "09:57",
+    "10:39",
+    "11:04",
+    "12:27",
+    "12:30",
+    "14:30",
+    "15:11",
+    "15:51",
+    "17:57",
+    "18:00"
+   ],
+   "foto": "docs/prove/schermate/collaudo-sito/8-crea.png"
+  },
+  "9": {
+   "nome": "panoramica con pochi km fra le tappe",
+   "ok": true,
+   "card": "Da Via Etnea a Via Crociferi Giornata 9:30–21:15 · 27 min a piedi · 1,9 km · 9 tappe Cambia mezzo Chiedi alla guida AVVIA",
+   "km": 1.9,
+   "foto": "docs/prove/schermate/collaudo-sito/9-panoramica.png"
+  },
+  "10": {
+   "nome": "«Avvia» da lontano: «Sei a … km», mappa non nera",
+   "ok": true,
+   "avviso": "Sei a 537 km da Catania: la guida parte quando sei lì.",
+   "navigazione": false,
+   "camDopo": {
+    "zoom": 16,
+    "tilt": 0,
+    "heading": 0
+   },
+   "segnaposti": 0,
+   "foto": "docs/prove/schermate/collaudo-sito/10-avvia.png"
+  },
+  "11": {
+   "nome": "Per Te a Roma alle 01:00 e alle 20:00: almeno 4 schede, quelle non per adesso lo dicono",
+   "ok": true,
+   "notte": {
+    "ora": "2026-10-31T01:00:00+01:00",
+    "secondi": 11,
+    "schede": [
+     {
+      "titolo": "Intorno alla Fontana del Mascherone",
+      "badge": "Scelto per te"
+     },
+     {
+      "titolo": "Fontane, giardini e palazzi di Roma",
+      "badge": "Per stamattina"
+     },
+     {
+      "titolo": "Tre forni a Roma",
+      "badge": "Per stamattina"
+     },
+     {
+      "titolo": "Musei di Roma",
+      "badge": "Per stamattina"
+     },
+     {
+      "titolo": "Panorami a Roma",
+      "badge": "Per stamattina"
+     }
+    ],
+    "riga": "Adesso è aperto poco. Le altre sono per stamattina.",
+    "citta": "Roma",
+    "giri": [
+     {
+      "titolo": "Intorno alla Fontana del Mascherone",
+      "perDopo": false,
+      "tappe": [
+       "In Vino Veritas Trastevere",
+       "Fontana del Mascherone"
+      ]
+     },
+     {
+      "titolo": "Fontane, giardini e palazzi di Roma",
+      "perDopo": true,
+      "tappe": [
+       "Fontana degli Undici Zampilli",
+       "Foresta di bambù",
+       "Palazzo Massimo alle Colonne"
+      ]
+     },
+     {
+      "titolo": "Tre forni a Roma",
+      "perDopo": true,
+      "tappe": [
+       "Antico Forno Santini",
+       "Antico Forno Roscioli",
+       "Le Levain"
+      ]
+     },
+     {
+      "titolo": "Musei di Roma",
+      "perDopo": true,
+      "tappe": [
+       "Basilica dei Santi XII Apostoli",
+       "Galleria Colonna",
+       "Museo Nazionale di Palazzo Venezia"
+      ]
+     },
+     {
+      "titolo": "Panorami a Roma",
+      "perDopo": true,
+      "tappe": [
+       "Gianicolo Belvedere",
+       "Belvedere del Salviati · Terrazza Panoramica Passeggiata del Gianicolo",
+       "Passeggiata del Gianicolo"
+      ]
+     }
+    ],
+    "foto": "docs/prove/schermate/collaudo-sito/11-per-te-roma-0100.png",
+    "errori": []
+   },
+   "sera": {
+    "ora": "2026-10-30T20:00:00+01:00",
+    "secondi": 10,
+    "schede": [
+     {
+      "titolo": "Intorno alla Fontana del Mascherone",
+      "badge": "Scelto per te"
+     },
+     {
+      "titolo": "Fontane, giardini e palazzi di Roma",
+      "badge": "Per domattina"
+     },
+     {
+      "titolo": "Tre forni a Roma",
+      "badge": "Per domattina"
+     },
+     {
+      "titolo": "Musei di Roma",
+      "badge": "Per domattina"
+     },
+     {
+      "titolo": "Panorami a Roma",
+      "badge": "Per domattina"
+     }
+    ],
+    "riga": "Adesso è aperto poco. Le altre sono per domattina.",
+    "citta": "Roma",
+    "giri": [
+     {
+      "titolo": "Intorno alla Fontana del Mascherone",
+      "perDopo": false,
+      "tappe": [
+       "In Vino Veritas Trastevere",
+       "Fontana del Mascherone",
+       "Osteria da Fortunata - Baullari"
+      ]
+     },
+     {
+      "titolo": "Fontane, giardini e palazzi di Roma",
+      "perDopo": true,
+      "tappe": [
+       "Fontana degli Undici Zampilli",
+       "Foresta di bambù",
+       "Palazzo Massimo alle Colonne"
+      ]
+     },
+     {
+      "titolo": "Tre forni a Roma",
+      "perDopo": true,
+      "tappe": [
+       "Antico Forno Santini",
+       "Antico Forno Roscioli",
+       "Le Levain"
+      ]
+     },
+     {
+      "titolo": "Musei di Roma",
+      "perDopo": true,
+      "tappe": [
+       "Basilica dei Santi XII Apostoli",
+       "Galleria Colonna",
+       "Museo Nazionale di Palazzo Venezia"
+      ]
+     },
+     {
+      "titolo": "Panorami a Roma",
+      "perDopo": true,
+      "tappe": [
+       "Gianicolo Belvedere",
+       "Belvedere del Salviati · Terrazza Panoramica Passeggiata del Gianicolo",
+       "Passeggiata del Gianicolo"
+      ]
+     }
+    ],
+    "foto": "docs/prove/schermate/collaudo-sito/11-per-te-roma-2000.png",
+    "errori": []
+   },
+   "secondi": 23
+  },
+  "12": {
+   "nome": "scheda monumento: si apre subito, i cenni arrivano dopo",
+   "ok": true,
+   "ritardoMs": 8000,
+   "aperturaMs": 70,
+   "durante": {
+    "spinner": 0,
+    "cenni": false,
+    "titolo": true
+   },
+   "rispostaPaginaMs": 1,
+   "fotoDurante": "docs/prove/schermate/collaudo-sito/12-scheda-durante.png",
+   "cenniMs": 8360,
+   "cenni": "\"Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Una cappella associata a un presunto miracolo del XVI secolo è aperta solo il 16 marzo.\"",
+   "richiesteRacconto": 1,
+   "esitoRacconto": "passato",
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/12-scheda-dopo.png",
+   "errori": [],
+   "console": [],
+   "secondi": 17
+  },
+  "13": {
+   "nome": "titoli dei giri generati a Roma e Catania, con le tappe",
+   "ok": true,
+   "giri": [
+    {
+     "dove": "roma-0100",
+     "titolo": "Intorno alla Fontana del Mascherone",
+     "perDopo": false,
+     "tappe": [
+      "In Vino Veritas Trastevere",
+      "Fontana del Mascherone"
+     ]
+    },
+    {
+     "dove": "roma-0100",
+     "titolo": "Fontane, giardini e palazzi di Roma",
+     "perDopo": true,
+     "tappe": [
+      "Fontana degli Undici Zampilli",
+      "Foresta di bambù",
+      "Palazzo Massimo alle Colonne"
+     ]
+    },
+    {
+     "dove": "roma-0100",
+     "titolo": "Tre forni a Roma",
+     "perDopo": true,
+     "tappe": [
+      "Antico Forno Santini",
+      "Antico Forno Roscioli",
+      "Le Levain"
+     ]
+    },
+    {
+     "dove": "roma-0100",
+     "titolo": "Musei di Roma",
+     "perDopo": true,
+     "tappe": [
+      "Basilica dei Santi XII Apostoli",
+      "Galleria Colonna",
+      "Museo Nazionale di Palazzo Venezia"
+     ]
+    },
+    {
+     "dove": "roma-0100",
+     "titolo": "Panorami a Roma",
+     "perDopo": true,
+     "tappe": [
+      "Gianicolo Belvedere",
+      "Belvedere del Salviati · Terrazza Panoramica Passeggiata del Gianicolo",
+      "Passeggiata del Gianicolo"
+     ]
+    },
+    {
+     "dove": "roma-2000",
+     "titolo": "Intorno alla Fontana del Mascherone",
+     "perDopo": false,
+     "tappe": [
+      "In Vino Veritas Trastevere",
+      "Fontana del Mascherone",
+      "Osteria da Fortunata - Baullari"
+     ]
+    },
+    {
+     "dove": "roma-2000",
+     "titolo": "Fontane, giardini e palazzi di Roma",
+     "perDopo": true,
+     "tappe": [
+      "Fontana degli Undici Zampilli",
+      "Foresta di bambù",
+      "Palazzo Massimo alle Colonne"
+     ]
+    },
+    {
+     "dove": "roma-2000",
+     "titolo": "Tre forni a Roma",
+     "perDopo": true,
+     "tappe": [
+      "Antico Forno Santini",
+      "Antico Forno Roscioli",
+      "Le Levain"
+     ]
+    },
+    {
+     "dove": "roma-2000",
+     "titolo": "Musei di Roma",
+     "perDopo": true,
+     "tappe": [
+      "Basilica dei Santi XII Apostoli",
+      "Galleria Colonna",
+      "Museo Nazionale di Palazzo Venezia"
+     ]
+    },
+    {
+     "dove": "roma-2000",
+     "titolo": "Panorami a Roma",
+     "perDopo": true,
+     "tappe": [
+      "Gianicolo Belvedere",
+      "Belvedere del Salviati · Terrazza Panoramica Passeggiata del Gianicolo",
+      "Passeggiata del Gianicolo"
+     ]
+    },
+    {
+     "dove": "catania",
+     "titolo": "Musei di Catania",
+     "perDopo": false,
+     "tappe": [
+      "Casa Natale di Vincenzo Bellini",
+      "Museo Vincenzo Bellini",
+      "COCHI - Gelateria Pasticceria"
+     ]
+    },
+    {
+     "dove": "catania",
+     "titolo": "Palazzi di Catania",
+     "perDopo": false,
+     "tappe": [
+      "Basilica Cattedrale di Sant'Agata",
+      "Palazzo Platamone",
+      "Palazzo Biscari"
+     ]
+    },
+    {
+     "dove": "catania",
+     "titolo": "Dalla Fontana dell'Elefante alla Chiesa della Badia di Sant'Agata",
+     "perDopo": false,
+     "tappe": [
+      "Fontana dell'Elefante (uʻ Liotru)",
+      "Porta Uzeda",
+      "Chiesa della Badia di Sant'Agata"
+     ]
+    },
+    {
+     "dove": "catania",
+     "titolo": "Palazzi di Catania",
+     "perDopo": true,
+     "tappe": [
+      "Palazzo dei Chierici",
+      "Museo Diocesano di Catania",
+      "Palazzo degli Elefanti"
+     ]
+    }
+   ],
+   "catania": {
+    "schede": [
+     {
+      "titolo": "Musei di Catania",
+      "badge": "Scelto per te"
+     },
+     {
+      "titolo": "Palazzi di Catania",
+      "badge": "Consigliato dall'AI"
+     },
+     {
+      "titolo": "Dalla Fontana dell'Elefante alla Chiesa della Badia di Sant'Agata",
+      "badge": "Consigliato dall'AI"
+     },
+     {
+      "titolo": "Palazzi di Catania",
+      "badge": "Per domattina"
+     }
+    ],
+    "citta": "Catania",
+    "foto": "docs/prove/schermate/collaudo-sito/11-per-te-catania.png"
+   },
+   "secondi": 16
+  }
+ },
+ "crea": {
+  "generazioneS": 12,
+  "partenza": "Domani · 9:30 · cambia",
+  "orari": [
+   "9:30",
+   "09:30",
+   "09:57",
+   "10:39",
+   "11:04",
+   "12:27",
+   "12:30",
+   "14:30",
+   "15:11",
+   "15:51",
+   "17:57",
+   "18:00"
+  ],
+  "fotoGiro": "docs/prove/schermate/collaudo-sito/8-crea.png",
+  "card": "Da Via Etnea a Via Crociferi Giornata 9:30–21:15 · 27 min a piedi · 1,9 km · 9 tappe Cambia mezzo Chiedi alla guida AVVIA",
+  "camPanoramica": {
+   "zoom": 16,
+   "tilt": 0,
+   "heading": 0
+  },
+  "fotoPanoramica": "docs/prove/schermate/collaudo-sito/9-panoramica.png",
+  "avviso": "Sei a 537 km da Catania: la guida parte quando sei lì.",
+  "navigazione": false,
+  "camDopo": {
+   "zoom": 16,
+   "tilt": 0,
+   "heading": 0
+  },
+  "segnaposti": 0,
+  "fotoAvvia": "docs/prove/schermate/collaudo-sito/10-avvia.png",
+  "errori": []
+ },
+ "finito": "2026-11-04T15:08:42.396Z"
+}

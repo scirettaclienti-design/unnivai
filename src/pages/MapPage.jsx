@@ -25,6 +25,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMap, useMapsLibrary, InfoWindow } from '@vis.gl/react-google-maps';
 import { dataService } from '../services/dataService';
 import { poiService } from '../services/poiService';
+import { precaricaFontiGiro } from '../services/chatGuidaService';
 // VERITA-SCHEDE — mancava: la scheda chiamava enrichMonuments su un nome non importato (ReferenceError silenzioso), i cenni non arrivavano mai.
 import { aiRecommendationService } from '../services/aiRecommendationService';
 import { POIPopupCard } from '../components/Map/POIPopupCard';
@@ -803,6 +804,13 @@ const MapPage = () => {
         if (!isNavigating || !chiaveGiroCuriosita) { curiositaRef.current = null; return; }
         curiositaGiroRef.current = chiaveGiroCuriosita;
         curiositaRef.current = curiositaIniziale(leggiCuriositaGiro(chiaveGiroCuriosita));
+    }, [isNavigating, chiaveGiroCuriosita]);
+
+    // CHAT-FOCUS-FONTI: quando il giro parte, il server prepara le fonti delle tappe (una volta per giro, senza AI): la chat non le cerca alla domanda
+    useEffect(() => {
+        if (!isNavigating || !activeRoute?.length) return;
+        precaricaFontiGiro({ tappe: activeRoute, citta: activeCity });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isNavigating, chiaveGiroCuriosita]);
 
     // DNA-1 — i campi del registro per una tappa del giro: categoria vera (dai `types` della

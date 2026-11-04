@@ -5,7 +5,7 @@
  */
 import { supabase } from '../lib/supabase';
 import { AI_ENGINE_MESSAGE } from '../lib/aiEngineError';
-import { assicuraConsensoAi } from '../lib/consensoAi';
+import { assicuraConsensoAi, haConsensoAi } from '../lib/consensoAi';
 import { CONSENSO_AI } from '../lib/testiAccount';
 
 export const TIMEOUT_CHAT_MS = 30_000;
@@ -80,5 +80,36 @@ export async function chiediAllaGuida({ domanda, storia = [], citta = '', tappe 
         return { testo: MSG_CHAT_RETE, fonti: [], esito: null };
     } finally {
         clearTimeout(timer);
+    }
+}
+
+// CHAT-FOCUS-FONTI — all'avvio del giro le fonti delle tappe si preparano sul server (nessuna AI, nessuna quota), così la prima domanda non le cerca.
+// Una volta per giro; mai prima del consenso (senza, non parte niente); un proxy di prima risponde 400 e qui non succede nulla.
+const giriPrecaricati = new Set();
+export function chiavePrecarica(tappe, citta) {
+    const luoghi = (tappe || []).map(luogoPerChat).filter(Boolean).slice(0, 12);
+    return luoghi.length ? `${citta || ''}|${luoghi.map((l) => l.place_id || l.nome).join(',')}` : null;
+}
+/** Non lancia e non aspetta nessuno: ritorna true se la richiesta è partita. */
+export async function precaricaFontiGiro({ tappe = [], citta = '' }) {
+    try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        const chiave = chiavePrecarica(tappe, citta);
+        if (!supabaseUrl || !anonKey || !chiave || giriPrecaricati.has(chiave)) return false;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token || !haConsensoAi(session.user)) return false;
+        giriPrecaricati.add(chiave);
+        const luoghi = (tappe || []).map(luogoPerChat).filter(Boolean).slice(0, 12);
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), TIMEOUT_CHAT_MS);
+        fetch(`${supabaseUrl}/functions/v1/openai-proxy`, {
+            method: 'POST', signal: controller.signal,
+            headers: { 'Content-Type': 'application/json', apikey: anonKey, Authorization: `Bearer ${session.access_token}` },
+            body: JSON.stringify({ dv: { purpose: 'chat', precarica: true, citta, luoghi } }),
+        }).catch(() => { giriPrecaricati.delete(chiave); }).finally(() => clearTimeout(timer));
+        return true;
+    } catch {
+        return false;
     }
 }

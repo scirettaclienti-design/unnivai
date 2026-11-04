@@ -410,9 +410,14 @@ export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './to
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
 import { richiestaEsplicita, filtraEsclusi, notaEsclusioni, categoriaEsclusa } from '../lib/richiestaEsplicita';
 import { aggiungiSosteDna, ricercheDellaSosta } from '../lib/sosteDna';
+import { giroDnaPerMotore, tracciatoGiroDna } from '../lib/giroDna';
+import { bonusCompagnia, fuoriPerTe } from '../lib/compagniaDna';
+import { placeKind } from '../lib/placeKind';
 import { riordinaPerPercorso, ordinePercorsoSpento } from '../lib/ordinePercorso';
 // DNA-3c — una ricerca di testo di Google Places (listino del banco): il costo massimo di una ricerca della sosta
 const COSTO_RICERCA_SOSTA_USD = 0.032;
+// DNA-5 — la merenda della famiglia: dalle 15:30.
+const MERENDA_DALLE = 15 * 60 + 30;
 import { weightsToAIProfile } from './preferenceEngine';
 import { mapCandidateToCoreCategories, selectScoredCandidatePool, passesQualityThreshold, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport, computeAffinityScore, dnaShareOf } from './candidateScoring';
 import {
@@ -1518,11 +1523,13 @@ const tourDaiPool = (pools, city) => TEMI_PER_DOPO
  *      sceglieva i primi: Musei Capitolini, Giardino degli Aranci. L'insider
  *      e' gia' ordinato da buildInsiderPool e qui non si riordina.
  */
-export const prepareHomePools = (themedCandidates, cityCenter, city, { dnaWeights = { _share: 0 }, foodPrefs = null } = {}) => {
+export const prepareHomePools = (themedCandidates, cityCenter, city, { dnaWeights = { _share: 0 }, foodPrefs = null, compagnia = null } = {}) => {
     const pools = {};
     for (const [theme, arr] of Object.entries(themedCandidates || {})) {
         if (!Array.isArray(arr) || arr.length === 0) continue;
         pools[theme] = applyRadiusFilter(arr, cityCenter, city);
+        // DNA-5 — con la famiglia i locali da sera (bar, discoteche) non entrano nei tour di Per Te
+        if (compagnia) pools[theme] = pools[theme].filter(c => !fuoriPerTe(c, compagnia));
         // P7b — i vincoli (budget, dieta) in codice, su ogni pool, insider compreso.
         if (hasFoodPrefs(foodPrefs)) {
             const fc = applyFoodConstraints(pools[theme], foodPrefs, isMealPlace);
@@ -1535,7 +1542,10 @@ export const prepareHomePools = (themedCandidates, cityCenter, city, { dnaWeight
         if (theme === 'insider') continue;
         pools[theme] = rankByMerit(pools[theme], {
             reference: tutti, dnaWeights, maxIcons: 1,
-            bonus: hasFoodPrefs(foodPrefs) ? (c) => foodPrefBonus(c, foodPrefs, isMealPlace) : null,
+            // DNA-5 — la spinta della compagnia si somma a quella dello stile a tavola
+            bonus: hasFoodPrefs(foodPrefs) || compagnia
+                ? (c) => (hasFoodPrefs(foodPrefs) ? foodPrefBonus(c, foodPrefs, isMealPlace) : 0) + (compagnia ? bonusCompagnia(c, compagnia) : 0)
+                : null,
         });
     }
     const owner = new Map();
@@ -2462,7 +2472,11 @@ export const aiRecommendationService = {
         // wizard (prefs.budget) → primo accesso (opts.onboardingPrefs).
         const food = resolveFoodPrefs({ userPrompt, wizardBudget: prefs?.budget, onboarding: opts.onboardingPrefs });
         const foodOn = hasFoodPrefs(food);
+        // DNA-5 — ritmo e compagnia del DNA (opts.dnaGiro, dalla pagina): soste, tappe per momento, pasti, merenda, spinte di tipo.
+        // Senza opts.dnaGiro (o con il ritmo chiesto) niente cambia. La loro impronta entra nella chiave della cache.
+        const giroDna = giroDnaPerMotore(opts.dnaGiro, prefs);
         const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile, opts.dnaWeights, food)
+            + (giroDna.impronta ? `_${giroDna.impronta}` : '')
             + '_' + centerFingerprint + '_' + tourWindow.date + '_' + firstMoment.key
             // T1b — il secondo tentativo sulle query di base ha la sua voce.
             + (opts.baseQueries ? '_base' : '');
@@ -2883,8 +2897,10 @@ export const aiRecommendationService = {
                 if (tipicoEsclusi.length > 0) console.info(`[C7 TIPICO] ${city}: ${tipicoEsclusi.length} cucine estere escluse — ${tipicoEsclusi.join(' | ')}`);
                 candidates = tenuti;
             }
-            const foodBonus = (foodOn || tema.tipico)
+            const foodBonus = (foodOn || tema.tipico || giroDna.bonus)
                 ? (c) => (foodOn ? foodPrefBonus(c, food, isMealPlace) : 0) + (tema.tipico && isMealPlace(c) ? tipicoBonus(c, { dieta: foodOn ? food.dieta : [] }) : 0)
+                    // DNA-5 — la spinta della compagnia (parchi e giochi per la famiglia, belvedere per la coppia…): si somma al merito
+                    + (giroDna.bonus ? giroDna.bonus(c) : 0)
                 : null;
             // C10 — decisione di Ivano su P7a: le ancore (al massimo 3 essenziali per giornata intera, 1 per mezza) e i posti
             // «da locale» della lista passano davanti e FUORI dal merito (non contano nel limite dei 20 ne' nel tetto delle
@@ -3019,13 +3035,15 @@ export const aiRecommendationService = {
                     window: tourWindow,
                     pace: prefs?.pace,
                     interests: extractInterestTokens(prefs),
-                    group: prefs?.group,
+                    group: prefs?.group || giroDna.gruppo || '',
                     text: opts.pathType === 'custom' ? userPrompt : '',
                     category: catStretta ? (TOUR_CATEGORY_TO_SKELETON[catStretta] || catStretta) : null,
                     foodTheme: tema.tema,
                     veloce,
                     cenaPrima,
                     colazioneAuto: colazioneAutomatica,
+                    // DNA-5 — il ritmo del DNA conta le tappe per momento; soste e pasti viaggiano coi momenti
+                    ritmoDna: giroDna.passo, fattoreSosta: giroDna.fattoreSosta, sostaPasto: giroDna.sostaPasto,
                 }), { veloce });
                 moments = candidates.length >= 1 ? flattenSkeleton(skeleton) : [];
                 // BORGO-FIX — decisione 3: di giorno, con la natura chiesta, la passeggiata prende per prima una natura o un panorama;
@@ -3287,7 +3305,7 @@ export const aiRecommendationService = {
                             // (stesse regole di sempre), poi il buco resta e sara' una riga dichiarata.
                             const filled = fillGaps({
                                 moments, repaired, sched, veto,
-                                espandi: normalizePace(prefs?.pace) !== 'rilassato',
+                                espandi: normalizePace(prefs?.pace) !== 'rilassato' && giroDna.passo !== 'rilassato',
                                 repair: () => repair(true),
                                 schedule: (plan) => scheduleMomentPlan(plan, tourWindow.windows.map(w => w.start)),
                             });
@@ -3354,6 +3372,24 @@ export const aiRecommendationService = {
                                     }
                                 }
                                 for (const x of sosteDnaReport.aggiunte) console.info(`[DNA-3b SOSTA] ${city}: ${x.nome} (${x.categoria}, ${x.minuti} min, deviazione ${x.deviazioneM} m) in ${x.momento}`);
+                                // DNA-5 — LA MERENDA DELLA FAMIGLIA: con la compagnia «famiglia» (testo, Gruppo, Profilo o scelte) una sosta di 15–30
+                                // minuti in una gelateria, pasticceria o forno nel pomeriggio (dalle 15:30), con le stesse regole delle soste del DNA
+                                // (spazio libero, deviazione 300 m, aperta per tutta la sosta, richiesta ed esclusioni). Nessuna ricerca in piu'.
+                                // Se il DNA ha gia' messo una sosta di cibo nel pomeriggio, quella e' la merenda.
+                                if (giroDna.merenda) {
+                                    const giaMerenda = sosteDnaReport.aggiunte.some(x => x.categoria === 'food' && x.momento === 'pomeriggio');
+                                    if (!giaMerenda) {
+                                        const merenda = aggiungiSosteDna({
+                                            sched, pool: poolSoste, ...argsSoste, dnaWeights: { food: 1, _share: 0.1 }, etichetta: 'merenda',
+                                            soloSe: (c, minuti) => minuti >= MERENDA_DALLE && ['dolce', 'forno'].includes(placeKind(c).kind),
+                                        });
+                                        sched = merenda.sched;
+                                        sosteDnaReport.merenda = { aggiunta: merenda.report.aggiunte[0] || null, motivo: merenda.report.motivo || merenda.report.motivoParziale || null };
+                                        sosteDnaReport.aggiunte = [...sosteDnaReport.aggiunte, ...merenda.report.aggiunte.map(x => ({ ...x, merenda: true }))];
+                                    } else {
+                                        sosteDnaReport.merenda = { aggiunta: null, motivo: 'la sosta di cibo del DNA nel pomeriggio fa da merenda' };
+                                    }
+                                }
                                 // la sosta deve stare fra i candidati: la canonicalizzazione scarta ogni tappa che non e' nel pool
                                 const sosteIds = new Set(sosteDnaReport.aggiunte.map(x => x.place_id));
                                 candidates = [...candidates, ...poolSoste.filter(c => sosteIds.has(c.place_id || c.googlePlaceId) && !candidates.includes(c))];
@@ -3428,7 +3464,7 @@ export const aiRecommendationService = {
                             };
                             const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, respinti: filled.respinti || [], dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })),
                                 minimo: { richiesto: Object.fromEntries(minPerDay), aggiunte: minimo.aggiunte, tentativi: minimo.tentativi, dichiarati: righeMinimo.map(x => ({ momento: x.momento, giorno: x.dayIndex + 1 })) } };
-                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, ordine: ordinePercorsoReport, tetto: tettoReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
+                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, dnaGiro: tracciatoGiroDna(giroDna), ordine: ordinePercorsoReport, tetto: tettoReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
                             logMomentReport(city, momentReport);
                             // C7 — nel tracciato (interno, mai a schermo): cosa ha voluto il tema. Il pasto del tema, l'esperienza
                             // nello spirito del tema, il momento chiesto ESPLICITAMENTE dal testo, e per "tipico" se il posto e' locale.
@@ -3458,6 +3494,9 @@ export const aiRecommendationService = {
                                     moment: dayStops[i].moment.viewKey || dayStops[i].moment.key,
                                     momentLabel: dayStops[i].moment.viewKey ? (MOMENT_BY_KEY[dayStops[i].moment.viewKey]?.label ?? dayStops[i].moment.label) : dayStops[i].moment.label,
                                     ...(dayStops[i].moment.sostaAperitivo ? { sostaAperitivo: dayStops[i].moment.sostaAperitivo } : {}),
+                                    // DNA-5 — il ritmo (fattore delle visite) e la compagnia (minuti dei pasti) fino al calcolo dei tempi
+                                    ...(dayStops[i].moment.fattoreSosta ? { fattoreSosta: dayStops[i].moment.fattoreSosta } : {}),
+                                    ...(dayStops[i].moment.sostaPasto ? { sostaPasto: dayStops[i].moment.sostaPasto } : {}),
                                     ...(dayStops[i].moment.key === 'passeggiata' ? { passeggiata: true } : {}),
                                     waitMinutesBefore: dayStops[i].waitMinutesBefore,
                                     ...(dayStops[i].source === 'riparata' ? { repaired: true } : {}),
@@ -3926,7 +3965,10 @@ export const aiRecommendationService = {
         const dnaWeights = opts.dnaWeights && opts.dnaWeights._share > 0 ? opts.dnaWeights : { _share: 0 };
         // P7b — "Per Te" non ha testo ne' wizard: vale il primo accesso.
         const food = resolveFoodPrefs({ onboarding: opts.onboardingPrefs });
-        const nonEmptyPools = prepareHomePools(themedCandidates, cityCenter, city, { dnaWeights, foodPrefs: food });
+        // DNA-5 — ritmo e compagnia del DNA (opts.dnaGiro, da DashboardUser): tappe per tour, soste, pasti, posti per la compagnia.
+        // Per Te non ha un ritmo chiesto: vale quello del DNA (Profilo → giri → scelte). Senza opts.dnaGiro: come prima.
+        const giroDna = giroDnaPerMotore(opts.dnaGiro, {});
+        const nonEmptyPools = prepareHomePools(themedCandidates, cityCenter, city, { dnaWeights, foodPrefs: food, compagnia: giroDna.compagnia?.valore || null });
         // PER-TE-PROPOSTE — le proposte «per dopo» (opts.senzaAI): nessun tema già servito, nessun posto già in un altro tour.
         if (opts.senzaAI) {
             const fuoriTemi = new Set(opts.escludiTemi || []);
@@ -3965,7 +4007,7 @@ export const aiRecommendationService = {
             .join('|');
         // P7a2 — l'ordine dei pool dipende dal DNA: con fiducia, i pesi entrano
         // nella chiave (senza fiducia la chiave resta quella di prima).
-        const dnaKey = (dnaWeights._share > 0 ? `|dna:${weightsFingerprint(dnaWeights)}` : '')
+        const dnaKey = (dnaWeights._share > 0 ? `|dna:${weightsFingerprint(dnaWeights)}` : '') + (giroDna.impronta ? `|${giroDna.impronta}` : '')
             + (hasFoodPrefs(food) ? `|cibo:${foodPrefsFingerprint(food)}` : '');
         // P3d-j — v2: le voci v1 avevano testo libero del modello.
         const cacheKey = `hometours_v2_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${romeDay}_${moment.key}_${hashStr(poolStr + dnaKey)}`;
@@ -4157,7 +4199,13 @@ export const aiRecommendationService = {
             const finalTours = prepared.map((pt) => {
                 if (!pt) return null;
                 const { tour, themeType } = pt;
-                const canonized = pt.canonized.map(st => (locali.has(st.place_id) ? { ...st, priceLevel: locali.get(st.place_id).price_level } : st));
+                // DNA-5 — il ritmo (fattore delle visite) e la compagnia (minuti del pasto) viaggiano con ogni tappa fino al calcolo dei tempi
+                const conDna = (st) => ({
+                    ...st,
+                    ...(giroDna.fattoreSosta ? { fattoreSosta: giroDna.fattoreSosta } : {}),
+                    ...(giroDna.sostaPasto ? { sostaPasto: giroDna.sostaPasto[nowRome.h >= 17 ? 'cena' : 'pranzo'] } : {}),
+                });
+                const canonized = pt.canonized.map(st => conDna(locali.has(st.place_id) ? { ...st, priceLevel: locali.get(st.place_id).price_level } : st));
 
                 // Safety filtro raggio: il pool e' gia' entro il raggio
                 // (prepareHomePools), qui non dovrebbe togliere niente — se lo
@@ -4208,10 +4256,23 @@ export const aiRecommendationService = {
                 // BANCO-DIFETTI (D1) — Per Te a piedi: fra due tappe consecutive al massimo 1,2 km (decisione di Ivano). Prima il gruppo piu'
                 // grande di tappe legate entro il tetto (le altre si tolgono, col motivo); poi keepOpenStops riempie dal pool del tema solo
                 // entro il tetto dalla tappa prima e taglia i tratti che restano lunghi. Sotto le 3 tappe il tour non e' servito (regola di sempre).
-                const quante = tappe.length;
+                let quante = tappe.length;
                 const gruppo = gruppoNelTetto(tappe, TETTO_PIEDI_KM);
                 for (const x of gruppo.tolte) scarta(themeType, x.title, `oltre il tetto di cammino (${String(TETTO_PIEDI_KM).replace('.', ',')} km) dal gruppo delle altre tappe`);
                 tappe = gruppo.tenute;
+                // DNA-5 — IL RITMO DEL DNA DECIDE QUANTE TAPPE (lento 3, medio 4, veloce 5; la colazione automatica non conta): sopra, il
+                // giro si accorcia dalla coda nell'ordine di cammino (ogni tratto resta quello di prima, dentro il tetto); sotto, keepOpenStops
+                // riempie dal pool del tema, sempre entro il tetto di 1,2 km dalla tappa prima. Il tetto non cambia con il ritmo.
+                if (giroDna.tappePerTe) {
+                    const voluti = giroDna.tappePerTe + (colazioneId ? 1 : 0);
+                    if (tappe.length > voluti) {
+                        const inOrdine = riordina(tappe);
+                        const tenuti = new Set(inOrdine.slice(0, voluti).map(x => x.place_id));
+                        for (const x of tappe.filter(t => !tenuti.has(t.place_id))) scarta(themeType, x.title, `oltre le ${giroDna.tappePerTe} tappe del ritmo ${giroDna.ritmo.valore} del DNA`);
+                        tappe = tappe.filter(t => tenuti.has(t.place_id));
+                    }
+                    quante = voluti;
+                }
                 const aperti = keepOpenStops({
                     maxLegKm: TETTO_PIEDI_KM, want: quante,
                     // C8b — le stesse fasce dei pasti di Crea: un ristorante solo a pranzo e a cena, la mattina una colazione.
@@ -4224,7 +4285,7 @@ export const aiRecommendationService = {
                     retime: riordina,
                     toStop: (c) => {
                         const [nuovo] = canonicalizeStopsFromCandidates([{ place_id: homePid(c) }], poolTema, { guard: false });
-                        return nuovo ? { ...nuovo, _scelta: {} } : null;
+                        return nuovo ? { ...conDna(nuovo), _scelta: {} } : null;
                     },
                 });
                 for (const a of aperti.aggiunte) usati.add(a.place_id);
@@ -4296,6 +4357,7 @@ export const aiRecommendationService = {
             const report = {
                 tourProposti: rawTours.length,
                 tourServiti: finalTours.length,
+                dnaGiro: tracciatoGiroDna(giroDna), // DNA-5
                 tappeRaccontate,
                 tappeServite: finalTours.reduce((n, t) => n + t.stops.length, 0),
                 scarti,

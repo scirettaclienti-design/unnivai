@@ -1,0 +1,1537 @@
+{
+ "tracciati": "banco-40-tracciati.json.gz",
+ "registrato": "2026-11-03T11:23:21.361Z",
+ "crea": {
+  "0": {
+   "utente": "0 — senza DNA",
+   "dnaGiro": null,
+   "merenda": null,
+   "sosteDna": [],
+   "tappe": 9,
+   "km": 3.94,
+   "trattoMax": 1.07,
+   "minuti": 705,
+   "sosteVisite": [
+    30,
+    60,
+    30,
+    30,
+    20,
+    30
+   ],
+   "pasti": [
+    "12:30 Osteria Al Vicolo 9 (75 min)",
+    "20:00 Roscioli Salumeria con Cucina (75 min)"
+   ],
+   "tempoLibero": [
+    148
+   ],
+   "elenco": [
+    {
+     "ora": "09:30",
+     "nome": "Pantheon",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 30,
+     "momento": "mattina"
+    },
+    {
+     "ora": "10:14",
+     "nome": "Foro Romano",
+     "tipo": "museo",
+     "categoria": "cultura",
+     "sosta": 60,
+     "momento": "mattina"
+    },
+    {
+     "ora": "11:16",
+     "nome": "Via dei Fori Imperiali",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 30,
+     "momento": "mattina"
+    },
+    {
+     "ora": "12:30",
+     "nome": "Osteria Al Vicolo 9",
+     "tipo": "pasto",
+     "categoria": "food",
+     "sosta": 75,
+     "momento": "pranzo"
+    },
+    {
+     "ora": "14:30",
+     "nome": "Fontana di Trevi",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 30,
+     "momento": "pomeriggio"
+    },
+    {
+     "ora": "15:10",
+     "nome": "Chiesa di San Luigi dei Francesi",
+     "tipo": "chiesa",
+     "categoria": "cultura",
+     "sosta": 20,
+     "momento": "pomeriggio"
+    },
+    {
+     "ora": "15:30",
+     "tempoLibero": 148
+    },
+    {
+     "ora": "18:00",
+     "nome": "Sant'Eustachio Caffè",
+     "tipo": "caffe",
+     "categoria": "food",
+     "sosta": 45,
+     "momento": "aperitivo"
+    },
+    {
+     "ora": "18:50",
+     "nome": "Campo de' Fiori",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 30,
+     "momento": "aperitivo"
+    },
+    {
+     "ora": "20:00",
+     "nome": "Roscioli Salumeria con Cucina",
+     "tipo": "pasto",
+     "categoria": "food",
+     "sosta": 75,
+     "momento": "cena"
+    }
+   ],
+   "riquadro": [],
+   "uscite": []
+  },
+  "A": {
+   "utente": "A — lento e culturale",
+   "dnaGiro": {
+    "ritmo": {
+     "valore": "lento",
+     "fonte": "giri",
+     "fattoreSosta": 1.3,
+     "passo": "rilassato",
+     "tappePerTe": 3,
+     "dati": {
+      "giri": 4,
+      "fattoreSosta": 1.3,
+      "kmMedi": 0.8,
+      "tappeMedie": 3
+     }
+    },
+    "compagnia": null,
+    "sostaPasto": null,
+    "gruppo": null,
+    "merenda": false
+   },
+   "merenda": null,
+   "sosteDna": [],
+   "tappe": 8,
+   "km": 3.18,
+   "trattoMax": 0.77,
+   "minuti": 705,
+   "sosteVisite": [
+    25,
+    40,
+    40,
+    40,
+    30
+   ],
+   "pasti": [
+    "12:30 Trattoria Della Stampa (75 min)",
+    "20:00 Antica Osteria di Roma (75 min)"
+   ],
+   "tempoLibero": [
+    96,
+    123
+   ],
+   "elenco": [
+    {
+     "ora": "09:30",
+     "nome": "Chiesa di Sant'Angelo in Pescheria",
+     "tipo": "chiesa",
+     "categoria": "cultura",
+     "sosta": 25,
+     "momento": "mattina"
+    },
+    {
+     "ora": "10:04",
+     "nome": "Pantheon",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 40,
+     "momento": "mattina"
+    },
+    {
+     "ora": "10:44",
+     "tempoLibero": 96
+    },
+    {
+     "ora": "12:30",
+     "nome": "Trattoria Della Stampa",
+     "tipo": "pasto",
+     "categoria": "food",
+     "sosta": 75,
+     "momento": "pranzo"
+    },
+    {
+     "ora": "14:30",
+     "nome": "Fontana di Trevi",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 40,
+     "momento": "pomeriggio"
+    },
+    {
+     "ora": "15:14",
+     "nome": "Piazza Colonna",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 40,
+     "momento": "pomeriggio"
+    },
+    {
+     "ora": "15:54",
+     "tempoLibero": 123
+    },
+    {
+     "ora": "18:00",
+     "nome": "La Casa del Caffè Tazza d'Oro",
+     "tipo": "caffe",
+     "categoria": "food",
+     "sosta": 60,
+     "momento": "aperitivo"
+    },
+    {
+     "ora": "19:08",
+     "nome": "Campo de' Fiori",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 30,
+     "momento": "aperitivo"
+    },
+    {
+     "ora": "20:00",
+     "nome": "Antica Osteria di Roma",
+     "tipo": "pasto",
+     "categoria": "food",
+     "sosta": 75,
+     "momento": "cena"
+    }
+   ],
+   "riquadro": [
+    "Nei tuoi ultimi 4 giri la sosta media nelle chiese è stata di 26 minuti.",
+    "Meno tappe e soste più lunghe: nei tuoi ultimi 4 giri le soste sono durate il 30% più della stima di Unnivai."
+   ],
+   "uscite": [
+    "places place/textsearch:language=it&location=41.90018990000001,12.478576749999998&query",
+    "places place/textsearch:language=it&location=41.9004125,12.480820099999999&query=librer"
+   ]
+  },
+  "B": {
+   "utente": "B — veloce e a piedi tanto",
+   "dnaGiro": {
+    "ritmo": {
+     "valore": "veloce",
+     "fonte": "giri",
+     "fattoreSosta": 0.7,
+     "passo": "intenso",
+     "tappePerTe": 5,
+     "dati": {
+      "giri": 4,
+      "fattoreSosta": 0.7,
+      "kmMedi": 4.8,
+      "tappeMedie": 6
+     }
+    },
+    "compagnia": {
+     "valore": "amici",
+     "fonte": "scelte",
+     "quante": {
+      "k": 3,
+      "tot": 3
+     }
+    },
+    "sostaPasto": {
+     "pranzo": 75,
+     "cena": 90
+    },
+    "gruppo": "Amici",
+    "merenda": false
+   },
+   "merenda": null,
+   "sosteDna": [
+    "Belvedere Cederna (natura, 30 min)"
+   ],
+   "tappe": 12,
+   "km": 6.54,
+   "trattoMax": 0.8,
+   "minuti": 720,
+   "sosteVisite": [
+    20,
+    15,
+    40,
+    20,
+    20,
+    20,
+    20,
+    20,
+    30
+   ],
+   "pasti": [
+    "12:30 Osteria Al Vicolo 9 (75 min)",
+    "20:00 Antica Osteria di Roma (90 min)"
+   ],
+   "tempoLibero": [
+    119
+   ],
+   "elenco": [
+    {
+     "ora": "09:30",
+     "nome": "Pantheon",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 20,
+     "momento": "mattina"
+    },
+    {
+     "ora": "09:59",
+     "nome": "Chiesa di Sant'Angelo in Pescheria",
+     "tipo": "chiesa",
+     "categoria": "cultura",
+     "sosta": 15,
+     "momento": "mattina"
+    },
+    {
+     "ora": "10:23",
+     "nome": "Foro Romano",
+     "tipo": "museo",
+     "categoria": "cultura",
+     "sosta": 40,
+     "momento": "mattina"
+    },
+    {
+     "ora": "11:10",
+     "nome": "Colosseo",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 20,
+     "momento": "mattina"
+    },
+    {
+     "ora": "11:34",
+     "nome": "Belvedere Cederna",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 20,
+     "momento": "mattina",
+     "sostaDna": "natura"
+    },
+    {
+     "ora": "12:30",
+     "nome": "Osteria Al Vicolo 9",
+     "tipo": "pasto",
+     "categoria": "food",
+     "sosta": 75,
+     "momento": "pranzo"
+    },
+    {
+     "ora": "14:30",
+     "nome": "Terrazza delle Quadrighe",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 20,
+     "momento": "pomeriggio"
+    },
+    {
+     "ora": "15:00",
+     "nome": "Fontana di Trevi",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 20,
+     "momento": "pomeriggio"
+    },
+    {
+     "ora": "15:31",
+     "nome": "Mausoleo di Augusto",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 20,
+     "momento": "pomeriggio"
+    },
+    {
+     "ora": "15:51",
+     "tempoLibero": 119
+    },
+    {
+     "ora": "18:00",
+     "nome": "La Casa del Caffè Tazza d'Oro",
+     "tipo": "caffe",
+     "categoria": "food",
+     "sosta": 45,
+     "momento": "aperitivo"
+    },
+    {
+     "ora": "18:50",
+     "nome": "Piazza Navona",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 30,
+     "momento": "aperitivo"
+    },
+    {
+     "ora": "20:00",
+     "nome": "Antica Osteria di Roma",
+     "tipo": "pasto",
+     "categoria": "food",
+     "sosta": 90,
+     "momento": "cena"
+    }
+   ],
+   "riquadro": [
+    "Nei tuoi ultimi 4 giri la sosta media nei caffè è stata di 12 minuti.",
+    "Più tappe e soste più corte: nei tuoi ultimi 4 giri le soste sono durate il 30% meno della stima di Unnivai.",
+    "Con gli amici: l'hai scelto in 3 richieste su 3."
+   ],
+   "uscite": [
+    "places place/textsearch:language=it&location=41.9002149,12.4803496&query=caffè storico "
+   ]
+  },
+  "C": {
+   "utente": "C — famiglia con bambini",
+   "dnaGiro": {
+    "ritmo": {
+     "valore": "medio",
+     "fonte": "giri",
+     "fattoreSosta": 1.2,
+     "passo": null,
+     "tappePerTe": 4,
+     "dati": {
+      "giri": 2,
+      "fattoreSosta": 1.2,
+      "kmMedi": 1.8,
+      "tappeMedie": 4
+     }
+    },
+    "compagnia": {
+     "valore": "famiglia",
+     "fonte": "profilo"
+    },
+    "sostaPasto": {
+     "pranzo": 75,
+     "cena": 75
+    },
+    "gruppo": "Famiglia",
+    "merenda": true
+   },
+   "merenda": {
+    "aggiunta": null,
+    "motivo": "nessun posto che ci stia negli spazi liberi"
+   },
+   "sosteDna": [],
+   "tappe": 11,
+   "km": 6.19,
+   "trattoMax": 1.04,
+   "minuti": 705,
+   "sosteVisite": [
+    35,
+    35,
+    70,
+    35,
+    35,
+    35,
+    25,
+    30
+   ],
+   "pasti": [
+    "13:00 Osteria Al Vicolo 9 (75 min)",
+    "20:00 Roscioli Salumeria con Cucina (75 min)"
+   ],
+   "tempoLibero": [
+    51
+   ],
+   "elenco": [
+    {
+     "ora": "09:30",
+     "nome": "Pantheon",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 35,
+     "momento": "mattina"
+    },
+    {
+     "ora": "10:19",
+     "nome": "Via dei Fori Imperiali",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 35,
+     "momento": "mattina"
+    },
+    {
+     "ora": "10:56",
+     "nome": "Foro Romano",
+     "tipo": "museo",
+     "categoria": "cultura",
+     "sosta": 70,
+     "momento": "mattina"
+    },
+    {
+     "ora": "12:13",
+     "nome": "Colosseo",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 35,
+     "momento": "mattina"
+    },
+    {
+     "ora": "13:00",
+     "nome": "Osteria Al Vicolo 9",
+     "tipo": "pasto",
+     "categoria": "food",
+     "sosta": 75,
+     "momento": "pranzo"
+    },
+    {
+     "ora": "14:30",
+     "nome": "Fontana di Trevi",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 35,
+     "momento": "pomeriggio"
+    },
+    {
+     "ora": "15:16",
+     "nome": "Mausoleo di Augusto",
+     "tipo": null,
+     "categoria": "cultura",
+     "sosta": 35,
+     "momento": "pomeriggio"
+    },
+    {
+     "ora": "15:51",
+     "tempoLibero": 51
+    },
+    {
+     "ora": "16:50",
+     "nome": "Basilica di Sant’Agostino in Campo Marzio",
+     "tipo": "chiesa",
+     "categoria": "cultura",
+     "sosta": 25,
+     "momento": "pomeriggio"
+    },
+    {
+     "ora": "18:00",
+     "nome": "Sant'Eustachio Caffè",
+     "tipo": "caffe",
+     "categoria": "food",
+     "sosta": 45,
+     "momento": "aperitivo"
+    },
+    {
+     "ora": "18:54",
+     "nome": "Piazza d'Aracoeli",
+     "tipo": "verde",
+     "categoria": "natura",
+     "sosta": 30,
+     "momento": "aperitivo"
+    },
+    {
+     "ora": "20:00",
+     "nome": "Roscioli Salumeria con Cucina",
+     "tipo": "pasto",
+     "categoria": "food",
+     "sosta": 75,
+     "momento": "cena"
+    }
+   ],
+   "riquadro": [
+    "Nei tuoi ultimi 2 giri la sosta media nel verde è stata di 39 minuti.",
+    "In famiglia: l'hai scelto nel Profilo."
+   ],
+   "uscite": [
+    "places place/textsearch:language=it&location=41.89955965,12.47484425&query=belvedere gi"
+   ]
+  }
+ },
+ "perTe": {
+  "0": {
+   "utente": "0 — senza DNA",
+   "dnaGiro": null,
+   "ordine": [
+    "insider",
+    "food",
+    "cultura",
+    "romance"
+   ],
+   "punteggi": [],
+   "tours": [
+    {
+     "tema": "insider",
+     "titolo": "Musei, palazzi e belvedere di Roma",
+     "tappe": 4,
+     "km": 2.05,
+     "trattoMax": 0.94,
+     "minuti": 178,
+     "sosteVisite": [
+      60,
+      30,
+      30,
+      30
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Il Palazzo dei Conservatori",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 60,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Terrazza Belvedere del Palatino",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 30,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Galleria del Cardinale Colonna",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 30,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Palazzo Massimo alle Colonne",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 30,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "food",
+     "titolo": "Quattro forni a Roma",
+     "tappe": 4,
+     "km": 1.71,
+     "trattoMax": 1.06,
+     "minuti": 102,
+     "sosteVisite": [],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Antico Forno Roscioli",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Il Fornaio",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Forno Monteforte",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Antico Forno Santini",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "cultura",
+     "titolo": "Musei di Roma",
+     "tappe": 4,
+     "km": 0.88,
+     "trattoMax": 0.48,
+     "minuti": 211,
+     "sosteVisite": [
+      60,
+      20,
+      60,
+      60
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Museo Nazionale di Palazzo Venezia",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 60,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Basilica dei Santi XII Apostoli",
+       "tipo": "chiesa",
+       "categoria": "cultura",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Museo Centrale del Risorgimento",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 60,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Musei Capitolini",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 60,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "romance",
+     "titolo": "Roma dall'alto, dal Campidoglio al Gianicolo",
+     "tappe": 4,
+     "km": 1.99,
+     "trattoMax": 1.07,
+     "minuti": 147,
+     "sosteVisite": [
+      30,
+      30,
+      30,
+      30
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Piazza del Campidoglio",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 30,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Terrazza delle Quadrighe",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 30,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Fontana del Mascherone",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 30,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Gianicolo Belvedere",
+       "tipo": "verde",
+       "categoria": "natura",
+       "sosta": 30,
+       "momento": null
+      }
+     ]
+    }
+   ],
+   "tettoRispettato": true,
+   "riquadro": [],
+   "scarti": [],
+   "uscite": []
+  },
+  "A": {
+   "utente": "A — lento e culturale",
+   "dnaGiro": {
+    "ritmo": {
+     "valore": "lento",
+     "fonte": "giri",
+     "fattoreSosta": 1.3,
+     "passo": "rilassato",
+     "tappePerTe": 3,
+     "dati": {
+      "giri": 4,
+      "fattoreSosta": 1.3,
+      "kmMedi": 0.8,
+      "tappeMedie": 3
+     }
+    },
+    "compagnia": null,
+    "sostaPasto": null,
+    "gruppo": null,
+    "merenda": false
+   },
+   "ordine": [
+    "insider",
+    "cultura",
+    "romance",
+    "food"
+   ],
+   "punteggi": [
+    {
+     "tema": "insider",
+     "punteggio": 0.9
+    },
+    {
+     "tema": "cultura",
+     "punteggio": 0.9
+    },
+    {
+     "tema": "romance",
+     "punteggio": 0.9
+    },
+    {
+     "tema": "food",
+     "punteggio": 0.2
+    }
+   ],
+   "tours": [
+    {
+     "tema": "insider",
+     "titolo": "Musei di Roma",
+     "tappe": 3,
+     "km": 0.89,
+     "trattoMax": 0.51,
+     "minuti": 172,
+     "sosteVisite": [
+      40,
+      80,
+      40
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Galleria del Cardinale Colonna",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 40,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Il Palazzo dei Conservatori",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 80,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Terrazza Belvedere del Palatino",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 40,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "cultura",
+     "titolo": "Tre musei a Roma",
+     "tappe": 3,
+     "km": 1.34,
+     "trattoMax": 1,
+     "minuti": 258,
+     "sosteVisite": [
+      80,
+      80,
+      80
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Museo Nazionale di Palazzo Venezia",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 80,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Museo Centrale del Risorgimento",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 80,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Museo di Roma - Palazzo Braschi",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 80,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "romance",
+     "titolo": "Piazze, belvedere e fontane di Roma",
+     "tappe": 3,
+     "km": 1.19,
+     "trattoMax": 1.07,
+     "minuti": 136,
+     "sosteVisite": [
+      40,
+      40,
+      40
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Piazza del Campidoglio",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 40,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Terrazza delle Quadrighe",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 40,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Fontana del Mascherone",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 40,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "food",
+     "titolo": "Tre forni a Roma",
+     "tappe": 3,
+     "km": 0.65,
+     "trattoMax": 0.4,
+     "minuti": 68,
+     "sosteVisite": [],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Antico Forno Roscioli",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Il Fornaio",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Forno Monteforte",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      }
+     ]
+    }
+   ],
+   "tettoRispettato": true,
+   "riquadro": [
+    "Nei tuoi ultimi 4 giri la sosta media nei musei è stata di 78 minuti.",
+    "Meno tappe e soste più lunghe: nei tuoi ultimi 4 giri le soste sono durate il 30% più della stima di Unnivai."
+   ],
+   "scarti": [
+    "food: Antico Forno Santini",
+    "cultura: Musei Capitolini",
+    "romance: Gianicolo Belvedere"
+   ],
+   "uscite": []
+  },
+  "B": {
+   "utente": "B — veloce e a piedi tanto",
+   "dnaGiro": {
+    "ritmo": {
+     "valore": "veloce",
+     "fonte": "giri",
+     "fattoreSosta": 0.7,
+     "passo": "intenso",
+     "tappePerTe": 5,
+     "dati": {
+      "giri": 4,
+      "fattoreSosta": 0.7,
+      "kmMedi": 4.8,
+      "tappeMedie": 6
+     }
+    },
+    "compagnia": {
+     "valore": "amici",
+     "fonte": "scelte",
+     "quante": {
+      "k": 3,
+      "tot": 3
+     }
+    },
+    "sostaPasto": {
+     "pranzo": 75,
+     "cena": 90
+    },
+    "gruppo": "Amici",
+    "merenda": false
+   },
+   "ordine": [
+    "insider",
+    "food",
+    "romance",
+    "cultura"
+   ],
+   "punteggi": [
+    {
+     "tema": "insider",
+     "punteggio": 0.4
+    },
+    {
+     "tema": "food",
+     "punteggio": 0.6
+    },
+    {
+     "tema": "romance",
+     "punteggio": 0.5
+    },
+    {
+     "tema": "cultura",
+     "punteggio": 0.3
+    }
+   ],
+   "tours": [
+    {
+     "tema": "insider",
+     "titolo": "Giardini, musei e palazzi di Roma",
+     "tappe": 5,
+     "km": 3.11,
+     "trattoMax": 1.06,
+     "minuti": 162,
+     "sosteVisite": [
+      20,
+      40,
+      20,
+      20,
+      20
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Giardino di Sant'Alessio",
+       "tipo": "verde",
+       "categoria": "natura",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Il Palazzo dei Conservatori",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 40,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Terrazza Belvedere del Palatino",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Galleria del Cardinale Colonna",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Palazzo Massimo alle Colonne",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 20,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "food",
+     "titolo": "Quattro forni a Roma",
+     "tappe": 4,
+     "km": 1.71,
+     "trattoMax": 1.06,
+     "minuti": 102,
+     "sosteVisite": [],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Antico Forno Roscioli",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Il Fornaio",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Forno Monteforte",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Antico Forno Santini",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "romance",
+     "titolo": "Roma dall'alto, dal Campidoglio al Gianicolo",
+     "tappe": 5,
+     "km": 3.01,
+     "trattoMax": 1.05,
+     "minuti": 141,
+     "sosteVisite": [
+      20,
+      20,
+      20,
+      20,
+      20
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Gianicolo Belvedere",
+       "tipo": "verde",
+       "categoria": "natura",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Fontana del Mascherone",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Piazza del Campidoglio",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Terrazza delle Quadrighe",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Giardino degli Aranci",
+       "tipo": "verde",
+       "categoria": "natura",
+       "sosta": 20,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "cultura",
+     "titolo": "Musei di Roma",
+     "tappe": 5,
+     "km": 1.84,
+     "trattoMax": 0.96,
+     "minuti": 199,
+     "sosteVisite": [
+      40,
+      15,
+      40,
+      40,
+      40
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Museo Nazionale di Palazzo Venezia",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 40,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Basilica dei Santi XII Apostoli",
+       "tipo": "chiesa",
+       "categoria": "cultura",
+       "sosta": 15,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Museo Centrale del Risorgimento",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 40,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Musei Capitolini",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 40,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Museo di Roma - Palazzo Braschi",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 40,
+       "momento": null
+      }
+     ]
+    }
+   ],
+   "tettoRispettato": true,
+   "riquadro": [
+    "Nei tuoi ultimi 4 giri la sosta media dove si mangia è stata di 12 minuti.",
+    "Più tappe e soste più corte: nei tuoi ultimi 4 giri le soste sono durate il 30% meno della stima di Unnivai.",
+    "Con gli amici: l'hai scelto in 3 richieste su 3."
+   ],
+   "scarti": [],
+   "uscite": []
+  },
+  "C": {
+   "utente": "C — famiglia con bambini",
+   "dnaGiro": {
+    "ritmo": {
+     "valore": "medio",
+     "fonte": "giri",
+     "fattoreSosta": 1.2,
+     "passo": null,
+     "tappePerTe": 4,
+     "dati": {
+      "giri": 2,
+      "fattoreSosta": 1.2,
+      "kmMedi": 1.8,
+      "tappeMedie": 4
+     }
+    },
+    "compagnia": {
+     "valore": "famiglia",
+     "fonte": "profilo"
+    },
+    "sostaPasto": {
+     "pranzo": 75,
+     "cena": 75
+    },
+    "gruppo": "Famiglia",
+    "merenda": true
+   },
+   "ordine": [
+    "insider",
+    "food",
+    "romance",
+    "cultura"
+   ],
+   "punteggi": [
+    {
+     "tema": "insider",
+     "punteggio": 0.2
+    },
+    {
+     "tema": "food",
+     "punteggio": 0.4
+    },
+    {
+     "tema": "romance",
+     "punteggio": 0.325
+    },
+    {
+     "tema": "cultura",
+     "punteggio": 0.2
+    }
+   ],
+   "tours": [
+    {
+     "tema": "insider",
+     "titolo": "Musei, palazzi e belvedere di Roma",
+     "tappe": 4,
+     "km": 2.05,
+     "trattoMax": 0.94,
+     "minuti": 203,
+     "sosteVisite": [
+      70,
+      35,
+      35,
+      35
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Il Palazzo dei Conservatori",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 70,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Terrazza Belvedere del Palatino",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 35,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Galleria del Cardinale Colonna",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 35,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Palazzo Massimo alle Colonne",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 35,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "food",
+     "titolo": "Quattro forni a Roma",
+     "tappe": 4,
+     "km": 1.71,
+     "trattoMax": 1.06,
+     "minuti": 102,
+     "sosteVisite": [],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Antico Forno Roscioli",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Il Fornaio",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Forno Monteforte",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Antico Forno Santini",
+       "tipo": "forno",
+       "categoria": "food",
+       "sosta": 20,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "romance",
+     "titolo": "Roma dall'alto, dal Campidoglio al Gianicolo",
+     "tappe": 4,
+     "km": 1.99,
+     "trattoMax": 1.07,
+     "minuti": 167,
+     "sosteVisite": [
+      35,
+      35,
+      35,
+      35
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Piazza del Campidoglio",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 35,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Terrazza delle Quadrighe",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 35,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Fontana del Mascherone",
+       "tipo": null,
+       "categoria": "cultura",
+       "sosta": 35,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Gianicolo Belvedere",
+       "tipo": "verde",
+       "categoria": "natura",
+       "sosta": 35,
+       "momento": null
+      }
+     ]
+    },
+    {
+     "tema": "cultura",
+     "titolo": "Quattro musei a Roma",
+     "tappe": 4,
+     "km": 1.46,
+     "trattoMax": 0.96,
+     "minuti": 300,
+     "sosteVisite": [
+      70,
+      70,
+      70,
+      70
+     ],
+     "pasti": [],
+     "tempoLibero": [],
+     "elenco": [
+      {
+       "ora": "--",
+       "nome": "Museo Nazionale di Palazzo Venezia",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 70,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Museo Centrale del Risorgimento",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 70,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Musei Capitolini",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 70,
+       "momento": null
+      },
+      {
+       "ora": "--",
+       "nome": "Museo di Roma - Palazzo Braschi",
+       "tipo": "museo",
+       "categoria": "cultura",
+       "sosta": 70,
+       "momento": null
+      }
+     ]
+    }
+   ],
+   "tettoRispettato": true,
+   "riquadro": [
+    "Nei tuoi ultimi 2 giri la sosta media dove si mangia è stata di 24 minuti.",
+    "In famiglia: l'hai scelto nel Profilo."
+   ],
+   "scarti": [],
+   "uscite": []
+  }
+ }
+}

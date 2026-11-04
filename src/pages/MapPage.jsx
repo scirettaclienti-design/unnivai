@@ -38,6 +38,9 @@ import { creaCamminoSimulato } from '../lib/camminoSimulato';
 import SimulaCammino from '../components/Nav/SimulaCammino';
 import { salvaGiro, leggiGiro, chiudiGiro, chiaveGiro, puntoDelGiro, centroDelGiro } from '../lib/navSession';
 import { logDnaEvent } from '../lib/dnaRegistro';
+import { valoreTappaRaggiunta } from '../lib/dnaRitmo';
+import { stayOf, haversineKm as kmFra } from '../lib/tourTiming';
+import { placeKind } from '../lib/placeKind';
 import { giroCompletato } from '../lib/giroCompletato';
 import { stopCoreCategory } from '../services/preferenceEngine';
 import GiroRipresaDialog from '../components/Map/GiroRipresaDialog';
@@ -823,6 +826,17 @@ const MapPage = () => {
             moment: step?.moment || null,
             tourId: tourData?.id || tourData?.tourId || null,
         };
+    };
+
+    // DNA-5 — il `value` della tappa raggiunta: km in linea d'aria dall'ultima tappa raggiunta, sosta prevista, tipo di posto
+    const valoreDellaTappa = (poi, fatteIds) => {
+        const step = tourData?.steps?.[poi?.index] || poi;
+        const primaId = (fatteIds || []).at(-1);
+        const prima = primaId != null ? (activeRoute || []).find(t => t.id === primaId) : null;
+        const lat = (x) => Number(x?.latitude ?? x?.lat);
+        const lng = (x) => Number(x?.longitude ?? x?.lng);
+        const km = prima && [lat(prima), lng(prima), lat(poi), lng(poi)].every(Number.isFinite) ? kmFra(lat(prima), lng(prima), lat(poi), lng(poi)) : null;
+        return valoreTappaRaggiunta({ km, sosta: stayOf(step), tipo: placeKind({ types: step?.types, primaryType: step?.primaryType ?? step?.primary_type }).kind });
     };
 
     // ─── ACTIVE ROUTE ────────────────────────────────────────────────────────
@@ -1724,7 +1738,9 @@ const MapPage = () => {
                 tour_id: tourData?.id || tourData?.tourId || null,
                 step_index: typeof poiObj.index === 'number' ? poiObj.index : (newCompleted.length - 1),
             });
-            logDnaEvent('stop_reached', gestoDellaTappa(poiObj)); // DNA-1: registro, mai bloccante
+            // DNA-1: registro, mai bloccante. DNA-5: nel `value` i km dalla tappa raggiunta prima, la sosta prevista dalla tabella (mai quella
+            // gia' corretta dal ritmo) e il tipo di posto: da qui il DNA impara quanto ti fermi e quanto cammini (lib/dnaRitmo.js)
+            logDnaEvent('stop_reached', { ...gestoDellaTappa(poiObj), value: valoreDellaTappa(poiObj, doneNow) });
 
             avanzaDopo(poiObj, newCompleted, skippedStepsRef.current || [], true);
             // NAV-3: la scheda di arrivo (non sull'ultima tappa: li' arriva la fine del giro)

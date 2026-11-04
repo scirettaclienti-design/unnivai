@@ -136,7 +136,8 @@ async function generaItinerario(caso, { base, onboarding, cc, rec }) {
         rec.chiamata = { pagina: 'AiItinerary.jsx', pathType: 'custom', prefs, testo: caso.richiesta };
         // C10 — i profili A e B portano il loro DNA (con fiducia piena) e il profilo al selettore, come il banco nazionale
         r = await aiRecommendationService.generateItinerary(caso.luogo, prefs, caso.richiesta, meteoApp, caso.dna ? weightsToAIProfile(caso.dna) : '', cc,
-            { dnaWeights: caso.dna || {}, pathType: 'custom', onboardingPrefs: onboarding, ...base });
+            // DNA-5 — `caso.dnaGiro` (ritmo e compagnia del DNA, come li calcola AiItinerary); assente nei casi del banco: invariato
+            { dnaWeights: caso.dna || {}, pathType: 'custom', onboardingPrefs: onboarding, ...base, ...(caso.dnaGiro ? { dnaGiro: caso.dnaGiro } : {}) });
     } else if (caso.modo === 'veloce') {
         const s = caso.scelta;
         const durata = { Veloce: 'veloce', Medio: 'medio', Lungo: 'lungo' }[caso.durata];
@@ -239,10 +240,17 @@ export async function generaPerTe(caso, E) {
     // C8b — dalle 18:00 Per Te e' il giro della sera (nessuna ricerca per temi); prima la ricerca del cibo segue l'ora (colazione, merenda)
     const sera = isSeraStart(new Date(now));
     const themed = sera ? {} : await placesDiscoveryService.discoverAllThemes(caso.luogo, cc.latitude, cc.longitude, { foodPrefs: food, ora: new Date(now) });
+    // DNA-5 — `caso.dna` e `caso.dnaGiro` come li passa DashboardUser; assenti nei casi del banco: invariato
+    const dna = caso.dna && caso.dna._share > 0 ? caso.dna : { _share: 0 };
+    // il pool dell'insider resta quello registrato (senza DNA, come nel giro vero del banco): l'ordine dell'insider col DNA e' P7a, non DNA-5,
+    // e con un altro pool la risposta registrata del modello perderebbe le sue tappe
     const insider = sera ? [] : buildInsiderPool(themed, cc, caso.luogo, undefined, { _share: 0 });
     const r = await aiRecommendationService.generateHomeTours({ city: caso.luogo, cityCenter: cc, themedCandidates: { insider, ...themed },
-        prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, aiProfile: '',
-        opts: { dnaWeights: { _share: 0 }, onboardingPrefs: caso.onboarding || null, skipUserQuota: true, simulatedNow: now } });
+        prefs: caso.dnaGiro
+            ? { duration: '1 Giorno', group: (caso.dnaGiro.compagnia?.gruppo || 'solo').toLowerCase(), pace: caso.dnaGiro.ritmo?.valore === 'veloce' ? 'attivo' : 'rilassato' }
+            : { duration: '1 Giorno', group: 'solo', pace: 'rilassato' },
+        aiProfile: '',
+        opts: { dnaWeights: dna, onboardingPrefs: caso.onboarding || null, skipUserQuota: true, simulatedNow: now, ...(caso.dnaGiro ? { dnaGiro: caso.dnaGiro } : {}) } });
     return { r, now, food, sera, themed, insider };
 }
 

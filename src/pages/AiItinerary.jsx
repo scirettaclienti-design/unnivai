@@ -32,6 +32,7 @@ import { useToast } from "../hooks/use-toast";
 import SalvaGiro from "../components/SalvaGiro";
 import DnaDelGiro from "../components/DnaDelGiro";
 import { righeDnaDelGiro } from "../lib/dnaDelGiro";
+import { dnaGiroDaApprendimento } from "@/lib/giroDna";
 import { richiestaEsplicita } from "../lib/richiestaEsplicita";
 // Gate 2 FASE 3 — resolveCityCenter come sorgente unica del centro città.
 // Sostituisce il vecchio pattern `{ latitude: lat, longitude: lng }` che usava
@@ -103,7 +104,9 @@ export default function AIItineraryPage() {
     // e DEMO_CITIES contiene 18 città su tutte quelle italiane.
 
     // DVAI-045: leggi le preferenze apprese dall'AI
-    const { userDNAPreferences, trackGeneratedTour, trackDnaEvent, getAIContext, dnaWeights, dnaShare, onboardingPrefs } = useAILearning();
+    const { userDNAPreferences, trackGeneratedTour, trackDnaEvent, getAIContext, dnaWeights, dnaShare, onboardingPrefs, righeRegistro, ritmoPreferito, compagniaPreferita, semeInteressi } = useAILearning();
+    // DNA-5 — cosa del ritmo e della compagnia del DNA ha cambiato l'ultimo giro (dal motore: _momentReport.dnaGiro), per il riquadro
+    const [giroDnaUsato, setGiroDnaUsato] = useState(null);
     const { toast } = useToast();
 
     // Gate 2 FASE 3 — cityCenter risolto autoritativamente da resolveCityCenter
@@ -238,8 +241,11 @@ export default function AIItineraryPage() {
                 // G3 — 'custom': la finestra temporale legge "domani", "sabato pomeriggio"…
                 // P7b — dieta, budget e stile del primo accesso. Il budget del
                 // wizard (prefsObject.budget) vince: la gerarchia la applica il motore.
-                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'custom', onboardingPrefs, posizioneUtente: posizioneRef.current },
+                // DNA-5 — ritmo e compagnia del DNA: la richiesta (ritmo, Gruppo, frase) → il Profilo → i giri finiti → le scelte passate
+                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'custom', onboardingPrefs, posizioneUtente: posizioneRef.current,
+                    dnaGiro: dnaGiroDaApprendimento({ righeRegistro, onboardingPrefs, ritmoPreferito, compagniaPreferita }, { scelto: prefsObject.pace, gruppo: prefsObject.group, testo: userPrompt }) },
             );
+            setGiroDnaUsato(result?._momentReport?.dnaGiro ?? null);
             // T1 — la citta' scritta nel testo puo' aver preso il posto della posizione.
             const resultCity = result?.destination?.city || activeCity;
 
@@ -745,6 +751,7 @@ export default function AIItineraryPage() {
                                         {/* DNA-RIQUADRO — cosa della richiesta e del DNA ha guidato questo giro (mai trattini; senza righe non compare) */}
                                         <DnaDelGiro className="mb-4" righe={righeDnaDelGiro({
                                             pesi: dnaWeights, fiducia: dnaShare, tappe: day.stops,
+                                            registro: righeRegistro, giro: giroDnaUsato, interessi: semeInteressi,
                                             richiesta: (() => {
                                                 const r = richiestaEsplicita({ testo: userPrompt, prefs: { interests: userPreferences.find(p => p.id === 'interests')?.selected || [] }, pathType: 'custom' });
                                                 return [...r.chieste, ...r.catsTesto];

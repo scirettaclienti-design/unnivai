@@ -130,7 +130,8 @@ export function sistemazione(a, c, b) {
  * @param {(c:object)=>boolean} [p.daFuori]          la natura «da fuori» (isNaturaDaFuori)
  * @param {(c:object)=>Set<string>} [p.categorieDi]  categorie di base di un candidato
  */
-export function aggiungiSosteDna({ sched, pool, dnaWeights, richiesta, categoriaTarget = null, passaQualita = () => true, alBuio = () => false, daFuori = () => false, categorieDi = () => new Set(), gia = [] }) {
+export function aggiungiSosteDna({ sched, pool, dnaWeights, richiesta, categoriaTarget = null, passaQualita = () => true, alBuio = () => false, daFuori = () => false, categorieDi = () => new Set(), gia = [], soloSe = null, etichetta = null }) {
+    // DNA-5 — `soloSe(c, minutiDelGiorno)`: un filtro in piu' sul posto (la merenda della famiglia: dolce o forno, dal pomeriggio)
     // `gia`: le soste gia' messe ({ giorno, categoria }, secondo passaggio dopo la ricerca mirata): si completa il numero, non si rifa'
     const report = { aggiunte: [], motivo: null, numero: numeroSoste(dnaWeights?._share), categorie: [] };
     const motivo = motivoNessunaSosta({ dnaWeights, richiesta, categoriaTarget, pool });
@@ -161,6 +162,7 @@ export function aggiungiSosteDna({ sched, pool, dnaWeights, richiesta, categoria
                         const sis = sistemazione(a, c, b);
                         if (!sis) continue;
                         if (!CORRISPONDENZE[categoria].ammette(c, romeMinutes(new Date(sis.start)))) continue;
+                        if (soloSe && !soloSe(c, romeMinutes(new Date(sis.start)))) continue;
                         if (categoria === 'natura' && (alBuio(new Date(sis.start), di) || alBuio(new Date(sis.end), di) || daFuori(c))) continue;
                         const stato = openStatus(c, new Date(sis.start), sis.stay).stato;
                         if (!(stato === OPEN || (categoria === 'natura' && stato === UNKNOWN))) continue;
@@ -174,7 +176,7 @@ export function aggiungiSosteDna({ sched, pool, dnaWeights, richiesta, categoria
                 const a = day[i], b = day[i + 1];
                 const nuova = {
                     candidate: c, narration: null, source: 'dna', moment: a.moment, start: new Date(sis.start), waitMinutesBefore: 0,
-                    trace: { dna: { sosta: true, categoria, minuti: sis.stay, deviazioneM: sis.deviazioneM, dopo: a.candidate?.name || a.candidate?.title || null } },
+                    trace: { dna: { sosta: true, categoria, minuti: sis.stay, deviazioneM: sis.deviazioneM, dopo: a.candidate?.name || a.candidate?.title || null, ...(etichetta ? { [etichetta]: true } : {}) } },
                 };
                 day.splice(i + 1, 1, nuova, { ...b, waitMinutesBefore: sis.attesaB });
                 usati.add(idDi(c)); usati.add(nomeNorm(c));

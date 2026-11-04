@@ -413,7 +413,7 @@ export function useAILearning() {
     // accesso: il server e' la fonte di verita', il localStorage la cache; un
     // fallimento si restituisce al chiamante, che lo deve mostrare.
     const saveFoodPrefs = useCallback(async (next = {}) => {
-        const seed = buildSeed({ interessi: onboardingSeed, ...next });
+        const seed = buildSeed({ interessi: onboardingSeed, ...onboardingPrefs, ...next }); // DNA-5: ritmo e compagnia del Profilo restano
         if (userId) {
             const r = await dataService.upsertOnboardingSeed(userId, seed);
             if (!r?.success) return { success: false, error: r?.error || 'Errore sconosciuto' };
@@ -421,7 +421,7 @@ export function useAILearning() {
         try { localStorage.setItem(ONBOARDING_SEED_KEY, JSON.stringify(seed)); } catch { /* cache */ }
         setOnboardingPrefs(seedFoodPrefs(seed));
         return { success: true };
-    }, [userId, onboardingSeed]);
+    }, [userId, onboardingSeed, onboardingPrefs]);
 
     // ─── ONB-1 — modifica degli interessi dal Profilo ────────────────────────
     // UNICO punto dove gli interessi cambiano dopo l'onboarding. Riscrive SOLO
@@ -489,6 +489,8 @@ export function useAILearning() {
         saveFoodPrefs,
         // ONB-1 — interessi scelti (id dell'editor) e salvataggio dal Profilo.
         interestIds: interestIdsFromSeed(onboardingSeed),
+        // DNA-5 — gli interessi del Profilo (id di base) per il riquadro del giro
+        semeInteressi: onboardingSeed,
         saveInterests,
         trackGeneratedTour,
         trackTourView,

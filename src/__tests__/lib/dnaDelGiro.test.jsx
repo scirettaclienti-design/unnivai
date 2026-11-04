@@ -17,24 +17,27 @@ const GIRO = [
 const PESI_PIENI = { food: 0.4, cultura: 0.3, natura: 0.12, nightlife: 0, avventura: 0, shopping: 0, relax: 0, arte: 0 };
 
 describe('righeDnaDelGiro', () => {
-    it('DNA pieno: le prime 2 categorie del DNA che il giro ha davvero, senza percentuali', () => {
-        const r = righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, tappe: GIRO });
-        expect(r).toEqual(['Più cibo: è tra i tuoi gusti più forti.', 'Più cultura: è tra i tuoi gusti più forti.']); // solo le prime 2, nessuna percentuale
+    // DNA-5 — la riga uguale per tutti («Più cibo: è tra i tuoi gusti più forti.») non c'e' piu': solo fatti veri dell'utente
+    it('DNA pieno ma nessun giro finito: la riga onesta, mai la frase uguale per tutti', () => {
+        const r = righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, tappe: GIRO, registro: [] });
+        expect(r).toEqual(['Ancora nessun giro finito: il DNA impara dalle tappe che raggiungi.']);
+        expect(r.join(' ')).not.toMatch(/gusti più forti/);
     });
-    it('DNA vuoto (fiducia 0 o pesi a zero): nessuna riga, niente trattini', () => {
+    it('DNA vuoto (fiducia 0 o pesi a zero) e niente Profilo: nessuna riga, niente trattini', () => {
         expect(righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0, tappe: GIRO })).toEqual([]);
-        expect(righeDnaDelGiro({ pesi: { food: 0, cultura: 0 }, fiducia: 0.3, tappe: GIRO })).toEqual([]);
         expect(righeDnaDelGiro({})).toEqual([]);
+        // registro non ancora letto: nessuna riga (mai «nessun giro finito» senza saperlo)
+        expect(righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, tappe: GIRO })).toEqual([]);
     });
-    it('una categoria forte che il giro non ha non si nomina', () => {
+    it('gli interessi del Profilo presenti nel giro, se non c\'è un fatto dai giri', () => {
         const solo = [stop('Trattoria', ['restaurant', 'food'])];
-        expect(righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, tappe: solo })).toEqual(['Più cibo: è tra i tuoi gusti più forti.']);
+        expect(righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, tappe: solo, interessi: ['food', 'natura'] })).toEqual(['Nel Profilo hai scelto cibo.']);
     });
-    it('richiesta esplicita: «Hai chiesto storia» prima del DNA, senza ripetere la stessa categoria', () => {
-        const r = righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, richiesta: ['cultura'], tappe: GIRO });
+    it('richiesta esplicita: «Hai chiesto cultura» prima del DNA, senza ripetere la stessa categoria', () => {
+        const r = righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, richiesta: ['cultura'], tappe: GIRO, interessi: ['cultura', 'natura'] });
         expect(r[0]).toBe('Hai chiesto cultura.');
-        expect(r).toContain('Più cibo: è tra i tuoi gusti più forti.');
-        expect(r.join(' ')).not.toMatch(/Più cultura/);
+        expect(r).toContain('Nel Profilo hai scelto natura.');
+        expect(r.join(' ')).not.toMatch(/scelto cultura/);
     });
     it('scelta del Quiz o di Sorprendimi: «Hai scelto …»', () => {
         expect(righeDnaDelGiro({ scelte: ['Natura', 'Parchi e Verde'] })).toEqual(['Hai scelto natura · parchi e verde.']);
@@ -43,11 +46,6 @@ describe('righeDnaDelGiro', () => {
         const r = righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, scelte: ['Storia'], richiesta: ['food', 'natura', 'arte'], tappe: GIRO });
         expect(r.length).toBeLessThanOrEqual(3);
         for (const riga of r) { expect(riga).not.toMatch(/—|-{2,}|undefined|null|NaN/); expect(riga.trim().length).toBeGreaterThan(8); }
-    });
-    it('mai percentuali, e al massimo 2 righe di DNA anche con tre categorie forti nel giro', () => {
-        const r = righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, tappe: GIRO });
-        expect(r.join(' ')).not.toMatch(/%|\d/);
-        expect(r.filter(x => x.startsWith('Più '))).toHaveLength(2);
     });
     it('una richiesta con categorie sconosciute non lascia righe vuote', () => {
         expect(righeDnaDelGiro({ richiesta: ['boh', undefined, ''] })).toEqual([]);
@@ -60,7 +58,7 @@ describe('il riquadro', () => {
         expect(container.firstChild).toBeNull();
     });
     it('con righe: titolo e una voce per riga', () => {
-        render(<DnaDelGiro righe={['Hai chiesto storia.', 'Più cibo: è tra i tuoi gusti più forti.']} />);
+        render(<DnaDelGiro righe={['Hai chiesto storia.', 'Nel Profilo hai scelto cibo.']} />);
         expect(screen.getByText('Il tuo DNA esplorativo')).toBeInTheDocument();
         expect(screen.getAllByTestId('dna-del-giro')).toHaveLength(1);
         expect(document.querySelectorAll('[data-dna-riga]')).toHaveLength(2);
@@ -72,9 +70,9 @@ describe('le 4 sorgenti: nessun trattino nel riquadro', () => {
     const tourData = { title: 'Giro', city: 'Catania', steps: GIRO.map((s, i) => ({ ...s, scheduledTime: `2026-10-25T0${8 + i}:30:00.000Z` })), duration_minutes: 180 };
     const testo = () => document.querySelector('[data-testid="dna-del-giro"]')?.textContent ?? '';
     it('Quiz con DNA pieno e scelta: righe vere', () => {
-        render(<QuickPathSummary tourData={tourData} choices={{ mainId: 'cibo', mood: 'Gusto', inspiration: 'Cucina tipica' }} dna={{ pesi: PESI_PIENI, fiducia: 0.3 }} onViewMap={() => {}} onHome={() => {}} />);
+        render(<QuickPathSummary tourData={tourData} choices={{ mainId: 'cibo', mood: 'Gusto', inspiration: 'Cucina tipica' }} dna={{ pesi: PESI_PIENI, fiducia: 0.3, registro: [] }} onViewMap={() => {}} onHome={() => {}} />);
         expect(testo()).toContain('Hai scelto gusto · cucina tipica.');
-        expect(testo()).toContain('Più cibo: è tra i tuoi gusti più forti.');
+        expect(testo()).toContain('Ancora nessun giro finito: il DNA impara dalle tappe che raggiungi.');
         expect(testo()).not.toMatch(/%/);
         expect(testo()).not.toMatch(/—/);
         cleanup();

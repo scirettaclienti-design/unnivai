@@ -208,7 +208,7 @@ const capStops = (moments, cap = MAX_VISITS_PER_DAY) => {
  *   start: Date, end: Date, minutes: number, categories: string[],
  *   preferred: string[], stops: number, careful: boolean }> }> }}
  */
-export function buildDaySkeleton({ window: tw, pace, interests = [], group = '', text = '', category = null, foodTheme: foodThemeIn = false, veloce = false, cenaPrima: cenaPrimaIn = false, colazioneAuto = false } = {}) {
+export function buildDaySkeleton({ window: tw, pace, interests = [], group = '', text = '', category = null, foodTheme: foodThemeIn = false, veloce = false, cenaPrima: cenaPrimaIn = false, colazioneAuto = false, ritmoDna = null, fattoreSosta = null, sostaPasto = null } = {}) {
     const windows = Array.isArray(tw?.windows) && tw.windows.length > 0
         ? tw.windows
         : (tw?.start && tw?.end ? [{ date: tw.date, start: tw.start, end: tw.end }] : []);
@@ -237,7 +237,16 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
     // tutta la sosta e il tour parte all'ora chiesta, non alle 9:30. Senza la richiesta, la regola C7 non cambia.
     const colazioneChiesta = asksBreakfast(text);
     // C8a — la sosta del drink: 45 minuti, 60 con ritmo Rilassato.
-    const sostaAperitivo = paceKey === 'rilassato' ? APERITIVO_STAY_RELAX_MINUTES : APERITIVO_STAY_MINUTES;
+    // DNA-5 — IL RITMO DEL DNA (solo senza un ritmo chiesto: lo decide il chiamante) conta le tappe per momento e la sosta del drink
+    // come il passo che gli corrisponde (lento → come Rilassato, veloce → come Intenso), e NIENT'ALTRO: il dopocena, il tetto di
+    // cammino e i mezzi restano quelli del ritmo della richiesta.
+    const passoTappe = ritmoDna === 'rilassato' || ritmoDna === 'intenso' ? ritmoDna : paceKey;
+    const sostaAperitivo = passoTappe === 'rilassato' ? APERITIVO_STAY_RELAX_MINUTES : APERITIVO_STAY_MINUTES;
+    // DNA-5 — il fattore delle soste (ritmo) e i minuti dei pasti (compagnia) viaggiano con ogni momento (tourTiming.stayInMoment)
+    const extraDna = {
+        ...(Number.isFinite(fattoreSosta) && fattoreSosta > 0 && fattoreSosta !== 1 ? { fattoreSosta } : {}),
+    };
+    const pastoDi = (key) => (sostaPasto && Number(sostaPasto[key]) > 0 ? { sostaPasto: Number(sostaPasto[key]) } : {});
 
     const days = windows.map((w) => {
         const day = civilDay(w.start);
@@ -264,10 +273,12 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
                 minutes,
                 categories,
                 preferred,
-                stops: stopsFor(m.key, paceKey, minutes),
+                stops: stopsFor(m.key, passoTappe, minutes),
                 careful: careful && MEAL_KEYS.has(m.key),
                 ...(esplicito ? { esplicito: true, ...(esplicitoPasti ? { esplicitoPasti: true } : {}) } : {}),
                 ...(tema ? { tema } : {}),
+                ...extraDna,
+                ...pastoDi(m.key),
                 ...extra,
             };
         };
@@ -369,7 +380,7 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
             }));
         }
 
-        const tettoVisite = paceKey === 'rilassato' ? MAX_VISITS_RILASSATO : MAX_VISITS_PER_DAY;
+        const tettoVisite = passoTappe === 'rilassato' ? MAX_VISITS_RILASSATO : MAX_VISITS_PER_DAY;
         const totalStops = capStops(moments, tettoVisite);
         for (const m of moments) m.tettoVisite = tettoVisite;
         return { date: w.date, moments, totalStops };

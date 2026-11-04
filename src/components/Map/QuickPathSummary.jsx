@@ -28,6 +28,7 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modific
         pesi: dna?.pesi, fiducia: dna?.fiducia,
         scelte: sceltaMostrata ? [choices?.mood, choices?.inspiration] : [],
         tappe: tourData.steps,
+        registro: dna?.registro ?? null, interessi: dna?.interessi ?? [], // DNA-5: i fatti veri dai giri finiti
     });
 
     // Gate VERITÀ VISIVA (F26) DIFF 4 — via lo stock Unsplash di ripiego.

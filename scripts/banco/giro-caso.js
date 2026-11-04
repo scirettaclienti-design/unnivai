@@ -4,6 +4,7 @@ import { aiRecommendationService, buildInsiderPool } from '@/services/aiRecommen
 import { placesDiscoveryService } from '@/services/placesDiscoveryService';
 import { resolveCityCenter } from '@/services/cityCenterService';
 import { isSeraStart } from '@/lib/daySkeleton';
+import { riferimentoPerDopo } from '@/lib/perTeProposte';
 import { isMealPlace, requestedFamilies } from '@/services/momentSelection';
 import { isBreakfastPlace } from '@/lib/mealRules';
 import { displayedTourMinutes } from '@/lib/tourTiming';
@@ -246,6 +247,9 @@ export async function generaPerTe(caso, E) {
 }
 
 /** I campi del grezzo di "Per Te" dal risultato della home. */
+/** D2 — da quando si contano gli arrivi di un tour di Per Te: adesso, o il prossimo mattino per una proposta «per dopo». */
+export const inizioTourPerTe = (tour, now) => (tour?.perDopo ? riferimentoPerDopo(new Date(now)).data : new Date(now));
+
 export function registraPerTe(rec, { r, now, food, sera, themed, insider }, E, luoghi) {
     if (food.dieta?.length || food.budget) rec.vincoli = { dieta: food.dieta, budget: food.budget, maxPriceLevel: food.maxPriceLevel };
     rec.chiamata = { pagina: 'DashboardUser.jsx', pathType: null, prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, testo: null };
@@ -268,8 +272,10 @@ export function registraPerTe(rec, { r, now, food, sera, themed, insider }, E, l
     }
     rec.tours = (r.tours || []).map(t => {
         // "Per Te" di giorno non ha orari: l'arrivo si stima da ora simulata + cammino + soste.
-        let t_ = new Date(now).getTime();
-        return { tema: t.themeType, titolo: t.title || null, stops: t.stops.map(s => {
+        // BANCO-DIFETTI (T19, D2) — una proposta «per dopo» (PER-TE-PROPOSTE) il motore la compone per il prossimo mattino (9:30): i suoi
+        // arrivi partono da li', come li ha verificati keepOpenStops (prima il banco la metteva da adesso: Palazzo dei Chierici «chiuso»).
+        let t_ = inizioTourPerTe(t, now).getTime();
+        return { tema: t.themeType, titolo: t.title || null, ...(t.perDopo ? { perDopo: t.perDopo.quando } : {}), stops: t.stops.map(s => {
             t_ += (s.travelMinutesFromPrev || 0) * 60000;
             const stimato = new Date(t_).toISOString();
             t_ += (s.stayMinutes || 0) * 60000;

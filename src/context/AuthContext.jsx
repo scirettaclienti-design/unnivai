@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { verificaLinkEmail } from '../lib/linkEmail';
 
 const AuthContext = createContext({});
 
@@ -20,6 +21,10 @@ export const AuthProvider = ({ children }) => {
         // 1. CHECK SESSIONE STRICT
         const initAuth = async () => {
             try {
+                // LINK-DOMINIO: link dell'email con token_hash → verifica prima di leggere la sessione. `loading` resta
+                // true finché non ha finito, così /update-password non rimanda a /login prima del tempo.
+                const link = await verificaLinkEmail(supabase);
+                if (link.esito === 'ok' && link.tipo === 'recovery') setIsPasswordRecovery(true);
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session?.user) {
                     setUser(session.user);

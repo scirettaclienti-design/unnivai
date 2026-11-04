@@ -39,10 +39,10 @@ a{color:#B4401A;}
 <p class="testo" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#06161E;">Tocca il pulsante per attivarlo. Poi entri con la tua password.</p>
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px;">
 <tr><td class="pulsante" bgcolor="#FF6B3D" style="background:#FF6B3D;border-radius:999px;">
-<a href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:14px 26px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;line-height:1.2;color:#1A0A04;text-decoration:none;border-radius:999px;">Conferma l'email</a>
+<a href="{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email" target="_blank" style="display:inline-block;padding:14px 26px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;line-height:1.2;color:#1A0A04;text-decoration:none;border-radius:999px;">Conferma l'email</a>
 </td></tr></table>
 <p class="tenue" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A5A60;">Il link vale un'ora e funziona una volta. Se il pulsante non si apre, copia questo indirizzo nel browser:</p>
-<p class="tenue" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A5A60;"><a class="link" href="{{ .ConfirmationURL }}" target="_blank" style="color:#B4401A;word-break:break-all;">{{ .ConfirmationURL }}</a></p>
+<p class="tenue" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A5A60;"><a class="link" href="{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email" target="_blank" style="color:#B4401A;word-break:break-all;">{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email</a></p>
 </td></tr>
 <tr><td style="padding:18px 4px 0;">
 <p class="tenue" style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#4A5A60;">Non hai creato tu l'account? Ignora questa email: senza conferma non si attiva.</p>

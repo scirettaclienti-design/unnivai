@@ -66,6 +66,16 @@ export async function daiConsensoAi(user) {
     return voce;
 }
 
+// ONBOARDING-ACCESSO — «Non adesso» detto nel primo ingresso vale per tutta questa apertura dell'app: la schermata
+// non si riapre da sola appena si arriva in home (si riapre solo quando un servizio AI ne ha bisogno).
+let rimandato = false;
+export const EVENTO_CONSENSO_RIMANDATO = 'dvai:consenso-ai-rimandato';
+export function rimandaConsensoAi() {
+    rimandato = true;
+    try { window.dispatchEvent(new CustomEvent(EVENTO_CONSENSO_RIMANDATO)); } catch { /* niente finestra */ }
+}
+export const consensoRimandato = () => rimandato;
+
 /** Chiede alla schermata di aprirsi (la gestisce <ConsensoAi/> in App). */
 export function chiediConsensoAi() {
     try { window.dispatchEvent(new CustomEvent(EVENTO_CONSENSO_AI)); } catch { /* niente finestra */ }

@@ -33,7 +33,7 @@ Nessun valore segreto in questo report: le chiavi stanno nel Portachiavi di macO
 - **Registrazione da ospite completa (prova § 7 di OSPITE-GIRO, `ospite-giro.webkit.mjs`)**: **TUTTO OK** alle 15:35 (`docs/prove/dati/2026-11-05-ospite-giro.json`, schermate in `docs/prove/schermate/ospite-giro/`). Telefono nuovo, nessuna credenziale: ospite entrato, giro di Catania da 7 tappe camminato fino alla fine, «Salva questo giro» apre la registrazione (momento `fine`); un secondo Crea apre l'invito «Il prossimo giro parte dal tuo account» con **0 generazioni nuove**; email → codice di 6 cifre arrivato nella casella di Ivano (letto da lui) → password → **stesso id utente** (`f124f9b7…`), non più anonimo, email confermata; Profilo con 1 giro e Catania. Nel database: 7 «tappa raggiunta» e la fine del giro sull'account registrato. 0 errori della pagina, voce del telefono.
   - L'indirizzo principale di Ivano ha già un account: si è usato un suo alias con il «+» (stessa casella).
   - Primo tentativo fermato dallo script (cliccava il «Chiudi» della fine giro, coperto dal foglio): ora cerca il «Chiudi» dentro il foglio. Secondo tentativo fermato per codice non scritto in 10 minuti (email partita alle 15:04, Ivano non era alla posta). Generazioni da ospite usate oggi da questo IP: 9 su 10.
-  - Osservazione: per lo stesso giro ci sono 2 righe `tour_completed` in `dna_events` (il contatore del Profilo conta i giri distinti e mostra 1). Non toccato.
+  - Osservazione: per lo stesso giro ci sono 2 righe `tour_completed` in `dna_events` (il contatore del Profilo conta i giri distinti e mostra 1). Non toccato. **Chiuso (ONBOARDING-ACCESSO § 10)**: una riga per categoria (cultura, food) come da DNA-1, non un doppione; il formato resta (decisione di Ivano), test `giroUnaVolta.test.js`.
 
 ## Correzione del collaudo (non dell'app)
 
@@ -49,7 +49,7 @@ Lint 0 errori, suite 3465/3465, build ok, `banco:guardia` 12/12, pertinenza senz
 
 ## Aperti
 
-1. **«Account eliminato.» non compare** dopo la cancellazione: il server cancella tutto e l'app torna alla home, ma in 10 s il messaggio non si vede. Difetto dell'app, da guardare in un task a parte (non corretto qui).
+1. **«Account eliminato.» non compare** dopo la cancellazione: il server cancella tutto e l'app torna alla home, ma in 10 s il messaggio non si vede. Difetto dell'app, da guardare in un task a parte (non corretto qui). **Chiuso in ONBOARDING-ACCESSO § 10** (PR #50): `signOut` smontava ToastProvider; ora il messaggio aspetta in `sessionStorage` (`eliminaAccountMessaggio.test.jsx`).
 2. **Chiavi Google (GOOGLE-CHIAVI, riga L10)**: non fatte. Oggi `GOOGLE_SERVER_KEY` non c'è, `places-proxy` è la v19 del 13/10 (senza il percorso `geocode`: il telefono risponde 403 e ripiega), `openai-proxy` v52 ha il codice nuovo ma usa ancora la chiave vecchia come ripiego. Passi, in ordine (dettagli e restrizioni in `docs/prove/2026-11-06-google-chiavi.md`):
    1. console Google (https://console.cloud.google.com/apis/credentials) → crea la chiave del **server** «Unnivai server»: nessuna restrizione di applicazione, 3 API (Places API, Places API (New), Geocoding API), quote giornaliere e avviso di budget;
    2. `supabase secrets set GOOGLE_SERVER_KEY="<chiave server>" --project-ref ahecpiwsdhghkndncejb`;

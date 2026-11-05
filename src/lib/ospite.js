@@ -30,7 +30,7 @@ export const INVITO = {
     },
     salva: {
         titolo: 'Per salvare serve un account',
-        testo: 'Un minuto: email, codice, password. Il giro e i tuoi gusti restano.',
+        testo: 'Un minuto: email e codice, niente password. Il giro e i tuoi gusti restano.',
     },
     limite: {
         titolo: 'Parti con il tuo account',
@@ -128,7 +128,7 @@ export const CODICI_OSPITE = {
     OSPITI_LIMITE: 'limite',
 };
 
-// ─── Registrazione: email → codice → password, sullo stesso account ──────────
+// ─── Registrazione: email → codice, sullo stesso account (ONBOARDING-ACCESSO: niente password) ─────────────
 
 const ERRORI_REGISTRAZIONE = {
     email_exists: TESTI_OSPITE.EMAIL_GIA_USATA,
@@ -152,17 +152,12 @@ export async function mandaCodice(email) {
     return { error: error || null };
 }
 
-/** Passo 2: il codice conferma l'email, poi la password. Lo stesso id: giro e DNA restano. */
-export async function confermaEPassword(email, codice, password) {
-    const { error: e1 } = await supabase.auth.verifyOtp({ email: String(email).trim(), token: String(codice).trim(), type: 'email_change' });
-    if (e1) return { error: e1, passo: 'codice' };
-    const { data, error: e2 } = await supabase.auth.updateUser({ password });
-    if (e2) return { error: e2, passo: 'password' };
+/**
+ * Passo 2: il codice conferma l'email e l'account anonimo diventa un account vero (stesso id: giro, gusti, DNA e primo
+ * ingresso restano). Niente password (ONBOARDING-ACCESSO): si rientra con email e codice.
+ */
+export async function confermaCodice(email, codice) {
+    const { data, error } = await supabase.auth.verifyOtp({ email: String(email).trim(), token: String(codice).replace(/\D/g, ''), type: 'email_change' });
+    if (error) return { error };
     return { error: null, user: data?.user || null };
-}
-
-/** Solo la password (l'email era già confermata, ma la password scelta non andava bene). */
-export async function scegliPassword(password) {
-    const { error } = await supabase.auth.updateUser({ password });
-    return { error: error || null };
 }

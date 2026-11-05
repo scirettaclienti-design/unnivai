@@ -1,11 +1,11 @@
 {
   "confirmation": {
     "file": "conferma.html",
-    "oggetto": "Conferma la tua email per Unnivai"
+    "oggetto": "Il codice per il tuo account Unnivai"
   },
   "magic_link": {
     "file": "accesso.html",
-    "oggetto": "Il tuo link per entrare in Unnivai"
+    "oggetto": "Il tuo codice per entrare in Unnivai"
   },
   "recovery": {
     "file": "password.html",

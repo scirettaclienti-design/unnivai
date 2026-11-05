@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, AlertTriangle, XCircle, Info, X } from 'lucide-react';
-import { TOAST_EVENT } from '../hooks/use-toast';
+import { TOAST_EVENT, prendiToastInAttesa, toastMostrato } from '../hooks/use-toast';
 import { NAV_TESTI } from '../lib/navMessaggi';
 
 const ICONS = {
@@ -35,8 +35,9 @@ export default function ToastProvider() {
     }, []);
 
     const handleToast = useCallback((e) => {
-        const { message, type = 'info', duration = 4000 } = e.detail;
+        const { message, type = 'info', duration = 4000, persistente = false } = e.detail;
         const id = ++toastIdCounter;
+        if (persistente) toastMostrato();
 
         setToasts(prev => [...prev.slice(-2), { id, message, type, duration, createdAt: Date.now() }]);
 
@@ -50,6 +51,9 @@ export default function ToastProvider() {
             const d = e.detail || {};
             handleToast({ detail: { message: d.message || d.title, type: d.type || 'info', duration: d.duration || 4000 } });
         });
+        // Un toast persistente arrivato mentre ToastProvider era smontato (es. «Account eliminato.» dopo signOut).
+        const inAttesa = prendiToastInAttesa();
+        if (inAttesa) handleToast({ detail: inAttesa });
         return () => {
             window.removeEventListener(TOAST_EVENT, handleToast);
             Object.values(timers.current).forEach(clearTimeout);

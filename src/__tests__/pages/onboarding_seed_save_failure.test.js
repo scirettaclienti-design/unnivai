@@ -68,22 +68,25 @@ const DONE_KEY = 'dvai_onboarding_done';
 const DB_ERROR = "column user_preferences.onboarding_seed does not exist";
 
 const clickByText = (text) => fireEvent.click(screen.getByText(text).closest('button'));
-const gotoInterests = () => clickByText('Iniziamo!');
-// P7b — interessi → dieta → a tavola → pronto. `aTavola` sceglie sulle due
-// schermate nuove (dieta multipla, budget e stile).
+// ONBOARDING-ACCESSO — il primo ingresso: consenso («Va bene») → interessi → a tavola → come giri → «Fatto, si parte».
+const gotoInterests = async () => {
+    clickByText('Va bene');
+    await screen.findByText('Cosa ti fa fermare?');
+};
+const avanti = () => fireEvent.click(screen.getByTestId('primo-avanti'));
+// `aTavola` sceglie sulla schermata «A tavola» (dieta multipla, budget e stile).
 const gotoReady = (aTavola = null) => {
-    clickByText('Continua');
+    avanti();
     for (const d of aTavola?.dieta || []) clickByText(d);
-    clickByText('Continua');
     if (aTavola?.budget) clickByText(aTavola.budget);
     if (aTavola?.stile) clickByText(aTavola.stile);
-    clickByText('Continua');
+    avanti();
 };
-const finish = () => clickByText('Entra in Unnivai');
+const finish = () => clickByText('Fatto, si parte');
 
-// welcome → scegli "Storia e arte" → pronto → conferma
-const runWizardToEnd = (aTavola = null) => {
-    gotoInterests();
+// consenso → scegli "Storia e arte" → a tavola → come giri → conferma
+const runWizardToEnd = async (aTavola = null) => {
+    await gotoInterests();
     clickByText('Storia e arte');
     gotoReady(aTavola);
     finish();
@@ -100,16 +103,16 @@ beforeEach(() => {
 });
 
 describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
-    it('fallimento su "Entra in Unnivai": niente navigate, niente flag, errore a schermo', async () => {
+    it('fallimento su "Fatto, si parte": niente navigate, niente flag, errore a schermo', async () => {
         upsertOnboardingSeedMock.mockResolvedValue({ success: false, error: DB_ERROR });
 
         render(createElement(Onboarding));
-        runWizardToEnd();
+        await runWizardToEnd();
 
         // (c) l'errore e' RENDERIZZATO — si interroga il DOM, non una spia
         const alert = await screen.findByRole('alert');
         expect(alert).toBeInTheDocument();
-        expect(screen.getByText('Non siamo riusciti a salvare le tue scelte.')).toBeInTheDocument();
+        expect(screen.getByText('Non sono riuscito a salvare le tue scelte.')).toBeInTheDocument();
         // il messaggio tecnico vero, non un testo generico inventato
         expect(screen.getByText(DB_ERROR)).toBeInTheDocument();
         // esiste una via d'uscita: il pulsante Riprova
@@ -127,7 +130,7 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
         upsertOnboardingSeedMock.mockResolvedValue({ success: false, error: DB_ERROR });
 
         render(createElement(Onboarding));
-        runWizardToEnd({ dieta: ['Vegetariano', 'Senza glutine'], budget: '€', stile: 'Trattoria' });
+        await runWizardToEnd({ dieta: ['Vegetariano', 'Senza glutine'], budget: '€', stile: 'Trattoria' });
         await screen.findByRole('alert');
 
         expect(upsertOnboardingSeedMock).toHaveBeenCalledTimes(1);
@@ -142,11 +145,10 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
         upsertOnboardingSeedMock.mockResolvedValue({ success: true });
 
         render(createElement(Onboarding));
-        gotoInterests();
+        await gotoInterests();
         clickByText('Storia e arte');
-        clickByText('Continua');
+        avanti();
         clickByText('Vegano');
-        clickByText('Salta questa domanda');
         clickByText('€€€');
         clickByText('Salta questa domanda');
         finish();
@@ -161,7 +163,7 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
         upsertOnboardingSeedMock.mockResolvedValue({ success: false, error: DB_ERROR });
 
         render(createElement(Onboarding));
-        runWizardToEnd();
+        await runWizardToEnd();
         await screen.findByRole('alert');
 
         upsertOnboardingSeedMock.mockResolvedValue({ success: true });
@@ -177,6 +179,7 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
         upsertOnboardingSeedMock.mockResolvedValue({ success: false, error: DB_ERROR });
 
         render(createElement(Onboarding));
+        await gotoInterests();
         clickByText('Salta per ora');
 
         await screen.findByRole('alert');
@@ -193,7 +196,7 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
         upsertOnboardingSeedMock.mockResolvedValue({ success: false, error: DB_ERROR });
 
         render(createElement(Onboarding));
-        gotoInterests();
+        await gotoInterests();
         clickByText('Storia e arte');   // interessi selezionati ma NON confermati
         clickByText('Salta per ora');
         await screen.findByRole('alert');
@@ -212,7 +215,7 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
         upsertOnboardingSeedMock.mockResolvedValue({ success: true });
 
         render(createElement(Onboarding));
-        runWizardToEnd();
+        await runWizardToEnd();
 
         await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/dashboard-user', { replace: true }));
         expect(localStorage.getItem(DONE_KEY)).toBe('11111111-2222-3333-4444-555555555555');

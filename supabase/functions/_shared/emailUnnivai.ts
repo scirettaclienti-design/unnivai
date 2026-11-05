@@ -1,7 +1,8 @@
 // EMAIL-LANCIO — le quattro email di Unnivai, in un posto solo.
 //
 // · conferma della registrazione, link di accesso, reset della password: sono i modelli di Supabase Auth.
-//   Le variabili ({{ .TokenHash }}, {{ .Email }}, {{ .SiteURL }}) le riempie Supabase al momento dell'invio.
+//   Le variabili ({{ .Token }}, {{ .TokenHash }}, {{ .Email }}, {{ .SiteURL }}) le riempie Supabase al momento dell'invio.
+//   LINK-DOMINIO: i link puntano al nostro sito con token_hash e li verifica l'app (src/lib/linkEmail.js).
 //   I file supabase/templates/*.html si rigenerano da qui (scripts/email/genera-modelli.mjs) e un test controlla
 //   che siano uguali; Ivano li carica con scripts/email/carica-modelli.mjs.
 // · iscrizione alla lista d'attesa: la spedisce l'Edge Function lista-attesa-email con l'API di Resend.
@@ -11,7 +12,12 @@
 // Modalità scura: color-scheme + supported-color-schemes e @media (prefers-color-scheme: dark) per Apple Mail;
 // i colori chiari di partenza reggono anche l'inversione automatica di Gmail e Outlook.
 
-export const LOGO_URL = 'https://unnivai.com/logo.png'; // 441×125, servito dal progetto Vercel unnivai-site
+// ONBOARDING-ACCESSO: il logo delle email è un PNG del NOSTRO sito (public/brand/logo-email.png, 282×80 = 141×40 @2x, fatto da
+// scripts/brand/genera-icone.mjs dal logo di unnivai.com). Esiste dal merge della PR #50 e dal READY di Vercel: i modelli di Auth si
+// ricaricano su Supabase solo dopo, e le funzioni lista-attesa-email e avvisi si ripubblicano dopo. Mai SVG (Gmail non li mostra).
+export const LOGO_URL = 'https://unnivai.vercel.app/brand/logo-email.png';
+/** Bricolage Grotesque per i titoli dove il client la carica (Apple Mail, iPhone); altrove il carattere di sistema. */
+export const FONT_TITOLI_URL = 'https://unnivai.vercel.app/brand/fonts/bricolage-grotesque-latin-800-normal.woff2';
 export const SITO_URL = 'https://unnivai.com/';
 export const CITTA_DI_PARTENZA = 'Catania'; // come HOME nella pagina della lista d'attesa su unnivai.com
 
@@ -23,8 +29,12 @@ const C = {
     accento: '#FF6B3D', suAccento: '#1A0A04', link: '#B4401A',
     // scuro (gli stessi della pagina unnivai.com)
     sfondoScuro: '#06161E', schedaScura: '#0B2029', bordoScuro: '#1D3B47', testoScuro: '#EAF2F0', tenueScuro: '#9BB5BC', linkScuro: '#FF8A5B',
+    // il riquadro del codice: carta calda col bordo arancione; scuro: il mare del sito col bordo del bagliore
+    codice: '#FFF3EC', codiceScuro: '#0A2733',
 };
 const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+const FONT_TITOLI = `'Bricolage Grotesque',${FONT}`;
+const FONT_CODICE = "'SF Mono',ui-monospace,Menlo,Consolas,'Courier New',monospace";
 
 /** Testo sicuro dentro l'HTML (città ed email arrivano da un modulo pubblico). */
 export const esc = (s: unknown): string => String(s ?? '')
@@ -53,8 +63,8 @@ function pulsante({ testo, url }: Pulsante): string {
 /** Il guscio comune: logo, scheda, piede. */
 export function guscio(x: Parti): string {
     const corpo = [
-        `<h1 class="testo" style="margin:0 0 14px;font-family:${FONT};font-size:24px;font-weight:800;line-height:1.25;color:${C.testo};">${x.titolo}</h1>`,
-        ...x.paragrafi.map((h) => p(h)),
+        `<h1 class="testo titolo" style="margin:0 0 14px;font-family:${FONT_TITOLI};font-size:26px;font-weight:800;line-height:1.2;letter-spacing:-0.01em;color:${C.testo};">${x.titolo}</h1>`,
+        ...x.paragrafi.map((h) => (h.startsWith('<table') ? h : p(h))),
         x.pulsante ? pulsante(x.pulsante) : '',
         ...(x.dopoPulsante ?? []).map((h) => p(h, 'tenue', C.tenue, 14)),
     ].filter(Boolean).join('\n');
@@ -70,6 +80,7 @@ export function guscio(x: Parti): string {
 <meta name="supported-color-schemes" content="light dark">
 <title>${x.titolo}</title>
 <style>
+@font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:800;src:url('${FONT_TITOLI_URL}') format('woff2');}
 :root{color-scheme:light dark;supported-color-schemes:light dark}
 body{margin:0;padding:0;-webkit-text-size-adjust:100%;}
 a{color:${C.link};}
@@ -79,11 +90,15 @@ a{color:${C.link};}
   .testo{color:${C.testoScuro} !important;}
   .tenue{color:${C.tenueScuro} !important;}
   .tenue a,.testo a,a.link{color:${C.linkScuro} !important;}
+  .codice{background:${C.codiceScuro} !important;border-color:${C.linkScuro} !important;}
+  .codice span{color:${C.testoScuro} !important;}
 }
 [data-ogsc] .sfondo{background:${C.sfondoScuro} !important;}
 [data-ogsc] .scheda{background:${C.schedaScura} !important;}
 [data-ogsc] .testo{color:${C.testoScuro} !important;}
 [data-ogsc] .tenue{color:${C.tenueScuro} !important;}
+[data-ogsc] .codice{background:${C.codiceScuro} !important;}
+[data-ogsc] .codice span{color:${C.testoScuro} !important;}
 </style>
 </head>
 <body class="sfondo" style="margin:0;padding:0;background:${C.sfondo};">
@@ -92,7 +107,7 @@ a{color:${C.link};}
 <tr><td align="center" style="padding:28px 16px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
 <tr><td style="padding:0 4px 18px;">
-<a href="${SITO_URL}" target="_blank"><img src="${LOGO_URL}" width="141" height="40" alt="Unnivai" style="display:block;border:0;outline:none;width:141px;height:40px;"></a>
+<a href="${SITO_URL}" target="_blank" style="text-decoration:none;"><img src="${LOGO_URL}" width="141" height="40" alt="Unnivai" style="display:block;border:0;outline:none;width:141px;height:40px;font-family:${FONT_TITOLI};font-size:24px;font-weight:800;line-height:40px;color:${C.accento};"></a>
 </td></tr>
 <tr><td class="scheda" style="background:${C.scheda};border:1px solid ${C.bordo};border-radius:16px;padding:28px 24px 14px;">
 ${corpo}
@@ -111,38 +126,52 @@ ${piede}
 const linkCopiabile = (url: string) =>
     `<a class="link" href="${url}" target="_blank" style="color:${C.link};word-break:break-all;">${url}</a>`;
 const scadenza = `Il link vale ${DURATA_LINK} e funziona una volta. Se il pulsante non si apre, copia questo indirizzo nel browser:`;
+// Il codice in un riquadro: cifre grandi e larghe, carattere a spaziatura fissa (0 e O non si confondono), si seleziona e si copia
+// tutto insieme (nessuno spazio dentro). Leggibile anche con le immagini bloccate: è testo.
+const codiceGrande = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 18px;">
+<tr><td class="codice" bgcolor="${C.codice}" style="background:${C.codice};border:2px solid ${C.accento};border-radius:14px;padding:14px 22px;">
+<span style="font-family:${FONT_CODICE};font-size:34px;font-weight:700;letter-spacing:8px;line-height:1.1;color:${C.testo};">{{ .Token }}</span>
+</td></tr></table>`;
+const doppiaScadenza = `Codice e link valgono ${DURATA_LINK} e funzionano una volta. Se il pulsante non si apre, copia questo indirizzo nel browser:`;
 const apriUnnivai = `<a class="link" href="{{ .SiteURL }}" target="_blank" style="color:${C.link};">Apri Unnivai</a>`;
 
 /** I modelli di Supabase Auth: chiave = nome del modello nella Management API (mailer_templates_<chiave>_content). */
 export const MODELLI_AUTH = {
+    // ONBOARDING-ACCESSO — un account nuovo riceve «confirmation», uno che c'è già «magic_link». Tutti e due portano SIA il
+    // codice di 6 cifre (l'app nuova: signInWithOtp + verifyOtp type 'email') SIA il link di sempre (l'app di prima): così i
+    // modelli si caricano in qualsiasi momento, prima o dopo il codice nuovo, e nessuna delle due versioni resta senza strada.
     confirmation: {
         file: 'conferma.html',
-        oggetto: 'Conferma la tua email per Unnivai',
+        oggetto: 'Il codice per il tuo account Unnivai',
         html: guscio({
-            titolo: 'Conferma la tua email',
-            anteprima: `Un tocco e l'account è attivo. Il link vale ${DURATA_LINK}.`,
+            titolo: 'Il tuo codice',
+            anteprima: `Scrivilo nell'app e l'account è attivo. Vale ${DURATA_LINK}.`,
             paragrafi: [
-                'Hai creato un account Unnivai con {{ .Email }}.',
-                'Tocca il pulsante per attivarlo. Poi entri con la tua password.',
+                'Stai creando il tuo account Unnivai con {{ .Email }}.',
+                "Scrivi questo codice nell'app:",
+                codiceGrande,
+                'Oppure apri questo link:',
             ],
             pulsante: { testo: "Conferma l'email", url: '{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email' },
-            dopoPulsante: [scadenza, linkCopiabile('{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email')],
-            piede: ["Non hai creato tu l'account? Ignora questa email: senza conferma non si attiva.", apriUnnivai],
+            dopoPulsante: [doppiaScadenza, linkCopiabile('{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email')],
+            piede: ["Non l'hai chiesto tu? Ignora questa email: senza conferma l'account non si attiva.", apriUnnivai],
         }),
     },
     magic_link: {
         file: 'accesso.html',
-        oggetto: 'Il tuo link per entrare in Unnivai',
+        oggetto: 'Il tuo codice per entrare in Unnivai',
         html: guscio({
-            titolo: 'Entra in Unnivai',
-            anteprima: `Entri senza password. Il link vale ${DURATA_LINK}.`,
+            titolo: 'Il tuo codice',
+            anteprima: `Scrivilo nell'app ed entri. Vale ${DURATA_LINK}.`,
             paragrafi: [
                 'Hai chiesto di entrare con {{ .Email }}.',
-                'Tocca il pulsante: entri senza password.',
+                "Scrivi questo codice nell'app:",
+                codiceGrande,
+                'Oppure apri questo link:',
             ],
             pulsante: { testo: 'Entra', url: '{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email' },
-            dopoPulsante: [scadenza, linkCopiabile('{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email')],
-            piede: ["Non l'hai chiesto tu? Ignora questa email: senza questo link non entra nessuno.", apriUnnivai],
+            dopoPulsante: [doppiaScadenza, linkCopiabile('{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email')],
+            piede: ["Non l'hai chiesto tu? Ignora questa email: senza codice né link non entra nessuno.", apriUnnivai],
         }),
     },
     recovery: {
@@ -171,7 +200,7 @@ export const MODELLI_AUTH = {
             paragrafi: [
                 'Stai creando il tuo account Unnivai con {{ .NewEmail }}.',
                 "Scrivi questo codice nell'app:",
-                `<span style="display:inline-block;font-family:${FONT};font-size:32px;font-weight:800;letter-spacing:6px;">{{ .Token }}</span>`,
+                codiceGrande,
             ],
             dopoPulsante: [`Il codice vale ${DURATA_LINK} e funziona una volta.`],
             piede: ["Non l'hai chiesto tu? Ignora questa email: senza codice l'account non si crea.", apriUnnivai],

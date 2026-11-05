@@ -69,26 +69,40 @@ describe('la voce di Unnivai', () => {
 });
 
 describe('i modelli di Supabase Auth', () => {
-    const CON_LINK = Object.entries(MODELLI_AUTH).filter(([k]) => k !== 'email_change');
-    // LINK-DOMINIO: il link punta al sito con il token_hash e verifica l'app (src/lib/linkEmail.js), non l'indirizzo di Supabase.
-    const LINK = { confirmation: '/login?token_hash={{ .TokenHash }}&type=email', magic_link: '/login?token_hash={{ .TokenHash }}&type=email', recovery: '/update-password?token_hash={{ .TokenHash }}&type=recovery' };
-    it.each(CON_LINK)('%s ha le variabili giuste', (k, m) => {
-        const link = `{{ .SiteURL }}${LINK[k]}`;
-        expect(m.html.split(`href="${link}"`)).toHaveLength(3); // pulsante e testo del link
-        expect(m.html.split(link)).toHaveLength(4); // pulsante, link scritto, testo del link
-        expect(m.html).not.toContain('{{ .ConfirmationURL }}');
-        expect(m.html).toContain('{{ .Email }}');
-        // solo variabili che Supabase conosce, scritte come le scrive la documentazione
+    // ONBOARDING-ACCESSO: «confirmation» e «magic_link» portano SIA il codice SIA il link (l'app di prima usa il link, quella
+    // nuova il codice: i modelli si caricano in qualsiasi momento). «recovery» resta solo link, «email_change» solo codice.
+    // LINK-DOMINIO: il link punta al sito con il token_hash (lo verifica l'app, src/lib/linkEmail.js), non a Supabase.
+    const LINK = {
+        confirmation: '{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email',
+        magic_link: '{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email',
+        recovery: '{{ .SiteURL }}/update-password?token_hash={{ .TokenHash }}&type=recovery',
+    };
+    const VARIABILI = {
+        confirmation: ['.Token', '.TokenHash', '.Email', '.SiteURL'],
+        magic_link: ['.Token', '.TokenHash', '.Email', '.SiteURL'],
+        recovery: ['.TokenHash', '.Email', '.SiteURL'],
+        email_change: ['.Token', '.NewEmail', '.SiteURL'],
+    };
+    it.each(Object.entries(VARIABILI))('%s ha le variabili giuste, scritte come la documentazione', (k, ammesse) => {
+        const m = MODELLI_AUTH[k];
         const variabili = [...m.html.matchAll(/\{\{([^}]*)\}\}/g)].map((x) => x[1].trim());
-        for (const v of variabili) expect(['.TokenHash', '.SiteURL', '.Email']).toContain(v);
+        for (const v of variabili) expect(ammesse).toContain(v);
+        for (const v of ammesse) expect(variabili).toContain(v);
+        expect(m.html).not.toContain('{{ .ConfirmationURL }}');
     });
-    it('email_change (OSPITE-GIRO): il codice di 6 cifre, nessun link da toccare', () => {
-        const m = MODELLI_AUTH.email_change;
+    it.each(['confirmation', 'magic_link'])('%s: il codice di 6 cifre in grande E il link al sito (pulsante + indirizzo scritto)', (k) => {
+        const m = MODELLI_AUTH[k];
         expect(m.html.match(/\{\{ \.Token \}\}/g)).toHaveLength(1);
-        expect(m.html).toContain('{{ .NewEmail }}');
-        expect(m.html).not.toContain('{{ .ConfirmationURL }}');
-        const variabili = [...m.html.matchAll(/\{\{([^}]*)\}\}/g)].map((x) => x[1].trim());
-        for (const v of variabili) expect(['.Token', '.NewEmail', '.SiteURL']).toContain(v);
+        expect(m.html.split(`href="${LINK[k]}"`)).toHaveLength(3); // pulsante e testo del link
+        expect(m.html.split(LINK[k])).toHaveLength(4); // pulsante, link scritto, testo del link
+        expect(m.html.indexOf('{{ .Token }}')).toBeLessThan(m.html.indexOf(LINK[k])); // prima il codice
+        expect(testoVisibile(m.html)).toContain('Oppure apri questo link:');
+    });
+    it('recovery: solo il link; email_change (OSPITE-GIRO): solo il codice', () => {
+        expect(MODELLI_AUTH.recovery.html).not.toContain('{{ .Token }}');
+        expect(MODELLI_AUTH.recovery.html.split(LINK.recovery)).toHaveLength(4);
+        expect(MODELLI_AUTH.email_change.html.match(/\{\{ \.Token \}\}/g)).toHaveLength(1);
+        expect(MODELLI_AUTH.email_change.html).not.toContain('{{ .ConfirmationURL }}');
     });
     it('i file del repo sono quelli generati da emailUnnivai.ts (genera-modelli.mjs)', () => {
         const soggetti = JSON.parse(fs.readFileSync(path.join(DIR, 'soggetti.json'), 'utf8'));
@@ -152,5 +166,35 @@ describe("l'email della lista d'attesa", () => {
         const m = emailListaAttesa({ email: 'a@b.it', citta: 'x'.repeat(200) });
         expect(m.testo).toContain(`a ${'x'.repeat(40)}.`);
         expect(m.testo).not.toContain('x'.repeat(41));
+    });
+});
+
+describe('ONBOARDING-ACCESSO — la grafica del marchio nelle email', () => {
+    it('logo: PNG del nostro sito, URL assoluto, misure scritte, testo alternativo visibile se le immagini sono bloccate', () => {
+        expect(LOGO_URL).toBe('https://unnivai.vercel.app/brand/logo-email.png');
+        expect(fs.existsSync(path.resolve(__dirname, '../../../public/brand/logo-email.png'))).toBe(true);
+        for (const [, , html] of TUTTE) {
+            const img = html.match(/<img\b[^>]*>/)[0];
+            expect(img).toMatch(/width="141" height="40"/);
+            expect(img).toMatch(/alt="Unnivai"/);
+            expect(img).toMatch(/font-size:24px;font-weight:800/); // l'alt si legge, in arancione
+            expect(html).not.toMatch(/\.svg/i);
+        }
+    });
+    it.each(['confirmation', 'magic_link', 'email_change'])('%s: il codice in un riquadro, cifre grandi a spaziatura fissa, anche al buio', (k) => {
+        const html = MODELLI_AUTH[k].html;
+        expect(html).toMatch(/<td class="codice"[^>]*border:2px solid #FF6B3D/);
+        expect(html).toMatch(/monospace;font-size:34px;font-weight:700;letter-spacing:8px[^"]*">\{\{ \.Token \}\}<\/span>/);
+        expect(html).toMatch(/@media \(prefers-color-scheme: dark\)[\s\S]*\.codice\{background:#0A2733/);
+    });
+    it('nessuna tabella dentro un paragrafo (HTML valido: il codice e le righe degli avvisi sono blocchi)', () => {
+        for (const [, , html] of TUTTE) expect(html).not.toMatch(/<p[^>]*>\s*<table/);
+    });
+    it('il pulsante ha i colori di Unnivai e i titoli il carattere del marchio dove il client lo carica', () => {
+        const html = MODELLI_AUTH.magic_link.html;
+        expect(html).toMatch(/class="pulsante" bgcolor="#FF6B3D"/);
+        expect(html).toMatch(/color:#1A0A04;text-decoration:none/);
+        expect(html).toContain("@font-face{font-family:'Bricolage Grotesque'");
+        expect(fs.existsSync(path.resolve(__dirname, '../../../public/brand/fonts/bricolage-grotesque-latin-800-normal.woff2'))).toBe(true);
     });
 });

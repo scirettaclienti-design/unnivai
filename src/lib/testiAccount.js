@@ -84,6 +84,88 @@ export const COLLEGAMENTI = {
     TORNA: 'Indietro',
 };
 
+// ─── Accesso, registrazione, password (ONBOARDING-ACCESSO) ───────────────────
+// Voce Unnivai: diretta, da insider, frasi brevi; mai «Benvenuti», niente punti esclamativi né superlativi.
+// I testi degli errori di Supabase stanno in lib/erroriAuth.js (uno per codice); qui quelli delle schermate.
+
+export const ACCESSO = {
+    MARCHIO: 'Unnivai',
+    ETICHETTA: 'Accesso',
+    TITOLO: 'Entra con la tua email',
+    SOTTO: 'Ti mando un codice di 6 cifre. Niente password: se l\'account non c\'è, lo creo io.',
+    EMAIL: 'Email',
+    INVIA: 'Mandami il codice',
+    OCCUPATO: 'Un attimo…',
+    // il codice
+    CODICE_ETICHETTA: 'Codice',
+    CODICE_TITOLO: 'Guarda nella posta',
+    CODICE_TESTO: (email) => `Ti ho scritto a ${email}. Dentro c'è un codice di 6 cifre.`,
+    CODICE_NOTA: 'Non la trovi? Guarda nello spam. Il codice vale un\'ora e funziona una volta.',
+    CODICE: 'Codice di 6 cifre',
+    ENTRA: 'Entra',
+    CODICE_CORTO: 'Il codice ha 6 cifre.',
+    CODICE_SBAGLIATO: 'Codice sbagliato o scaduto. Fatti mandare un codice nuovo.',
+    RIMANDA: 'Mandamene un altro',
+    RIMANDA_TRA: (s) => `Un altro codice tra ${s} s`,
+    RIMANDATO: 'Codice nuovo in arrivo. Vale solo l\'ultimo.',
+    CAMBIA_EMAIL: 'Cambia email',
+    // la password: solo per chi l'ha già (niente account bloccati)
+    HAI_PASSWORD: 'Hai una password? Accedi →',
+    PASSWORD_ETICHETTA: 'Password',
+    PASSWORD_TITOLO: 'Entra con la password',
+    PASSWORD_SOTTO: 'Per chi ha creato l\'account con una password. Funziona anche il codice.',
+    PASSWORD: 'Password',
+    MOSTRA_PASSWORD: 'Mostra la password',
+    NASCONDI_PASSWORD: 'Nascondi la password',
+    INVIA_PASSWORD: 'Accedi ora',
+    DIMENTICATA: 'Password dimenticata? Entra col codice',
+    TORNA_CODICE: 'Entra col codice, senza password',
+    // un vecchio link per la password, scaduto o aperto senza sessione (ACCESSO-1)
+    LINK_SCADUTO: 'Il link non è valido o è scaduto. Entra col codice: te lo mando per email.',
+    OPPURE: 'oppure',
+};
+
+export const NUOVA_PASSWORD = {
+    ETICHETTA: 'Password',
+    TITOLO: 'Scegli la password nuova',
+    TESTO: 'Almeno 8 caratteri, una maiuscola e un numero.',
+    CAMPO: 'Password nuova',
+    SALVA: 'Salva e entra',
+    SALVATA: 'Password cambiata.',
+};
+
+/** La schermata che si vede mentre l'app si apre (sessione, pagine): solo il marchio. */
+export const CARICAMENTO = {
+    ARIA: 'Unnivai si sta aprendo',
+};
+
+// ─── Primo ingresso (ONBOARDING-ACCESSO) ─────────────────────────────────────
+// Una volta per account: il consenso ai servizi AI (CONSENSO_AI qui sopra), poi poche domande saltabili.
+// Le risposte sono il punto di partenza del DNA: poi contano i giri veri. Tutto si cambia dal Profilo.
+
+export const PRIMO_INGRESSO = {
+    PASSI: { consenso: 'Prima di partire', interessi: 'Interessi', tavola: 'A tavola', giro: 'Come giri' },
+    INTERESSI_TITOLO: 'Cosa ti fa fermare?',
+    INTERESSI_SOTTO: 'Scegli quanti vuoi. È il punto di partenza: poi il DNA impara dai giri che fai.',
+    TAVOLA_TITOLO: 'A tavola',
+    DIETA: 'Cosa non mangi',
+    NESSUNA: 'Mangio tutto',
+    BUDGET: 'Quanto spendi a pasto',
+    STILE: 'Che cucina cerchi',
+    GIRO_TITOLO: 'Come giri?',
+    RITMO: 'Il passo',
+    COMPAGNIA: 'Con chi',
+    NOTA: 'Tutto si cambia dal Profilo.',
+    AVANTI: 'Avanti',
+    FINE: 'Fatto, si parte',
+    INDIETRO: 'Indietro',
+    SALTA: 'Salta questa domanda',
+    SALTA_TUTTO: 'Salta per ora',
+    ERRORE_TITOLO: 'Non sono riuscito a salvare le tue scelte.',
+    ERRORE_TESTO: 'Non le ho perse, ma non sono ancora al sicuro: senza salvarle andrebbero via al prossimo accesso. Controlla la connessione e riprova.',
+    RIPROVA: 'Riprova',
+};
+
 // ─── Pagine legali ───────────────────────────────────────────────────────────
 // Struttura: sezioni { id, titolo, paragrafi?: string[], flussi?: Flusso[] }.
 // Flusso: { nome, parte, verso, perche, resta }.

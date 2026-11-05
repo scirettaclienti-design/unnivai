@@ -1,0 +1,377 @@
+{
+ "base": "http://localhost:4377",
+ "iniziato": "2026-11-04T19:30:09.998Z",
+ "percorsi": {
+  "1": {
+   "titolo": "Utente nuovo con email",
+   "schermate": [
+    {
+     "nome": "p1-01-home",
+     "didascalia": "la home di chi non è dentro",
+     "url": "/"
+    },
+    {
+     "nome": "p1-02-login",
+     "didascalia": "la prima schermata di /login",
+     "url": "/login"
+    },
+    {
+     "nome": "p1-03-email-sbagliata",
+     "didascalia": "email scritta male",
+     "url": "/login"
+    },
+    {
+     "nome": "p1-04-codice",
+     "didascalia": "il codice di 6 cifre",
+     "url": "/login"
+    },
+    {
+     "nome": "p1-05-codice-sbagliato",
+     "didascalia": "codice sbagliato o scaduto",
+     "url": "/login"
+    },
+    {
+     "nome": "p1-08-primo-01",
+     "didascalia": "consenso AI",
+     "url": "/onboarding"
+    },
+    {
+     "nome": "p1-08-primo-02",
+     "didascalia": "primo ingresso, passo 2",
+     "url": "/onboarding"
+    },
+    {
+     "nome": "p1-08-primo-03",
+     "didascalia": "primo ingresso, passo 3",
+     "url": "/onboarding"
+    },
+    {
+     "nome": "p1-08-primo-04",
+     "didascalia": "primo ingresso, passo 4",
+     "url": "/onboarding"
+    },
+    {
+     "nome": "p1-20-home",
+     "didascalia": "la home dopo il primo ingresso",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p1-21-profilo",
+     "didascalia": "il Profilo: «Come giri» col punto di partenza",
+     "url": "/profile"
+    }
+   ],
+   "note": [],
+   "inceppi": [],
+   "interfaccia": "codice",
+   "passi": [
+    "p1-08-primo-01",
+    "p1-08-primo-02",
+    "p1-08-primo-03",
+    "p1-08-primo-04"
+   ],
+   "seme": {
+    "v": 2,
+    "interessi": [
+     "cultura",
+     "arte"
+    ],
+    "vincoli": {
+     "dieta": [],
+     "budget": null
+    },
+    "gusti": {
+     "stile": "trattoria",
+     "ritmo_iniziale": "lento",
+     "compagnia_iniziale": "coppia"
+    }
+   },
+   "meta": {
+    "consenso_ai": true,
+    "primo_ingresso_fatto_at": "2026-11-04T19:30:29.914Z",
+    "password": false
+   },
+   "visti": [
+    "/",
+    "/login",
+    "/onboarding",
+    "/dashboard-user"
+   ],
+   "ok": true
+  },
+  "2": {
+   "titolo": "Accesso esistente",
+   "schermate": [
+    {
+     "nome": "p2-01-accedi",
+     "didascalia": "accesso: email",
+     "url": "/login"
+    },
+    {
+     "nome": "p2-02-codice",
+     "didascalia": "il codice per entrare",
+     "url": "/login"
+    },
+    {
+     "nome": "p2-03-home",
+     "didascalia": "dentro: la home",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p2-04-password-sbagliata",
+     "didascalia": "con la password: sbagliata",
+     "url": "/login"
+    },
+    {
+     "nome": "p2-05-home-password",
+     "didascalia": "con la password: dentro",
+     "url": "/dashboard-user"
+    }
+   ],
+   "note": [],
+   "inceppi": [],
+   "visti": [
+    "/login",
+    "/",
+    "/dashboard-user"
+   ],
+   "ok": true
+  },
+  "3": {
+   "titolo": "Password dimenticata",
+   "schermate": [
+    {
+     "nome": "p3-01-link-scaduto",
+     "didascalia": "/update-password senza un link valido",
+     "url": "/login"
+    },
+    {
+     "nome": "p3-02-recupero",
+     "didascalia": "password dimenticata: si entra col codice",
+     "url": "/login"
+    },
+    {
+     "nome": "p3-03-codice",
+     "didascalia": "il codice al posto della password",
+     "url": "/login"
+    },
+    {
+     "nome": "p3-04-dentro",
+     "didascalia": "dentro, senza password",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p3-05-nuova-password",
+     "didascalia": "il link «reimposta la password»: nuova password",
+     "url": "/update-password"
+    },
+    {
+     "nome": "p3-06-debole",
+     "didascalia": "password debole",
+     "url": "/update-password"
+    },
+    {
+     "nome": "p3-07-uguale",
+     "didascalia": "la stessa password di prima",
+     "url": "/update-password"
+    },
+    {
+     "nome": "p3-08-dentro",
+     "didascalia": "password cambiata: dentro",
+     "url": "/dashboard-user"
+    }
+   ],
+   "note": [],
+   "inceppi": [],
+   "passwordCambiata": true,
+   "visti": [
+    "/update-password",
+    "/login",
+    "/",
+    "/dashboard-user"
+   ],
+   "ok": true
+  },
+  "4": {
+   "titolo": "Ospite che si registra a fine giro",
+   "schermate": [
+    {
+     "nome": "p4-01-primo-01",
+     "didascalia": "consenso AI",
+     "url": "/onboarding"
+    },
+    {
+     "nome": "p4-01-primo-02",
+     "didascalia": "primo ingresso, passo 2",
+     "url": "/onboarding"
+    },
+    {
+     "nome": "p4-01-primo-03",
+     "didascalia": "primo ingresso, passo 3",
+     "url": "/onboarding"
+    },
+    {
+     "nome": "p4-01-primo-04",
+     "didascalia": "primo ingresso, passo 4",
+     "url": "/onboarding"
+    },
+    {
+     "nome": "p4-10-home-ospite",
+     "didascalia": "la home dell'ospite",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p4-11-invito",
+     "didascalia": "fine giro: «Salva questo giro»",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p4-12-email-usata",
+     "didascalia": "email di un account che esiste già",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p4-13-codice",
+     "didascalia": "il codice di 6 cifre",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p4-14-codice-scaduto",
+     "didascalia": "codice scaduto",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p4-15-fatto",
+     "didascalia": "account creato",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p4-16-profilo",
+     "didascalia": "il Profilo dopo la registrazione",
+     "url": "/profile"
+    },
+    {
+     "nome": "p4-17-altro-telefono",
+     "didascalia": "la stessa persona da un altro telefono",
+     "url": "/dashboard-user"
+    }
+   ],
+   "note": [],
+   "inceppi": [],
+   "passi": [
+    "p4-01-primo-01",
+    "p4-01-primo-02",
+    "p4-01-primo-03",
+    "p4-01-primo-04"
+   ],
+   "stessoId": true,
+   "seme": {
+    "v": 2,
+    "interessi": [
+     "cultura",
+     "arte"
+    ],
+    "vincoli": {
+     "dieta": [],
+     "budget": null
+    },
+    "gusti": {
+     "stile": "trattoria",
+     "ritmo_iniziale": "lento",
+     "compagnia_iniziale": "coppia"
+    }
+   },
+   "primoIngressoMeta": "2026-11-04T19:31:20.165Z",
+   "visti": [
+    "/login",
+    "/",
+    "/onboarding",
+    "/dashboard-user",
+    "/profile"
+   ],
+   "ok": true
+  },
+  "5": {
+   "titolo": "Secondo accesso dello stesso utente",
+   "schermate": [
+    {
+     "nome": "p5-01-primo-accesso",
+     "didascalia": "primo accesso su questo telefono",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p5-03-secondo-accesso",
+     "didascalia": "secondo accesso: dritto alla home",
+     "url": "/dashboard-user"
+    }
+   ],
+   "note": [],
+   "inceppi": [],
+   "visti": [
+    "/login",
+    "/",
+    "/dashboard-user"
+   ],
+   "ok": true
+  },
+  "6": {
+   "titolo": "Accesso da un secondo dispositivo",
+   "schermate": [
+    {
+     "nome": "p6-01-secondo-telefono",
+     "didascalia": "un altro telefono, stesso account",
+     "url": "/dashboard-user"
+    },
+    {
+     "nome": "p6-02-caricamento",
+     "didascalia": "la schermata di caricamento",
+     "url": "/"
+    }
+   ],
+   "note": [],
+   "inceppi": [],
+   "visti": [
+    "/login",
+    "/",
+    "/dashboard-user"
+   ],
+   "ok": true
+  }
+ },
+ "corrente": 6,
+ "finito": "2026-11-04T19:32:00.481Z",
+ "posta": [
+  {
+   "tipo": "codice-conferma",
+   "a": "luca@prova.unnivai.it"
+  },
+  {
+   "tipo": "codice-accesso",
+   "a": "marta@prova.unnivai.it"
+  },
+  {
+   "tipo": "codice-accesso",
+   "a": "marta@prova.unnivai.it"
+  },
+  {
+   "tipo": "codice",
+   "a": "giulia@prova.unnivai.it"
+  },
+  {
+   "tipo": "codice-accesso",
+   "a": "giulia@prova.unnivai.it"
+  },
+  {
+   "tipo": "codice-accesso",
+   "a": "luca@prova.unnivai.it"
+  },
+  {
+   "tipo": "codice-accesso",
+   "a": "luca@prova.unnivai.it"
+  },
+  {
+   "tipo": "codice-accesso",
+   "a": "luca@prova.unnivai.it"
+  }
+ ]
+}

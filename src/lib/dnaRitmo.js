@@ -210,7 +210,7 @@ export function ritmoAppreso(righe = [], { maxGiri = RITMO_MAX_GIRI } = {}) {
  * @param {string|object|null} [p.scelte]   il ritmo delle scelte passate (pesiDaEventi().ritmo, o il solo `suggerito`)
  * @returns {{ valore: string, fonte: 'richiesta'|'profilo'|'giri'|'scelte', fattoreSosta: number, passo: string|null, tappePerTe: number|null, dati?: object }|null}
  */
-export function ritmoDelGiro({ scelto = null, profilo = null, appreso = null, scelte = null } = {}) {
+export function ritmoDelGiro({ scelto = null, profilo = null, appreso = null, scelte = null, iniziale = null } = {}) {
     const chiesto = ritmoDa(scelto);
     // la richiesta vince: il DNA non cambia ne' tappe ne' soste (il passo della richiesta resta quello di sempre)
     if (chiesto) return { valore: chiesto, fonte: 'richiesta', fattoreSosta: 1, passo: null, tappePerTe: null };
@@ -226,6 +226,9 @@ export function ritmoDelGiro({ scelto = null, profilo = null, appreso = null, sc
         const quante = scelte && typeof scelte === 'object' && scelte.totale ? { k: Number(scelte.conteggi?.[daScelte]) || 0, tot: scelte.totale } : null;
         return { valore: daScelte, fonte: 'scelte', fattoreSosta: FATTORE_RITMO[daScelte], passo: PASSO_SCHELETRO[daScelte], tappePerTe: TAPPE_PER_TE[daScelte], ...(quante ? { quante } : {}) };
     }
+    // ONBOARDING-ACCESSO — il passo detto al primo ingresso: ultimo, vale finché giri e scelte non dicono altro.
+    const daInizio = ritmoDa(iniziale);
+    if (daInizio) return { valore: daInizio, fonte: 'primo ingresso', fattoreSosta: FATTORE_RITMO[daInizio], passo: PASSO_SCHELETRO[daInizio], tappePerTe: TAPPE_PER_TE[daInizio] };
     return null;
 }
 

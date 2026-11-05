@@ -33,6 +33,9 @@ export const TESTI_DNA = {
     ritmoKm: (effetto, giri, tappe, km) => `${effetto}: nei tuoi ultimi ${giri} giri hai raggiunto in media ${num(tappe)} tappe${km !== null ? ` e camminato ${num(km)} km` : ''}.`,
     ritmoScelte: (effetto, scelta, k, tot) => `${effetto}: hai scelto «${scelta}» in ${k} richieste su ${tot}.`,
     compagniaProfilo: (chi) => `${chi}: l'hai scelto nel Profilo.`,
+    // ONBOARDING-ACCESSO — il punto di partenza del primo ingresso (poi decidono giri e scelte)
+    ritmoInizio: (effetto) => `${effetto}: l'hai detto al primo ingresso. Cambia con i tuoi giri.`,
+    compagniaInizio: (chi) => `${chi}: l'hai detto al primo ingresso. Cambia con le tue scelte.`,
     compagniaScelte: (chi, k, tot) => `${chi}: l'hai scelto in ${k} richieste su ${tot}.`,
     merenda: (ora, nome) => `Merenda alle ${ora} da ${nome}.`,
     interessi: (valori) => `Nel Profilo hai scelto ${valori}.`,
@@ -45,6 +48,8 @@ export const TESTI_RITMO_COMPAGNIA = {
     compagnia: 'Di solito con chi?',
     impara: 'Lo impara Unnivai',
     nota: 'Senza una scelta, Unnivai usa i tuoi giri finiti.',
+    // ONBOARDING-ACCESSO — cosa hai detto al primo ingresso (punto di partenza, non una scelta del Profilo)
+    inizio: (parti) => `Al primo ingresso: ${parti.join(', ')}. È il punto di partenza: poi decidono i tuoi giri.`,
     salva: 'Salva ritmo e compagnia',
     salvato: 'Ritmo e compagnia salvati',
     errore: 'Non sono riuscito a salvarli',
@@ -118,6 +123,7 @@ export function rigaRitmo(ritmo) {
     if (!ritmo || ritmo.fonte === 'richiesta' || !EFFETTO_RITMO[ritmo.valore]) return null;
     const effetto = EFFETTO_RITMO[ritmo.valore];
     if (ritmo.fonte === 'profilo') return TESTI_DNA.ritmoProfilo(effetto);
+    if (ritmo.fonte === 'primo ingresso') return TESTI_DNA.ritmoInizio(effetto);
     if (ritmo.fonte === 'giri' && ritmo.dati) {
         const f = Number(ritmo.dati.fattoreSosta);
         if (Number.isFinite(f) && f !== 1) return TESTI_DNA.ritmoSoste(effetto, ritmo.dati.giri, Math.round(Math.abs(f - 1) * 100), f > 1);
@@ -132,6 +138,7 @@ export function rigaRitmo(ritmo) {
 export function rigaCompagnia(compagnia) {
     if (!compagnia || !CHI[compagnia.valore]) return null;
     if (compagnia.fonte === 'profilo') return TESTI_DNA.compagniaProfilo(CHI[compagnia.valore]);
+    if (compagnia.fonte === 'primo ingresso') return TESTI_DNA.compagniaInizio(CHI[compagnia.valore]);
     if (compagnia.fonte === 'scelte' && compagnia.quante?.tot) return TESTI_DNA.compagniaScelte(CHI[compagnia.valore], compagnia.quante.k, compagnia.quante.tot);
     return null;
 }

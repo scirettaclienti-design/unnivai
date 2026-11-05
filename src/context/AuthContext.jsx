@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { SchermataCaricamento } from '../components/marchio/Marchio';
 import { verificaLinkEmail } from '../lib/linkEmail';
 
 const AuthContext = createContext({});
@@ -54,15 +55,8 @@ export const AuthProvider = ({ children }) => {
         return () => subscription.unsubscribe();
     }, []);
 
-    // 🛡️ LOADING SCREEN BLOCCANTE (RICHIESTO DA PROMPT)
-    if (loading) {
-        return (
-            <div className="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center">
-                <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <div className="text-xl font-bold text-gray-700 animate-pulse">Loading Unnivai...</div>
-            </div>
-        );
-    }
+    // 🛡️ LOADING SCREEN BLOCCANTE — ONBOARDING-ACCESSO: il marchio sul fondo dell'app (prima: bianca, «Loading Unnivai...»).
+    if (loading) return <SchermataCaricamento />;
 
     // DVAI-008: Il ruolo viene letto ESCLUSIVAMENTE da user_metadata.role.
     // Rimosso il fallback localStorage: un utente non può più modificare il proprio

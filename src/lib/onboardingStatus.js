@@ -1,5 +1,6 @@
 import { dataService } from '@/services/dataService';
 import { parseSeed, buildSeed } from '@/lib/foodPrefs';
+import { supabase } from '@/lib/supabase';
 
 // ONB-1 — "onboarding fatto" e' un dato dell'ACCOUNT, non del browser.
 //
@@ -12,6 +13,23 @@ import { parseSeed, buildSeed } from '@/lib/foodPrefs';
 // la rete a ogni apertura. Se manca o e' stato svuotato, decide il DB.
 export const ONBOARDING_FLAG_KEY = 'dvai_onboarding_done';
 export const ONBOARDING_SEED_KEY = 'unnivai_onboarding_seed_v1';
+
+// ONBOARDING-ACCESSO — «primo ingresso fatto» anche nei metadati dell'account (Supabase Auth, `user_metadata`):
+// arrivano con la sessione, quindi su un telefono nuovo si sa SUBITO, senza aspettare la lettura di user_preferences.
+// Il seme resta la fonte dei gusti; questo è solo il segno «fatto», scritto alla fine del primo ingresso. Un ospite
+// che crea l'account tiene lo stesso id, quindi anche questo segno (OSPITE-GIRO).
+export const META_PRIMO_INGRESSO = 'primo_ingresso_fatto_at';
+export const primoIngressoNeiMetadati = (meta) => !!meta && typeof meta[META_PRIMO_INGRESSO] === 'string' && meta[META_PRIMO_INGRESSO].length > 0;
+
+/** Scrive il segno sull'account. Non blocca e non lancia: il seme sul server dice già «fatto». */
+export async function segnaPrimoIngressoSulServer() {
+    try {
+        const { error } = await supabase.auth.updateUser({ data: { [META_PRIMO_INGRESSO]: new Date().toISOString() } });
+        return !error;
+    } catch {
+        return false;
+    }
+}
 
 const safeGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
 const safeSet = (k, v) => { try { localStorage.setItem(k, v); } catch { /* cache: il DB resta la fonte */ } };
@@ -39,7 +57,7 @@ const readLocalSeed = () => {
         if (!p) return null;
         // [] resta [] (saltato); la forma v2 si rinormalizza; la vecchia array di id si conserva.
         if (Array.isArray(parsed)) return parsed.filter(x => typeof x === 'string');
-        return buildSeed({ interessi: p.interessi, dieta: p.vincoli.dieta, budget: p.vincoli.budget, stile: p.gusti.stile, ritmo: p.gusti.ritmo, compagnia: p.gusti.compagnia });
+        return buildSeed({ interessi: p.interessi, dieta: p.vincoli.dieta, budget: p.vincoli.budget, stile: p.gusti.stile, ritmo: p.gusti.ritmo, compagnia: p.gusti.compagnia, ritmoIniziale: p.gusti.ritmoIniziale, compagniaIniziale: p.gusti.compagniaIniziale });
     } catch {
         return null;
     }

@@ -53,6 +53,7 @@ nota "Xcode: $(xcodebuild -version | tr '\n' ' ')"
 # --- 0b. APP-NATIVA: Swift e icona prima di tutto ------------------------------------------------------
 bash scripts/ios/controlla-swift.sh 2>&1 | grep -E "^(sintassi|tipi)" | tee -a "$RIEPILOGO"
 node scripts/ios/genera-icona.mjs --controlla | tee -a "$RIEPILOGO"
+node scripts/brand/genera-icone.mjs --controlla | tee -a "$RIEPILOGO"  # ONBOARDING-ACCESSO: l'icona del marchio
 
 # --- 1. File d'ambiente: copiati solo per la prova, cancellati all'uscita ---------------------------
 COPIATI=()

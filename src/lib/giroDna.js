@@ -75,7 +75,7 @@ export const tracciatoGiroDna = (g) => (g?.attivo ? {
 export function dnaGiroDaApprendimento(dna = {}, { scelto = null, gruppo = null, testo = '' } = {}) {
     const appreso = Array.isArray(dna?.righeRegistro) && dna.righeRegistro.length ? ritmoAppreso(dna.righeRegistro) : null;
     return {
-        ritmo: ritmoDelGiro({ scelto, profilo: dna?.onboardingPrefs?.ritmo || null, appreso, scelte: dna?.ritmoPreferito || null }),
-        compagnia: compagniaDelGiro({ testo, scelta: gruppo, profilo: dna?.onboardingPrefs?.compagnia || null, scelte: dna?.compagniaPreferita || null }),
+        ritmo: ritmoDelGiro({ scelto, profilo: dna?.onboardingPrefs?.ritmo || null, appreso, scelte: dna?.ritmoPreferito || null, iniziale: dna?.onboardingPrefs?.ritmoIniziale || null }),
+        compagnia: compagniaDelGiro({ testo, scelta: gruppo, profilo: dna?.onboardingPrefs?.compagnia || null, scelte: dna?.compagniaPreferita || null, iniziale: dna?.onboardingPrefs?.compagniaIniziale || null }),
     };
 }

@@ -87,7 +87,7 @@ describe('lista-attesa-email', () => {
         expect(body.reply_to).toBe('risposte@example.com');
         expect(body.subject).toBe("Sei nella lista d'attesa di Unnivai");
         expect(body.text).toContain('Ti scrivo quando Unnivai arriva anche a Bologna.');
-        expect(body.html).toContain('https://unnivai.com/logo.png');
+        expect(body.html).toContain('https://unnivai.vercel.app/brand/logo-email.png'); // ONBOARDING-ACCESSO: il logo PNG del nostro sito
         expect(righe[0].email_inviata_at).toEqual(expect.any(String));
     });
     it('una seconda chiamata per la stessa riga non manda niente', async () => {

@@ -53,6 +53,14 @@ export const RITMI_PROFILO = { lento: 'Tranquillo', medio: 'Medio', veloce: 'Int
 export const COMPAGNIE_PROFILO = { solo: 'Da solo', coppia: 'In coppia', famiglia: 'Con bambini', amici: 'Con amici' };
 const asRitmo = (r) => (RITMI_PROFILO[r] ? r : null);
 const asCompagnia = (c) => (COMPAGNIE_PROFILO[c] ? c : null);
+// ONBOARDING-ACCESSO — ritmo e compagnia detti al PRIMO INGRESSO: un punto di partenza, non una scelta del Profilo.
+// Stanno nel seme come `gusti.ritmo_iniziale` / `gusti.compagnia_iniziale` e valgono solo finché i giri e le scelte vere
+// non dicono altro (dnaRitmo.ritmoDelGiro, compagniaDna.compagniaDelGiro: fonte 'primo ingresso', ultima). Le chiavi
+// compaiono solo se impostate: un seme senza resta identico a prima.
+const iniziali = (g) => ({
+    ...(asRitmo(g?.ritmo_iniziale) ? { ritmoIniziale: g.ritmo_iniziale } : {}),
+    ...(asCompagnia(g?.compagnia_iniziale) ? { compagniaIniziale: g.compagnia_iniziale } : {}),
+});
 
 // ─── Il seme del primo accesso ───────────────────────────────────────────────
 //
@@ -69,25 +77,32 @@ export const parseSeed = (raw) => {
         return {
             interessi,
             vincoli: { dieta: asDieta(raw.vincoli?.dieta), budget: asBudget(raw.vincoli?.budget) },
-            gusti: { stile: asStile(raw.gusti?.stile), ritmo: asRitmo(raw.gusti?.ritmo), compagnia: asCompagnia(raw.gusti?.compagnia) },
+            gusti: { stile: asStile(raw.gusti?.stile), ritmo: asRitmo(raw.gusti?.ritmo), compagnia: asCompagnia(raw.gusti?.compagnia), ...iniziali(raw.gusti) },
         };
     }
     return null;
 };
 
-export const buildSeed = ({ interessi = [], dieta = [], budget = null, stile = null, ritmo = null, compagnia = null } = {}) => ({
+export const buildSeed = ({ interessi = [], dieta = [], budget = null, stile = null, ritmo = null, compagnia = null, ritmoIniziale = null, compagniaIniziale = null } = {}) => ({
     v: 2,
     interessi: uniq(interessi.filter(x => typeof x === 'string')),
     vincoli: { dieta: asDieta(dieta), budget: asBudget(budget) },
     // DNA-5 — ritmo e compagnia solo se impostati (un seme senza resta identico a prima)
-    gusti: { stile: asStile(stile), ...(asRitmo(ritmo) ? { ritmo } : {}), ...(asCompagnia(compagnia) ? { compagnia } : {}) },
+    gusti: {
+        stile: asStile(stile), ...(asRitmo(ritmo) ? { ritmo } : {}), ...(asCompagnia(compagnia) ? { compagnia } : {}),
+        ...(asRitmo(ritmoIniziale) ? { ritmo_iniziale: ritmoIniziale } : {}), ...(asCompagnia(compagniaIniziale) ? { compagnia_iniziale: compagniaIniziale } : {}),
+    },
 });
 
 // Le preferenze a tavola del seme, nella forma che il motore riceve.
 export const seedFoodPrefs = (raw) => {
     const s = parseSeed(raw);
     if (!s) return { dieta: [], budget: null, stile: null, ritmo: null, compagnia: null };
-    return { dieta: s.vincoli.dieta, budget: s.vincoli.budget, stile: s.gusti.stile, ritmo: s.gusti.ritmo, compagnia: s.gusti.compagnia };
+    return {
+        dieta: s.vincoli.dieta, budget: s.vincoli.budget, stile: s.gusti.stile, ritmo: s.gusti.ritmo, compagnia: s.gusti.compagnia,
+        ...(s.gusti.ritmoIniziale ? { ritmoIniziale: s.gusti.ritmoIniziale } : {}),
+        ...(s.gusti.compagniaIniziale ? { compagniaIniziale: s.gusti.compagniaIniziale } : {}),
+    };
 };
 
 // ─── Cosa dice il TESTO scritto ──────────────────────────────────────────────

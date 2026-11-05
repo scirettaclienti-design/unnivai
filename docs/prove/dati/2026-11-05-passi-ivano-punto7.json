@@ -1,0 +1,38 @@
+{
+  "data": "2026-11-05",
+  "sito": "https://unnivai.vercel.app",
+  "nota": "collaudo-sito.webkit.mjs, solo punto 7, dopo il Blocco 7 (accessi anonimi attivi)",
+  "punto7": {
+    "nome": "«Salta» fino in fondo + 3 tocchi (anche da ospite, fino alla fine giro)",
+    "ospite": {
+      "ospite": true,
+      "via": "prova senza account → avvia",
+      "url": "/map",
+      "fineGiro": true,
+      "nota": "Hai saltato tutte le tappe: il giro finisce qui.",
+      "login": false,
+      "testo": "1 3 4 Scorciatoie da tastiera Dati mappa ©2026 Google Termini Il tuo giro a Catania AUTO PIEDI 4 min BICI Percorso Consigliato 4 min a piedi · 282 m Avvia Navigazione In pausa Giro completato FINE TAP",
+      "salvaOspite": true,
+      "ok": true,
+      "foto": "docs/prove/schermate/passi-ivano/7-ospite.png",
+      "errori": [
+        "/ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy due to access control checks."
+      ]
+    },
+    "account": {
+      "ospite": false,
+      "via": "riprendi",
+      "url": "/map",
+      "fineGiro": true,
+      "nota": "Hai saltato tutte le tappe: il giro finisce qui.",
+      "login": false,
+      "testo": "1 2 3 4 Scorciatoie da tastiera Dati mappa ©2026 Google Termini Il tuo giro a Catania AUTO PIEDI 4 min BICI Percorso Consigliato 4 min a piedi · 282 m Avvia Navigazione In pausa Giro completato FINE T",
+      "salvaOspite": false,
+      "ok": true,
+      "foto": "docs/prove/schermate/passi-ivano/7-account.png",
+      "errori": []
+    },
+    "ok": true,
+    "secondi": 31
+  }
+}

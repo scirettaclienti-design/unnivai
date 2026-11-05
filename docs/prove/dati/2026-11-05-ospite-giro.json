@@ -1,0 +1,105 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-05T14:28:29.186Z",
+ "passi": {
+  "0-titolo": {
+   "ok": true,
+   "titolo": "Unnivai | Esplora l'Italia Autentica",
+   "secondi": 0
+  },
+  "1-ospite": {
+   "ok": true,
+   "url": "/dashboard-user",
+   "anonimo": true,
+   "foto": "docs/prove/schermate/ospite-giro/1-home-ospite.png",
+   "secondi": 5
+  },
+  "2-crea": {
+   "ok": true,
+   "generazioni": 4,
+   "foto": "docs/prove/schermate/ospite-giro/2-giro-creato.png",
+   "secondi": 10
+  },
+  "3-giro": {
+   "ok": true,
+   "tappe": 7,
+   "arrivi": [
+    {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "rito": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "rito": false
+    },
+    {
+     "nome": "Piazza Vincenzo Bellini",
+     "rito": false
+    },
+    {
+     "nome": "Via Etnea",
+     "rito": false
+    },
+    {
+     "nome": "Piazza Stesicoro",
+     "rito": false
+    },
+    {
+     "nome": "Via Crociferi",
+     "rito": false
+    },
+    {
+     "nome": "Maccarruni - Osteria, pizzeria, wine bar",
+     "rito": false
+    }
+   ],
+   "racconti": [
+    "Basilica Cattedrale di Sant'Agata",
+    "Piazza del Duomo",
+    "Piazza Vincenzo Bellini",
+    "Via Etnea",
+    "Piazza Stesicoro",
+    "Via Crociferi"
+   ],
+   "salvaOspite": true,
+   "foto": "docs/prove/schermate/ospite-giro/3-fine-giro.png",
+   "secondi": 80
+  },
+  "4-salva-questo-giro": {
+   "ok": true,
+   "momento": "fine",
+   "foto": "docs/prove/schermate/ospite-giro/4-salva-questo-giro.png",
+   "secondi": 0
+  },
+  "5-secondo-giro": {
+   "ok": true,
+   "momento": "secondo",
+   "generazioniNuove": 0,
+   "testo": "Il prossimo giro parte dal tuo account Quello di prova l'hai fatto. Con l'account ne fai altri, e il giro di oggi resta tuo. Mandami il codice",
+   "foto": "docs/prove/schermate/ospite-giro/5-secondo-giro.png",
+   "secondi": 1
+  },
+  "6-registrazione": {
+   "ok": true,
+   "stessoId": true,
+   "anonimo": false,
+   "foto": "docs/prove/schermate/ospite-giro/6-registrato.png",
+   "secondi": 304
+  },
+  "7-profilo": {
+   "ok": true,
+   "giri": 1,
+   "menzioniCatania": 2,
+   "foto": "docs/prove/schermate/ospite-giro/7-profilo.png",
+   "secondi": 4
+  }
+ },
+ "ok": true,
+ "utenteOspite": {
+  "id": "f124f9b7-d10c-487a-a3a9-f4233108c073",
+  "anonimo": true
+ },
+ "finito": "2026-11-05T14:35:14.839Z",
+ "errori": [],
+ "generazioni": 4
+}

@@ -35,7 +35,8 @@ export default function EliminaAccount() {
         // Fatto davvero: esco, pulisco il telefono, torno alla home col messaggio.
         try { await signOut(); } catch { /* la sessione è già morta con l'utente */ }
         pulisciTelefono();
-        toast({ title: ELIMINA.FATTO, type: 'success', duration: 7000 });
+        // Persistente: signOut smonta l'albero (schermata di caricamento) e ToastProvider con lui; il messaggio arriva quando torna.
+        toast({ title: ELIMINA.FATTO, type: 'success', duration: 7000, persistente: true });
         navigate('/', { replace: true });
     };
 

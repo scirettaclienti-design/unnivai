@@ -169,3 +169,19 @@ script `node --experimental-strip-types scripts/email/anteprime-marchio.webkit.m
 (`{{ .SiteURL }}/login?token_hash={{ .TokenHash }}&type=email`, recupero `/update-password?…&type=recovery`) e li verifica l'app
 (`src/lib/linkEmail.js`, chiamato da `AuthContext`); conferma e accesso portano anche il codice di 6 cifre. `/login?link=scaduto` (link
 non valido) apre l'accesso col codice col messaggio chiaro. Suite 3493/3493, lint 0 errori, build ok, guardia 12/12 e 10/10.
+
+
+## 10. Ripresa del 05/11: rebase su PASSI-IVANO, i due aperti, merge
+
+- **Rebase** su `main` `f3576f7` (PASSI-IVANO, PR #53): unico conflitto `docs/LANCIO.md`, tenuta la versione di main (P10 già «fatto»), poi la riga aggiornata.
+- **Icone**: in `~/Desktop/UNNIVAI-Site-FINAL/` il file più grande del marchio è ancora `icon-512.png` (nessun sorgente a 1024×1024): icone di oggi lasciate com'erano.
+- **«Account eliminato.» non compariva** (PASSI-IVANO, aperto 1). Causa: `signOut` mette `loading` a vero, `AuthProvider` mostra la schermata
+  di caricamento e smonta tutto, `ToastProvider` compreso; il messaggio partiva come evento mentre nessuno lo ascoltava. Ora `toast({ …, persistente: true })`
+  lo lascia in `sessionStorage` (`dvai_toast_in_attesa_v1`) finché `ToastProvider` lo mostra (subito se è montato, appena si rimonta altrimenti), una volta sola.
+  Test `src/__tests__/components/eliminaAccountMessaggio.test.jsx` (smonta e rimonta come l'AuthProvider vero): fallisce senza la correzione, passa con.
+- **2 righe `tour_completed` per lo stesso giro** (PASSI-IVANO, osservazione): non è una doppia scrittura. In produzione (lettura del 05/11) le righe
+  doppie dei tre giri del 05/11 hanno lo stesso istante, lo stesso giro e lo stesso «7/7» o «8/8», con **categorie diverse** (cultura e food): il registro
+  di DNA-1 scrive una riga per categoria e i pesi di DNA-2 le leggono così. Profilo (`meteDalRegistro`) e fiducia (`pesiDaEventi`) raggruppano per giro e
+  istante: un giro conta 1. Decisione di Ivano (05/11): il formato resta. Test `src/__tests__/lib/giroUnaVolta.test.js` (il caso vero di Catania:
+  2 righe, 1 giro nel Profilo, 1 evento di fiducia, peso su entrambe le categorie).
+- Suite 3497/3497, lint 0 errori, build ok, `banco:guardia` 12/12 e 10/10, pertinenza senza ❌ nuovi.

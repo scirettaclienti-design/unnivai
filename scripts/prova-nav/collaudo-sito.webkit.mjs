@@ -412,8 +412,16 @@ try {
             if (ospite) {
                 await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
                 await page.getByTestId('prova-senza-account').click({ timeout: 20000 });
-                await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
+                // dopo l'ingresso l'app va da «/» alla home e poi ai gusti (/onboarding): si aspetta l'ultima pagina e si saltano
+                // i gusti, se no il goto di avvia() si scontra col reindirizzamento
+                await page.waitForURL((u) => /^\/(onboarding|dashboard-user)/.test(u.pathname), { timeout: 20000 });
+                await page.waitForURL((u) => /^\/onboarding/.test(u.pathname), { timeout: 8000 }).catch(() => {});
                 await consensoAi(page);
+                if (/\/onboarding/.test(page.url())) {
+                    await page.getByText('Salta per ora').click({ timeout: 20000 });
+                    await page.waitForURL((u) => /^\/dashboard-user/.test(u.pathname), { timeout: 20000 });
+                    await page.waitForTimeout(1500); // «Salta» fa /dashboard-user → / → /dashboard-user nello stesso istante
+                }
                 via = 'prova senza account → avvia';
                 await avvia(page, tour);
             } else {

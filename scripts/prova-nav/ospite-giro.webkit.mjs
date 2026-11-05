@@ -97,11 +97,14 @@ try {
 
     await passo('1-ospite', async () => {
         await page.getByTestId('prova-senza-account').click({ timeout: 20000 });
-        await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 30000 });
+        // l'app va da «/» alla home e poi ai gusti (/onboarding): si aspetta l'ultima pagina prima di guardare l'indirizzo
+        await page.waitForURL((u) => /^\/(onboarding|dashboard-user)/.test(u.pathname), { timeout: 30000 });
+        await page.waitForURL((u) => /^\/onboarding/.test(u.pathname), { timeout: 8000 }).catch(() => {});
         await consensoAi(page);
         if (/\/onboarding/.test(page.url())) {
             await page.getByText('Salta per ora').click({ timeout: 20000 });
             await page.waitForURL((u) => /\/dashboard-user/.test(u.pathname), { timeout: 30000 });
+            await page.waitForTimeout(1500); // «Salta» fa /dashboard-user → / → /dashboard-user nello stesso istante
         }
         const u = await idUtente();
         esito.utenteOspite = u;
@@ -150,7 +153,7 @@ try {
         await foglio.waitFor({ timeout: 5000 });
         const momento = await foglio.getAttribute('data-momento');
         const f = await foto('4-salva-questo-giro');
-        await page.getByLabel('Chiudi').first().click();
+        await foglio.getByLabel('Chiudi').click(); // il «Chiudi» del foglio: quello della fine giro sta sotto lo sfondo
         return { ok: momento === 'fine', momento, foto: f };
     });
 

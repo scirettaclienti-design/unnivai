@@ -2708,7 +2708,9 @@ export const aiRecommendationService = {
             // tipo ha UNA ricerca sua (una per generazione); un chip gia' coperto dalla frase o dalla lista non costa niente.
             const chipInteressi = chipDegliInteressi(prefs, opts.pathType);
             const conFrase = !!String(userPrompt || '').trim() && !opts.baseQueries && !intent?._queryDiBase && intent?.queries?.length > 0 && rawDallaFrase.length > 0;
-            const ricercheChip = conFrase ? ricercheDegliInteressi(chipInteressi, [...rawDallaFrase, ...poiCitta]) : [];
+            // (una frase a tema cibo ha gia' la sua ricerca delle esperienze: il chip Cibo non ne aggiunge un'altra)
+            const temaCiboFrase = conFrase && detectFoodTheme({ text: userPrompt, categoria: intent.categoria, tipicoText: userPrompt }).tema;
+            const ricercheChip = conFrase ? ricercheDegliInteressi(chipInteressi.filter(k => !(temaCiboFrase && k === 'cibo')), [...rawDallaFrase, ...poiCitta]) : [];
             // ... e il budget del modulo: una ricerca sola se dove si mangia manca la sua fascia
             const ricercaBudget = ricercaDelBudget(food, [...rawDallaFrase, ...poiCitta], (c) => isMealPlace(c) && nellaFasciaBudget(c, food.budget));
             if (ricercaBudget) ricercheChip.push(ricercaBudget);

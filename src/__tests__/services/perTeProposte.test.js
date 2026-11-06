@@ -126,18 +126,16 @@ describe('Per Te dà almeno 4 proposte a qualsiasi ora (Roma, dati finti)', () =
         expect(chiamateAI).toBe(0);
     });
 
-    it('13:00 — due giri per adesso dall’AI, gli altri due temi si completano per domattina', async () => {
+    it('13:00 — due giri per adesso dall’AI, gli altri temi si compongono per adesso (PER-TE-TRE): il «per domattina» resta per chi non ha altro', async () => {
         alle('2026-10-31T13:00:00+01:00');
         const fn = fetchDueTour(); vi.stubGlobal('fetch', fn);
         const r = await home();
         expect(r.tours.length).toBeGreaterThanOrEqual(PROPOSTE_MINIME);
         const adesso = r.tours.filter(t => !t.perDopo);
         const dopo = r.tours.filter(t => t.perDopo);
-        expect(adesso.length).toBeGreaterThanOrEqual(1);
-        expect(dopo.length).toBeGreaterThanOrEqual(2);
-        expect(dopo.every(t => t.perDopo.quando === 'domattina')).toBe(true);
-        // le adesso stanno in testa e nessun posto compare due volte
-        expect(r.tours.findIndex(t => t.perDopo)).toBeGreaterThanOrEqual(adesso.length);
+        expect(adesso.length).toBeGreaterThanOrEqual(PROPOSTE_MINIME);
+        expect(dopo).toEqual([]);
+        // nessun posto compare due volte
         const ids = r.tours.flatMap(t => t.stops.map(s => s.place_id));
         expect(new Set(ids).size).toBe(ids.length);
         // la chiamata AI è quella di sempre: una per i temi (+ l'eventuale riscrittura), non una in più per le proposte per dopo

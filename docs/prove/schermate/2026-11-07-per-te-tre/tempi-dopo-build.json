@@ -1,0 +1,23 @@
+{
+ "base": "http://localhost:5427",
+ "etichetta": "dopo-build",
+ "ora": "2026-11-06T17:12:41.541Z",
+ "misure": {
+  "freddo": {
+   "ms": 7390,
+   "schede": 5
+  },
+  "cache": {
+   "ms": 850,
+   "schede": 5
+  },
+  "fascia": {
+   "ms": 874,
+   "schede": 5
+  }
+ },
+ "vediTutte": {
+  "url": "/per-te",
+  "schede": 6
+ }
+}

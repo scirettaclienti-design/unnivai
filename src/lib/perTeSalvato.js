@@ -8,7 +8,8 @@ import { isSeraStart, ALBA_MINUTES } from './daySkeleton';
 import { momentAtClock } from './dayMoments';
 import { romeParts } from './tourWindow';
 
-export const PER_TE_SALVATO_KEY = 'dvai_per_te_v1';
+// PER-TE-TRE — v2: un Per Te salvato prima (2 schede, una fila tagliata a 5) non torna: si rigenera una volta.
+export const PER_TE_SALVATO_KEY = 'dvai_per_te_v2';
 
 const due = (n) => String(n).padStart(2, '0');
 
@@ -28,6 +29,21 @@ export function leggiPerTe(chiave, utente) {
     try {
         const r = JSON.parse(localStorage.getItem(PER_TE_SALVATO_KEY) || 'null');
         if (r && r.chiave === JSON.stringify(chiave) && r.utente === (utente || null)) return r.dati;
+    } catch { /* storage illeggibile: si genera */ }
+    return undefined;
+}
+
+/**
+ * PER-TE-TRE (T27) — il Per Te salvato che vale ancora per questa citta', questo giorno e questa fascia, anche se il resto della chiave e' cambiato
+ * (il DNA ha passato un gradino, il profilo si e' mosso). Serve a far comparire subito le schede mentre si rigenera, e all'elenco di «Vedi tutte».
+ * Cambiata la fascia non vale piu': un giro del mattino non si propone di sera.
+ */
+export function perTeDellaFascia(chiave, utente) {
+    try {
+        const r = JSON.parse(localStorage.getItem(PER_TE_SALVATO_KEY) || 'null');
+        if (!r || r.utente !== (utente || null) || !r.dati) return undefined;
+        const salvata = JSON.parse(r.chiave);
+        return [1, 2, 3].every(i => salvata?.[i] === chiave?.[i]) ? r.dati : undefined;
     } catch { /* storage illeggibile: si genera */ }
     return undefined;
 }

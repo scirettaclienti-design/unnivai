@@ -242,12 +242,15 @@ export async function generaPerTe(caso, E) {
     azzeraSonda();
     // C8b — dalle 18:00 Per Te e' il giro della sera (nessuna ricerca per temi); prima la ricerca del cibo segue l'ora (colazione, merenda)
     const sera = isSeraStart(new Date(now));
-    const themed = sera ? {} : await placesDiscoveryService.discoverAllThemes(caso.luogo, cc.latitude, cc.longitude, { foodPrefs: food, ora: new Date(now) });
+    // PER-TE-TRE (T27) — `caso.comeLaHome`: la chiamata di DashboardUser alla lettera. Di sera i temi si cercano lo stesso (servono alle
+    // proposte «per domattina», col cibo all'ora della prima proposta per dopo) e il pool dell'insider segue il DNA. Senza: invariato.
+    const temiDiSera = !!caso.comeLaHome;
+    const themed = sera && !temiDiSera ? {} : await placesDiscoveryService.discoverAllThemes(caso.luogo, cc.latitude, cc.longitude, { foodPrefs: food, ora: sera ? riferimentoPerDopo(new Date(now)).data : new Date(now) });
     // DNA-5 — `caso.dna` e `caso.dnaGiro` come li passa DashboardUser; assenti nei casi del banco: invariato
     const dna = caso.dna && caso.dna._share > 0 ? caso.dna : { _share: 0 };
     // il pool dell'insider resta quello registrato (senza DNA, come nel giro vero del banco): l'ordine dell'insider col DNA e' P7a, non DNA-5,
     // e con un altro pool la risposta registrata del modello perderebbe le sue tappe
-    const insider = sera ? [] : buildInsiderPool(themed, cc, caso.luogo, undefined, { _share: 0 });
+    const insider = sera && !temiDiSera ? [] : buildInsiderPool(themed, cc, caso.luogo, undefined, caso.comeLaHome ? dna : { _share: 0 });
     const r = await aiRecommendationService.generateHomeTours({ city: caso.luogo, cityCenter: cc, themedCandidates: { insider, ...themed },
         prefs: caso.dnaGiro
             ? { duration: '1 Giorno', group: (caso.dnaGiro.compagnia?.gruppo || 'solo').toLowerCase(), pace: caso.dnaGiro.ritmo?.valore === 'veloce' ? 'attivo' : 'rilassato' }
@@ -272,6 +275,9 @@ export function registraPerTe(rec, { r, now, food, sera, themed, insider }, E, l
     const per = new Map((r._report?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
     const comp = new Map((r._report?.composizione || []).map(x => [x.place_id, x]));
     rec.serale = sera;
+    // PER-TE-TRE (T27) — quante proposte e perche' (proposte minime, passioni del DNA): solo lettura del resoconto del motore
+    rec.proposte = r._report?.proposte ?? null;
+    rec.passioni = r._report?.passioni ?? null;
     // TROINA-FIX — il tour misto del borgo (nessun tema a 3 tappe aperte): un giro del motore dei momenti, come la sera
     rec.borgoMisto = !!r._report?.borgoMisto && (r.tours || []).length > 0;
     if (sera || rec.borgoMisto) {

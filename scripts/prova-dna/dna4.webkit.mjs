@@ -108,7 +108,7 @@ const RIGHE_FINTE = Array.from({ length: 5 }, (_, i) => [
     { id: `prova-dna4-c${i}`, kind: 'tour_completed', category: 'food', value: null, tour_id: `prova-dna4-g${i}`, created_at: '2026-10-15T09:01:00.000Z' },
 ]).flat();
 const salvato = (page) => page.evaluate(() => {
-    const per = JSON.parse(localStorage.getItem('dvai_per_te_v1') || 'null');
+    const per = JSON.parse(localStorage.getItem('dvai_per_te_v2') || 'null');
     const dna = JSON.parse(localStorage.getItem('dvai_per_te_dna_v1') || 'null');
     const reg = JSON.parse(localStorage.getItem('unnivai_dna_registro_v1') || 'null');
     return { chiave: per ? JSON.parse(per.chiave) : null, conto: dna ? { ultima: dna.ultima, rigenerazioni: dna.rigenerazioni } : null, righeRegistro: reg?.rows?.length ?? null };

@@ -551,6 +551,17 @@ Report: `docs/prove/2026-11-06-banco-difetti-2.md`. Nessuna funzione del server,
 - **Famiglia** (DNA-5, `giroDna.giroDnaPerMotore`): con compagnia famiglia e nessun ritmo chiesto → passo Tranquillo, visite ×1,2 (`FATTORE_SOSTA_FAMIGLIA`), merenda come pausa, Per Te 3 tappe per tour.
 - **Banco**: sesto controllo `richiesta` (`scripts/banco/controlloRichiesta.js`, lettura indipendente dal motore; i cinque di prima invariati). `npm run banco -- --ricontrolla` aggiunge un controllo nuovo agli esiti salvati dei casi con la stessa firma del giro vero (`controlliDalReplay`). Misura D6/D7 su un grezzo: `node scripts/banco/report-difetti2.mjs <grezzo.json>`.
 
+### Per Te segue le passioni del DNA, Vedi tutte, Su misura e Al volo (PER-TE-TRE, T27)
+
+Report: `docs/prove/2026-11-07-per-te-tre.md`. Nessuna funzione del server, nessuna migrazione, richieste ai proxy invariate.
+- **Una proposta per passione** (`src/lib/perTeTemi.js`, `generateHomeTours` → `_conPassioni` → `_conProposteMinime` → `_dichiaraPassioni`): il modello sceglie senza coordinate e il tetto di 1,2 km fa cadere i temi; di giorno i temi rimasti fuori si compongono in codice dagli stessi pool, per adesso, nell'ordine del DNA (`ordineTemi`, `TEMA_DELLA_PASSIONE`; senza fiducia `TEMI_DI_DIFETTO`), senza AI, 0 $. `tourDaiPool` → `gruppoDelTema`: tappe entro il tetto, aperte per tutta la sosta all'arrivo, valide per `regolaPerTe`, almeno 3, almeno 2 del tema (1 per il cibo); attorno può prendere posti degli altri temi (`alleati`); due giri, nel primo non tocca i posti dei temi che vengono dopo. Poi il giro ripassa da `gruppoNelTetto` e `keepOpenStops`: **nessuna regola si allenta**. Lo stesso per le proposte «per domattina». Un giro composto ha `composto: true` e sulla scheda non dice «dall'AI».
+- **Passione scoperta**: in città la home lo dice (`passioniMancanti`, `TESTI_PER_TE.passioneMancante`); nei borghi basta una proposta. Resoconto in `_report.passioni`.
+- **La sera resta un solo giro per adesso**: le passioni stanno nelle proposte per domattina.
+- **Schede pronte**: `placeholderData` = `perTeDellaFascia` (stessa città, giorno, fascia, anche con il resto della chiave cambiato). Il salvato è `dvai_per_te_v2`, con tutte le proposte; la home ne mostra 5 (`PROPOSTE_IN_HOME`).
+- **Vedi tutte** = `/per-te` (`pages/PerTeTutte.jsx`, `components/PerTeCard.jsx`): non genera, legge il salvato della fascia.
+- **Nomi a schermo** (`src/lib/testiHome.js`): «Crea il tuo Percorso» è «Su misura», il Quiz è «Al volo», l'etichetta di «Crea il tuo Tour» è «Con una guida o a sorpresa». Route e nomi interni restano.
+- Prova: casi in `scripts/prova-perte/` (`comeLaHome` in `generaPerTe` = la chiamata di DashboardUser), `diagnosi.giro.js` (0 $), `controlli.mjs`, `perte-tempi.webkit.mjs`. I grezzi stanno in `docs/prove/dati/per-te-tre/`, non in `docs/prove/dati/`: `titoliGiro.test.js` legge ogni `.json` di quella cartella.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

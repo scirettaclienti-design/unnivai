@@ -55,6 +55,7 @@ const Prossimamente  = lazy(() => import('./pages/Prossimamente'));
 const MapPage    = lazy(() => import('./pages/MapPage'));
 const TourBuilder = lazy(() => import('./pages/guide/TourBuilder'));
 const Explore    = lazy(() => import('./pages/Explore'));
+const PerTeTutte = lazy(() => import('./pages/PerTeTutte'));
 
 // Optimized Query Client
 const queryClient = new QueryClient({
@@ -129,6 +130,7 @@ function AnimatedAppRoutes() {
         {/* PROTECTED USER ROUTES */}
         <Route element={<RoleGuard allowedRoles={['explorer', 'user']} />}>
           <Route path="/dashboard-user"  element={<DashboardUser />} />
+          <Route path="/per-te"          element={<PerTeTutte />} />
           <Route path="/app/*"           element={<DashboardUser />} />
           {/* DVAI-026: /home → redirect /dashboard-user */}
           <Route path="/home"            element={<Navigate to="/dashboard-user" replace />} />

@@ -68,7 +68,7 @@ describe('interessi: i chip di Su misura', () => {
         expect(bonusInteressi({ types: ['museum', 'monument'] }, ['arte', 'storia'])).toBe(BONUS_INTERESSE);
         expect(bonusInteressi(parco, ['arte'])).toBe(0);
     });
-    it('la ricerca del chip parte solo se mancano posti del suo tipo, al massimo due', () => {
+    it('la ricerca del chip parte solo se mancano posti del suo tipo, una per giro', () => {
         expect(ricercheDegliInteressi(['arte'], [museo, museo])).toEqual([]);
         expect(ricercheDegliInteressi(['arte'], [museo]).map(r => r.chip)).toEqual(['arte']);
         expect(ricercheDegliInteressi(['arte', 'storia', 'natura', 'shopping'], [])).toHaveLength(RICERCHE_INTERESSI_MAX);

@@ -2705,9 +2705,9 @@ export const aiRecommendationService = {
             if (area) cittaReport.centroRicerche = { latitude: centroRicerche.latitude, longitude: centroRicerche.longitude, biasKm: area.raggioKm, area: area.nome };
             const { candidates: rawDallaFrase, intent } = await fetchRealPOICandidates(city, centroRicerche, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
             // T29 — i chip di Su misura: con una frase le ricerche seguono solo la frase. Un chip che non ha portato quasi niente del suo
-            // tipo ha UNA ricerca sua (al massimo due per generazione); un chip gia' coperto dalla frase o dalla lista non costa niente.
+            // tipo ha UNA ricerca sua (una per generazione); un chip gia' coperto dalla frase o dalla lista non costa niente.
             const chipInteressi = chipDegliInteressi(prefs, opts.pathType);
-            const conFrase = !!String(userPrompt || '').trim() && !opts.baseQueries;
+            const conFrase = !!String(userPrompt || '').trim() && !opts.baseQueries && !intent?._queryDiBase && intent?.queries?.length > 0 && rawDallaFrase.length > 0;
             const ricercheChip = conFrase ? ricercheDegliInteressi(chipInteressi, [...rawDallaFrase, ...poiCitta]) : [];
             // ... e il budget del modulo: una ricerca sola se dove si mangia manca la sua fascia
             const ricercaBudget = ricercaDelBudget(food, [...rawDallaFrase, ...poiCitta], (c) => isMealPlace(c) && nellaFasciaBudget(c, food.budget));
@@ -2966,8 +2966,6 @@ export const aiRecommendationService = {
                 candidates = tenuti;
             }
             const alVolo = opts.pathType === 'quick';
-            // T29 — le ricerche dei chip e del budget stanno dentro il tetto delle ricerche mirate della generazione
-            const tettoRicerche = Math.max(0, MAX_EXTRA_SEARCHES - ricercheChip.length);
             const foodBonus = (foodOn || tema.tipico || giroDna.bonus || chipInteressi.length > 0 || alVolo)
                 ? (c) => (foodOn ? foodPrefBonus(c, food, isMealPlace) : 0) + (tema.tipico && isMealPlace(c) ? tipicoBonus(c, { dieta: foodOn ? food.dieta : [] }) : 0)
                     // DNA-5 — la spinta della compagnia (parchi e giochi per la famiglia, belvedere per la coppia…): si somma al merito
@@ -3150,7 +3148,7 @@ export const aiRecommendationService = {
                 seraleVeloce = veloce && moments.some(m => (m.bevuta && m.soloCategorie) || m.cenaPrima || m.key === 'passeggiata');
                 // BORGO-FIX — decisione 3: il drink di riserva (la sera tardi) cerca un bar: la categoria chiesta (natura) non filtra quella ricerca
                 drinkDiRiserva = moments.some(m => m.daRiserva && m.bevuta);
-                extraThemes = buckets ? shortMomentThemes(moments, openBuckets().buckets, candidates, tettoRicerche, { requestedFamilies: familiesAsked }) : [];
+                extraThemes = buckets ? shortMomentThemes(moments, openBuckets().buckets, candidates, undefined, { requestedFamilies: familiesAsked }) : [];
                 if (extraThemes.length > 0) {
                     const foodAnchor = extraThemes.includes('food')
                         ? mealSearchAnchor(moments, openBuckets().buckets, candidates, { requestedFamilies: familiesAsked })
@@ -3305,7 +3303,7 @@ export const aiRecommendationService = {
                             const searchedMoments = new Set();
                             const ricercheDopo = [];
                             // C8a — con momenti facoltativi (passeggiata, cena del Veloce) il tetto e' di 3 ricerche in tutto.
-                            let budget = Math.max(0, tettoRicerche - extraThemes.length);
+                            let budget = Math.max(0, MAX_EXTRA_SEARCHES - extraThemes.length);
                             // C8a — la passeggiata fra drink e cena ha UNA ricerca sua, dalla tappa prima, in piu' del tetto dei momenti veri.
                             let walkBudget = moments.some(x => x.key === 'passeggiata') ? 1 : 0;
                             const eWalk = (x) => moments.find(m => m.id === x.momento)?.key === 'passeggiata';

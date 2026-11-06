@@ -5,7 +5,7 @@
  * il merito li guardava solo con un DNA forte. Il giro con Arte e quello con Natura erano lo stesso giro. Ora un chip:
  *   · spinge i posti del suo tipo nel merito e nel riparatore (`bonusInteressi`: si somma, non esclude nessuno);
  *   · si legge nel prompt del selettore;
- *   · fa UNA ricerca mirata, solo se dalla frase e dalla lista non e' arrivato quasi niente del suo tipo (`ricercheDegliInteressi`).
+ *   · fa UNA ricerca mirata (una per giro, il primo chip scoperto), solo se dalla frase e dalla lista non e' arrivato quasi niente del suo tipo (`ricercheDegliInteressi`).
  *
  * I tipi sono precisi (il tipo principale di Google): Arte e Storia sono due chip, non «tutto cio' che e' cultura». Il cibo non ha
  * tipi di ristorante: pranzo e cena ci sono sempre, il chip premia i posti da assaggio (mercati, forni, pasticcerie). Il chip Vita
@@ -15,8 +15,8 @@
 export const BONUS_INTERESSE = 0.25;
 /** Sotto questi posti del tipo giusto parte la ricerca mirata del chip. */
 export const POSTI_MINIMI_INTERESSE = 2;
-/** Al massimo due ricerche per generazione, come le ricerche mirate dei momenti. */
-export const RICERCHE_INTERESSI_MAX = 2;
+/** Al massimo una ricerca per generazione (quella del budget e' a parte): 0,035 $ a listino, solo quando il chip e' scoperto. */
+export const RICERCHE_INTERESSI_MAX = 1;
 
 export const INTERESSI_CHIP = {
     arte: { tipi: ['art_museum', 'art_gallery', 'sculpture', 'cultural_center', 'performing_arts_theater', 'opera_house'],

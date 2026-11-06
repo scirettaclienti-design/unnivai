@@ -60,6 +60,10 @@ describe('interessi: i chip di Su misura', () => {
         expect(postoDelChip(statua, 'storia')).toBe(true);
         expect(postoDelChip(parco, 'natura')).toBe(true);
     });
+    it('conta il tipo principale: il Foro Romano non e\' un museo d\'arte, una pasticceria non e\' shopping', () => {
+        expect(postoDelChip({ types: ['tourist_attraction', 'museum'], primaryType: 'historical_landmark' }, 'arte')).toBe(false);
+        expect(postoDelChip({ types: ['pastry_shop', 'store'], primary_type: 'pastry_shop' }, 'shopping')).toBe(false);
+    });
     it('una spinta sola, anche con due chip', () => {
         expect(bonusInteressi({ types: ['museum', 'monument'] }, ['arte', 'storia'])).toBe(BONUS_INTERESSE);
         expect(bonusInteressi(parco, ['arte'])).toBe(0);
@@ -68,7 +72,7 @@ describe('interessi: i chip di Su misura', () => {
         expect(ricercheDegliInteressi(['arte'], [museo, museo])).toEqual([]);
         expect(ricercheDegliInteressi(['arte'], [museo]).map(r => r.chip)).toEqual(['arte']);
         expect(ricercheDegliInteressi(['arte', 'storia', 'natura', 'shopping'], [])).toHaveLength(RICERCHE_INTERESSI_MAX);
-        expect(ricercheDegliInteressi(['cibo', 'vita notturna'], [])).toEqual([]);
+        expect(ricercheDegliInteressi(['vita notturna'], [])).toEqual([]);
     });
     it('il selettore legge i chip', () => {
         expect(rigaInteressi([])).toBe('');

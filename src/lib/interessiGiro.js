@@ -7,7 +7,7 @@
  *   · si legge nel prompt del selettore;
  *   · fa UNA ricerca mirata, solo se dalla frase e dalla lista non e' arrivato quasi niente del suo tipo (`ricercheDegliInteressi`).
  *
- * I tipi sono precisi (tipo principale e tipi di Google): Arte e Storia sono due chip, non «tutto cio' che e' cultura». Il cibo non ha
+ * I tipi sono precisi (il tipo principale di Google): Arte e Storia sono due chip, non «tutto cio' che e' cultura». Il cibo non ha
  * tipi di ristorante: pranzo e cena ci sono sempre, il chip premia i posti da assaggio (mercati, forni, pasticcerie). Il chip Vita
  * Notturna agisce gia' sullo scheletro (dopocena) e sui bar. Funzioni pure.
  */
@@ -27,7 +27,8 @@ export const INTERESSI_CHIP = {
         ricerca: { customQuery: 'parco giardino belvedere', customKind: 'NATURA' } },
     shopping: { tipi: ['market', 'store', 'clothing_store', 'shoe_store', 'shopping_mall', 'department_store', 'book_store', 'jewelry_store', 'gift_shop', 'food_store'],
         ricerca: { customQuery: 'negozi storici botteghe mercato', customKind: 'CULTURA' } },
-    cibo: { tipi: ['market', 'food_store', 'bakery', 'pastry_shop', 'ice_cream_shop', 'cake_shop', 'confectionery', 'deli'], ricerca: null },
+    cibo: { tipi: ['market', 'food_store', 'bakery', 'pastry_shop', 'ice_cream_shop', 'cake_shop', 'confectionery', 'deli'],
+        ricerca: { customQuery: 'mercato storico botteghe del gusto', customKind: 'FOOD' } },
     'vita notturna': { tipi: ['bar', 'cocktail_bar', 'wine_bar', 'pub', 'night_club', 'lounge_bar'], ricerca: null },
 };
 
@@ -40,12 +41,15 @@ export function chipDegliInteressi(prefs, pathType) {
     return [...new Set(scelti.map(chiave))].filter(k => INTERESSI_CHIP[k]);
 }
 
-const tipiDi = (c) => [...(Array.isArray(c?.types) ? c.types : []), c?.primaryType ?? c?.primary_type].filter(Boolean);
-
-/** Un posto e' del chip se ne porta un tipo (fra quelli di Google o come tipo principale). */
+/**
+ * Un posto e' del chip per il suo tipo principale; solo senza, per i tipi di Google. Google da' `museum` al Foro Romano e `store` a mezze
+ * pasticcerie: con tutti i tipi un giro qualunque contava gia' come «Arte» e «Shopping» e il chip non cambiava niente.
+ */
 export const postoDelChip = (c, chip) => {
     const t = INTERESSI_CHIP[chip]?.tipi;
-    return !!t && tipiDi(c).some(x => t.includes(x));
+    if (!t) return false;
+    const principale = c?.primaryType ?? c?.primary_type;
+    return principale ? t.includes(principale) : (Array.isArray(c?.types) ? c.types : []).some(x => t.includes(x));
 };
 
 /** La spinta di un posto: una sola, anche se sta in due chip. */

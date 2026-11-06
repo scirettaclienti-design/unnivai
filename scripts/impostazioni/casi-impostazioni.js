@@ -16,6 +16,12 @@ const IMPOSTAZIONI_SU_MISURA = [
     ['interessi-natura', { interests: ['Natura'] }], ['interessi-shopping', { interests: ['Shopping'] }], ['interessi-notte', { interests: ['Vita Notturna'] }],
 ];
 
+// Una richiesta scritta articolata (solo testo, nessuna voce del modulo) e i chip senza frase: il giro vero, i tracciati non li coprono.
+const ARTICOLATA = {
+    Roma: 'Domani a Roma con mia moglie: la mattina arte barocca, pranzo in una trattoria economica, niente musei il pomeriggio, una passeggiata con vista e la sera un aperitivo',
+    Catania: 'Domani a Catania con due amici: il mercato del pesce la mattina, street food a pranzo, poi le chiese barocche di Via Crociferi, e la sera un locale con musica',
+};
+const SENZA_FRASE = [['senzafrase-arte', { interests: ['Arte'] }], ['senzafrase-natura', { interests: ['Natura'] }]];
 const VARIANTI_SU_MISURA = ['Roma', 'Catania'].flatMap(c => IMPOSTAZIONI_SU_MISURA.map(([id, prefs]) => suMisura(c, id, prefs)));
 
 // ─── Al volo (QuickPath): umore, sotto-scelta, durata, gruppo. Il tour parte da adesso: le 11:00 stanno oltre la colazione automatica e prendono il pranzo ───
@@ -54,4 +60,11 @@ export function casoDellaVariante(v, base) {
     return { ...base, id: v.id, prefs, richiesta, comeLaPagina: true };
 }
 
-export const CASI_IMPOSTAZIONI = [...CASI_AL_VOLO];
+const suMisuraVero = (v) => ({ id: v.id, modo: 'crea', luogo: v.citta, ora: '09:30', giorno: '2026-11-04', attesa: v.citta, onboarding: null, comeLaPagina: true,
+    richiesta: v.richiesta ?? `Domani, una giornata a ${v.citta}`, prefs: { budget: '', group: '', pace: '', duration: '1 Giorno', ...v.prefs } });
+export const CASI_SU_MISURA = [
+    ...VARIANTI_SU_MISURA.filter(v => !/ritmo-attivo/.test(v.id)).map(suMisuraVero),
+    ...['Roma', 'Catania'].map(c => suMisuraVero({ id: `sm-${c.toLowerCase()}-articolata`, citta: c, prefs: {}, richiesta: ARTICOLATA[c] })),
+    ...SENZA_FRASE.map(([id, prefs]) => ({ ...suMisuraVero({ id: `sm-roma-${id}`, citta: 'Roma', prefs, richiesta: ' ' }), giorno: GIORNO })),
+];
+export const CASI_IMPOSTAZIONI = [...CASI_AL_VOLO, ...CASI_SU_MISURA];

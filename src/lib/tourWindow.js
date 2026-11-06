@@ -224,6 +224,17 @@ function parseFascia(t) {
     return null;
 }
 
+// T29 — una richiesta che nomina piu' fasce («la mattina arte, pranzo in trattoria, la sera un aperitivo») parte dalla prima e finisce con
+// l'ultima. Prima vinceva «sera»: il giro cominciava alle 18 e il resto della frase spariva, anche con «1 Giorno» scelto.
+const ORDINE_FASCE = ['mattina', 'pranzo', 'pomeriggio', 'sera'];
+const RE_FASCIA = {
+    mattina: /\b(stamattina|stamani|stamane|mattina|mattino|mattinata)\b/, pranzo: /\b(pranzo|mezzogiorno)\b/,
+    pomeriggio: /\b(pomeriggio)\b/, sera: /\b(stasera|sera|serata|cena)\b/,
+};
+export function fasceNelTesto(t) {
+    return ORDINE_FASCE.filter(k => RE_FASCIA[k].test(t));
+}
+
 // "alle 17", "alle 17:30", "dalle 9.30", "ore 18", "all'una"
 function parseHour(t) {
     if (/\ball'una\b/.test(t)) return { h: 13, m: 0 };
@@ -315,7 +326,8 @@ export function resolveTourWindow({ text = '', requestTime, pathType = 'quick', 
         }
     } else if (fasciaKey) {
         reason = 'fascia';
-        const f = FASCE[fasciaKey];
+        const fasce = fasceNelTesto(t);
+        const f = fasce.length > 1 ? { start: FASCE[fasce[0]].start, end: FASCE[fasce.at(-1)].end } : FASCE[fasciaKey];
         start = romeDate(day, f.start);
         if (start.getTime() < now.getTime()) start = now; // "stasera" alle 20:00 → da adesso
         defaultEnd = romeDate(day, f.end);

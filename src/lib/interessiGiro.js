@@ -19,9 +19,9 @@ export const POSTI_MINIMI_INTERESSE = 2;
 export const RICERCHE_INTERESSI_MAX = 2;
 
 export const INTERESSI_CHIP = {
-    arte: { tipi: ['art_museum', 'art_gallery', 'museum', 'sculpture', 'cultural_center', 'performing_arts_theater', 'opera_house'],
+    arte: { tipi: ['art_museum', 'art_gallery', 'sculpture', 'cultural_center', 'performing_arts_theater', 'opera_house'],
         ricerca: { customQuery: "museo d'arte galleria", customKind: 'CULTURA' } },
-    storia: { tipi: ['historical_landmark', 'history_museum', 'castle', 'monument', 'archaeological_site', 'ruins', 'fortress', 'historical_place'],
+    storia: { tipi: ['historical_landmark', 'history_museum', 'museum', 'castle', 'monument', 'archaeological_site', 'ruins', 'fortress', 'historical_place'],
         ricerca: { customQuery: 'sito storico monumento', customKind: 'CULTURA' } },
     natura: { tipi: ['park', 'city_park', 'garden', 'botanical_garden', 'national_park', 'natural_feature', 'hiking_area', 'beach', 'scenic_spot', 'observation_deck', 'viewpoint'],
         ricerca: { customQuery: 'parco giardino belvedere', customKind: 'NATURA' } },

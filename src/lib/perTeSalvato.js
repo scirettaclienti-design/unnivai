@@ -8,7 +8,8 @@ import { isSeraStart, ALBA_MINUTES } from './daySkeleton';
 import { momentAtClock } from './dayMoments';
 import { romeParts } from './tourWindow';
 
-export const PER_TE_SALVATO_KEY = 'dvai_per_te_v1';
+// PER-TE-TRE — v2: un Per Te salvato prima (2 schede, una fila tagliata a 5) non torna: si rigenera una volta.
+export const PER_TE_SALVATO_KEY = 'dvai_per_te_v2';
 
 const due = (n) => String(n).padStart(2, '0');
 

@@ -57,7 +57,7 @@ async function misura(nome, prepara) {
 }
 // il Per Te salvato e la cache del telefono: senza, si genera. `places` e `hometours` restano del giro prima: si tolgono.
 const vuota = () => { for (const k of Object.keys(localStorage)) if (/per_te|hometours|insider|places|city_center/i.test(k)) localStorage.removeItem(k); };
-const altraChiave = () => { const r = JSON.parse(localStorage.getItem('dvai_per_te_v1')); const c = JSON.parse(r.chiave); c[4] = 'f1:altro'; r.chiave = JSON.stringify(c); localStorage.setItem('dvai_per_te_v1', JSON.stringify(r)); };
+const altraChiave = () => { const r = JSON.parse(localStorage.getItem('dvai_per_te_v2')); const c = JSON.parse(r.chiave); c[4] = 'f1:altro'; r.chiave = JSON.stringify(c); localStorage.setItem('dvai_per_te_v2', JSON.stringify(r)); };
 
 await misura('freddo', vuota);
 await page.waitForTimeout(1500);

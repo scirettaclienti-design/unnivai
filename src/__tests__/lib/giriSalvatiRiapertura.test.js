@@ -13,7 +13,7 @@ vi.mock('@/lib/supabase', () => ({
                 tabella.push({ id: `id-${tabella.length + 1}`, created_at: new Date(2026, 9, 24, 12, tabella.length).toISOString(), ...JSON.parse(JSON.stringify(riga)) });
                 return { error: null };
             },
-            select: () => ({ order: () => ({ limit: async () => ({ data: [...tabella].reverse(), error: null }) }) }),
+            select: () => ({ not: () => ({ order: () => ({ limit: async () => ({ data: [...tabella].reverse(), error: null }) }) }) }),
         }),
     },
 }));

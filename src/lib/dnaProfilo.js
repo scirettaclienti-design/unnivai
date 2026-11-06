@@ -4,6 +4,8 @@
  */
 
 import { CORE_CATEGORIES, normalizeCategory } from '../services/preferenceEngine.js';
+import { leggiValoreTappa } from './dnaRitmo.js';
+import { FASCIA_SOGLIA_LIVELLO_1, FASCIA_SOGLIA_LIVELLO_2 } from './fasciaDna.js';
 
 /** Sotto questo peso una categoria non e' «forte»: non entra nella frase. */
 export const DNA_SOGLIA_FORTE = 0.1;
@@ -94,35 +96,50 @@ function totaleDa(value) {
     return m ? { raggiunte: Number(m[1]), totali: Number(m[2]) } : null;
 }
 
+/** Le righe `tour_completed` di uno stesso giro nascono nello stesso istante: oltre questo intervallo lo stesso id e' un altro giro. */
+const STESSO_GIRO_MS = 60_000;
+
+const ms = (iso) => { const t = new Date(iso).getTime(); return Number.isFinite(t) ? t : 0; };
+
 /**
  * Un elemento per ogni giro completato: citta', data, tappe raggiunte (e totali, se note), categorie.
- * Il registro ha una riga `tour_completed` per categoria: qui si riuniscono per giro.
+ * Il registro ha una riga `tour_completed` per categoria: qui si riuniscono per giro. Lo stesso giro rifatto (un giro salvato
+ * riaperto ha sempre lo stesso id) sono due Mete: le righe si separano per istante, e ogni tappa va al giro che l'ha chiusa.
  * @param {object[]} righe - le righe di dna_events
  * @returns {{ tourId: string|null, citta: string|null, data: string, categorie: string[], tappeRaggiunte: number, tappeTotali: number|null }[]}
  *          dal piu' recente
  */
 export function meteDalRegistro(righe = []) {
     const tutte = senzaDoppioni(righe);
-    const giri = new Map();
-    for (const r of tutte) {
-        if (r.kind !== 'tour_completed') continue;
+    const giri = [];
+    const perChiave = new Map(); // chiave del giro → i suoi completamenti, dal primo
+    const completati = tutte.filter(r => r.kind === 'tour_completed').sort((a, b) => ms(a.created_at) - ms(b.created_at));
+    for (const r of completati) {
         const chiave = r.tour_id ? `id:${r.tour_id}` : `ora:${r.created_at}`; // senza giro: le righe dello stesso istante sono lo stesso giro
-        const g = giri.get(chiave) || { tourId: r.tour_id || null, citta: null, data: r.created_at, categorie: new Set(), tappeRaggiunte: 0, tappeTotali: null };
+        const elenco = perChiave.get(chiave) || [];
+        let g = elenco.at(-1);
+        if (!g || ms(r.created_at) - ms(g.fine) > STESSO_GIRO_MS) {
+            g = { tourId: r.tour_id || null, citta: null, data: r.created_at, fine: r.created_at, categorie: new Set(), tappeRaggiunte: 0, tappeTotali: null };
+            elenco.push(g);
+            giri.push(g);
+            perChiave.set(chiave, elenco);
+        }
+        g.fine = r.created_at;
         if (!g.citta && r.city) g.citta = r.city;
-        if (String(r.created_at) < String(g.data)) g.data = r.created_at;
         const c = normalizeCategory(r.category);
         if (c) g.categorie.add(c);
         const t = totaleDa(r.value);
         if (t) g.tappeTotali = Math.max(g.tappeTotali ?? 0, t.totali);
-        giri.set(chiave, g);
     }
     for (const r of tutte) {
         if (r.kind !== 'stop_reached' || !r.tour_id) continue;
-        const g = giri.get(`id:${r.tour_id}`);
-        if (g) g.tappeRaggiunte += 1;
+        const elenco = perChiave.get(`id:${r.tour_id}`);
+        if (!elenco) continue;
+        const g = elenco.find(x => ms(r.created_at) <= ms(x.fine)) || elenco.at(-1);
+        g.tappeRaggiunte += 1;
     }
-    return [...giri.values()]
-        .map(g => ({ ...g, categorie: [...g.categorie] }))
+    return giri
+        .map(({ fine, ...g }) => ({ ...g, categorie: [...g.categorie] })) // eslint-disable-line no-unused-vars
         .sort((a, b) => String(b.data).localeCompare(String(a.data)));
 }
 
@@ -143,4 +160,70 @@ export function testoTappe(meta) {
     const n = meta?.tappeRaggiunte || 0;
     const base = n === 1 ? '1 tappa raggiunta' : `${n} tappe raggiunte`;
     return meta?.tappeTotali && meta.tappeTotali >= n ? `${base} su ${meta.tappeTotali}` : base;
+}
+
+// ─── Il DNA, da leggere ──────────────────────────────────────────────────────
+
+/** Una parola per il peso: le stesse soglie della fascia di DNA (Per Te). */
+export function livelloPeso(peso) {
+    const p = Number(peso) || 0;
+    if (p >= FASCIA_SOGLIA_LIVELLO_2) return 'forte';
+    if (p >= FASCIA_SOGLIA_LIVELLO_1) return 'medio';
+    return p > 0 ? 'leggero' : 'zero';
+}
+
+// ─── Risultati: quanto hai girato, dal registro ──────────────────────────────
+
+/** Le soglie dei traguardi. Solo conteggi del registro: niente punti, niente livelli inventati. */
+export const SOGLIE_TRAGUARDI = {
+    giri: [1, 5, 10, 25, 50],
+    citta: [1, 3, 5, 10],
+    tappe: [5, 25, 50, 100, 250],
+    km: [5, 25, 50, 100],
+};
+
+/** La voce di un conteggio: valore, soglie gia' passate, prossima soglia (null: finite) e da dove parte la barra. */
+function voceRisultato(id, valore) {
+    const soglie = SOGLIE_TRAGUARDI[id];
+    const presi = soglie.filter(s => valore >= s);
+    const prossimo = soglie.find(s => valore < s) ?? null;
+    return { id, valore, presi, prossimo, base: presi.at(-1) ?? 0 };
+}
+
+/**
+ * Risultati del Profilo: i contatori, i km fra le tappe raggiunte (dal `value` di stop_reached: le righe vecchie non li hanno),
+ * le citta' dalla piu' girata e la categoria dove ti fermi di piu'.
+ * @param {object[]} righe - le righe di dna_events
+ * @returns {{ voci: object[], citta: {nome: string, giri: number}[], categoria: {categoria: string, tappe: number}|null, vuoto: boolean }}
+ */
+export function risultatiDalRegistro(righe = []) {
+    const tappe = senzaDoppioni(righe).filter(r => r.kind === 'stop_reached');
+    const { giri, citta: nCitta } = contatoriDalRegistro(righe);
+    const km = Math.round(tappe.reduce((tot, r) => tot + (leggiValoreTappa(r.value).km ?? 0), 0) * 10) / 10;
+
+    const perCitta = new Map();
+    for (const m of meteDalRegistro(righe)) {
+        const nome = (m.citta || '').trim();
+        if (!nome) continue;
+        const chiave = nome.toLowerCase();
+        const c = perCitta.get(chiave) || { nome: nome[0].toLocaleUpperCase('it') + nome.slice(1), giri: 0 };
+        c.giri += 1;
+        perCitta.set(chiave, c);
+    }
+    const perCategoria = {};
+    for (const r of tappe) {
+        const c = normalizeCategory(r.category);
+        if (c) perCategoria[c] = (perCategoria[c] || 0) + 1;
+    }
+    const top = CORE_CATEGORIES
+        .map((categoria, i) => ({ categoria, tappe: perCategoria[categoria] || 0, i }))
+        .filter(c => c.tappe > 0)
+        .sort((a, b) => (b.tappe - a.tappe) || (a.i - b.i))[0];
+
+    return {
+        voci: [voceRisultato('giri', giri), voceRisultato('citta', nCitta), voceRisultato('tappe', tappe.length), voceRisultato('km', km)],
+        citta: [...perCitta.values()].sort((a, b) => (b.giri - a.giri) || a.nome.localeCompare(b.nome, 'it')),
+        categoria: top ? { categoria: top.categoria, tappe: top.tappe } : null,
+        vuoto: giri === 0 && tappe.length === 0,
+    };
 }

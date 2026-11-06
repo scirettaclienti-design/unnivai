@@ -30,7 +30,7 @@ export const ELIMINA = {
     COSA_SI_CANCELLA: [
         'L\'account: email, password e accessi.',
         'Il profilo, i gusti, gli interessi e il DNA dei tuoi giri.',
-        'I giri salvati, i preferiti e le notifiche.',
+        'I giri salvati e quelli finiti, i preferiti e le notifiche.',
         'Le foto e i file che hai caricato.',
     ],
     NON_SI_TORNA: 'Non si torna indietro. Non posso recuperare niente, nemmeno io.',
@@ -139,6 +139,49 @@ export const CARICAMENTO = {
     ARIA: 'Unnivai si sta aprendo',
 };
 
+// ─── Il Profilo (PROFILO-SEZIONI) ────────────────────────────────────────────
+// Le sezioni dei giri: Mete, Risultati, Rivivi. Tutto dal registro e dai giri finiti: dove un dato manca non si scrive.
+
+export const TESTI_PROFILO = {
+    GIRI_TITOLO: 'I tuoi giri',
+    TAB_METE: 'Mete',
+    TAB_RISULTATI: 'Risultati',
+    METE_TITOLO: 'Le tue Mete',
+    METE_ALTRE: (n) => `Vedi tutte (${n})`,
+    RISULTATI_TITOLO: 'I tuoi risultati',
+    RISULTATI_VUOTO: 'Tutto a zero: il primo traguardo arriva col primo giro finito.',
+    VOCI: { giri: 'Giri finiti', citta: 'Città', tappe: 'Tappe raggiunte', km: 'Km fra le tappe' },
+    PROSSIMO: (id, soglia) => `Prossimo traguardo: ${traguardo(id, soglia)}`,
+    FINITI: 'Traguardi finiti: sei oltre.',
+    PRESI: 'Traguardi presi',
+    KM_NOTA: 'I km sono in linea d\'aria da una tappa raggiunta all\'altra: a piedi ne fai di più.',
+    CITTA_TITOLO: 'Dove hai girato',
+    TOP_CATEGORIA: (nome, n) => `Ti fermi di più su: ${nome} (${n} ${n === 1 ? 'tappa' : 'tappe'}).`,
+    RIVIVI_TITOLO: 'Rivivi i tuoi giri',
+    RIVIVI_VUOTO: 'Finisci un giro e lo ritrovi qui, con la mappa e le tappe.',
+    RIVIVI_SOLO_METE: 'I giri che finisci da adesso restano qui, con la mappa e le tappe. Di quelli di prima ho solo città e numeri: li trovi nelle Mete.',
+    RIVIVI_ALTRI: (n) => `Vedi tutti (${n})`,
+    RIVIVI_TAPPE: (raggiunte, totali) => `${raggiunte} ${raggiunte === 1 ? 'tappa' : 'tappe'} su ${totali}`,
+    RIVIVI_APRI: (titolo) => `Rivivi ${titolo}`,
+    RIVIVI_ETICHETTA: 'Giro completato',
+    RIVIVI_RAGGIUNTA: 'Raggiunta',
+    RIVIVI_NON_RAGGIUNTA: 'Non raggiunta',
+    RIVIVI_TEMPO_LIBERO: 'Tempo libero',
+    RIVIVI_RIFAI: 'Rifai questo giro',
+    RIVIVI_RIFAI_NOTA: 'Stesse tappe: si apre la mappa e parti quando vuoi.',
+    CHIUDI: 'Chiudi',
+    MAPPA_ARIA: 'La mappa del giro',
+    TRACCIATO_ARIA: 'Il tracciato del giro',
+};
+
+/** «Primo giro», «5 giri», «3 città», «25 tappe», «10 km». */
+export function traguardo(id, n) {
+    if (id === 'giri') return n === 1 ? 'Primo giro' : `${n} giri`;
+    if (id === 'citta') return n === 1 ? 'Prima città' : `${n} città`;
+    if (id === 'tappe') return `${n} tappe`;
+    return `${n} km`;
+}
+
 // ─── Primo ingresso (ONBOARDING-ACCESSO) ─────────────────────────────────────
 // Una volta per account: il consenso ai servizi AI (CONSENSO_AI qui sopra), poi poche domande saltabili.
 // Le risposte sono il punto di partenza del DNA: poi contano i giri veri. Tutto si cambia dal Profilo.
@@ -208,7 +251,7 @@ export const PRIVACY = {
                 },
                 {
                     nome: 'Profilo, gusti e DNA dei giri (Supabase)',
-                    parte: 'Interessi, preferenze di cibo e dieta, ritmo e compagnia che dichiari, gli eventi dei tuoi giri (giri fatti, città, categorie e tappe), i giri salvati, i preferiti, le notifiche.',
+                    parte: 'Interessi, preferenze di cibo e dieta, ritmo e compagnia che dichiari, gli eventi dei tuoi giri (giri fatti, città, categorie e tappe), i giri salvati e quelli finiti con le loro tappe, i preferiti, le notifiche.',
                     verso: 'Il nostro database su Supabase.',
                     perche: 'Per costruire giri che ti somigliano e per mostrarti il tuo Profilo.',
                     resta: 'Finché l\'account esiste, o finché non cancelli il singolo elemento dal Profilo.',

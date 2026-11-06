@@ -11,6 +11,7 @@
 import { supabase } from './supabase.js';
 import { logDnaEvent } from './dnaRegistro.js';
 import { tourCoreCategories } from '../services/preferenceEngine.js';
+import { romeDate, romeParts } from './tourWindow.js';
 
 export const SORGENTI_GIRO = ['per_te', 'quiz', 'crea', 'sorprendimi', 'altro'];
 export const MAX_TAPPE_SALVATE = 30;
@@ -159,11 +160,12 @@ export async function salvaGiro(userId, tour, sorgente) {
     }
 }
 
-/** I giri salvati dell'utente (la RLS lascia passare solo i suoi), dal piu' recente. Non rigetta. */
+/** I giri salvati dell'utente (la RLS lascia passare solo i suoi), dal piu' recente; i giri finiti stanno in «Rivivi» (leggiGiriFatti). Non rigetta. */
 export async function leggiGiriSalvati(limite = 50) {
     try {
         const res = await supabase.from('saved_tours')
             .select(COLONNE)
+            .not('tour_id', 'like', `${PREFISSO_FATTO}%`)
             .order('created_at', { ascending: false })
             .limit(limite);
         if (!res || res.error || !Array.isArray(res.data)) return { ok: false, giri: [] };
@@ -182,4 +184,110 @@ export async function rimuoviGiroSalvato(id) {
     } catch {
         return { ok: false };
     }
+}
+
+// ─── PROFILO-SEZIONI — i giri finiti: «Rivivi» ───────────────────────────────
+// Il registro del DNA sa citta', data e conteggi, ma non le tappe: per rivedere e rifare un giro serve la sua istantanea. Sta in
+// `saved_tours` (stesse regole di accesso, la cancella l'eliminazione dell'account) con `tour_id` «fatto-…», scritta quando il giro
+// e' completato. Non e' un «salvato»: non registra `tour_saved` e il DNA non ne sa niente.
+
+export const PREFISSO_FATTO = 'fatto-';
+export const GIRI_FATTI_LETTI = 20;
+
+export const isGiroFatto = (riga) => String(riga?.tour_id || '').startsWith(PREFISSO_FATTO);
+
+/**
+ * La riga del giro finito (pura). Ogni tappa porta `fatta`; null se il giro non ha tappe.
+ * L'id viene dal giro e dal giorno: lo stesso giro registrato due volte lo stesso giorno resta una riga, un giro rifatto ha un id suo.
+ * @param {object} tour
+ * @param {number[]} indiciFatti - gli indici in `tour.steps` delle tappe raggiunte
+ * @param {Date} [quando]
+ */
+export function giroFattoDaSalvare(tour, indiciFatti = [], quando = new Date()) {
+    if (!Array.isArray(tour?.steps) || !tour.steps.length) return null;
+    const fatti = new Set(indiciFatti);
+    const titolo = tour.title || (tour.city ? `Il tuo giro a ${tour.city}` : 'Il tuo giro');
+    const steps = tour.steps.map((s, i) => (s ? { ...s, fatta: fatti.has(i) } : s));
+    const riga = giroDaSalvare({ ...tour, title: titolo, steps }, tour.sorgente);
+    if (!riga) return null;
+    const p = romeParts(quando);
+    const firma = [tour.id ?? tour.tourId ?? riga.tour_id, p.y, p.m, p.d];
+    return { ...riga, tour_id: idStabile(PREFISSO_FATTO.slice(0, -1), firma) };
+}
+
+/** Scrive l'istantanea del giro finito. Mai bloccante e mai un errore a schermo: se non riesce restano le Mete. */
+export async function salvaGiroFatto(userId, tour, indiciFatti) {
+    if (!userId) return { ok: false, errore: 'accesso' };
+    try {
+        const riga = giroFattoDaSalvare(tour, indiciFatti);
+        if (!riga) return { ok: false, errore: 'vuoto' };
+        const res = await supabase.from('saved_tours').insert({ ...riga, user_id: userId });
+        if (res?.error && res.error.code !== '23505') {
+            console.warn('[giriSalvati] giro finito non scritto:', res.error.message);
+            return { ok: false, errore: res.error.message || 'rete' };
+        }
+        return { ok: true };
+    } catch (e) {
+        console.warn('[giriSalvati] giro finito non scritto:', String(e));
+        return { ok: false, errore: String(e) };
+    }
+}
+
+/** I giri finiti dell'utente, dal piu' recente. Non rigetta. */
+export async function leggiGiriFatti(limite = GIRI_FATTI_LETTI) {
+    try {
+        const res = await supabase.from('saved_tours')
+            .select(COLONNE)
+            .like('tour_id', `${PREFISSO_FATTO}%`)
+            .order('created_at', { ascending: false })
+            .limit(limite);
+        if (!res || res.error || !Array.isArray(res.data)) return { ok: false, giri: [] };
+        return { ok: true, giri: res.data };
+    } catch {
+        return { ok: false, giri: [] };
+    }
+}
+
+/** Quante tappe del giro finito: { raggiunte, totali }. */
+export function conteggioGiroFatto(riga) {
+    const vere = (Array.isArray(riga?.stops) ? riga.stops : []).filter(s => s && !s.tempoLibero);
+    return { raggiunte: vere.filter(s => s.fatta).length, totali: vere.length };
+}
+
+const giornoDopo = ({ y, m, d }, n) => {
+    const t = new Date(Date.UTC(y, m - 1, d + n));
+    return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate() };
+};
+const giornoUtc = ({ y, m, d }) => Date.UTC(y, m - 1, d);
+
+/**
+ * Il giro finito pronto da rifare (0 $, nessuna generazione). Stesse tappe e stessi orari sull'orologio, sul primo giorno utile: oggi se
+ * la prima tappa e' ancora da venire, altrimenti domani (un orario passato direbbe il giorno sbagliato per gli orari di apertura). Un id
+ * nuovo: e' un altro giro, che lascia la sua Meta e la sua riga. Via quello che valeva solo quel giorno.
+ * @param {object} riga - la riga di saved_tours
+ * @param {Date} [adesso]
+ */
+export function giroDaRifare(riga, adesso = new Date()) {
+    const tour = giroSalvatoComeTour(riga);
+    if (!tour) return null;
+    const orari = tour.steps.map(s => Date.parse(s.scheduledTime)).filter(Number.isFinite);
+    let sposta = (s) => s.scheduledTime;
+    if (orari.length) {
+        const primo = romeParts(new Date(Math.min(...orari)));
+        const oggi = romeParts(adesso);
+        const giorno = romeDate(oggi, { h: primo.h, m: primo.mi }) > adesso ? oggi : giornoDopo(oggi, 1);
+        sposta = (s) => {
+            const t = Date.parse(s.scheduledTime);
+            if (!Number.isFinite(t)) return s.scheduledTime;
+            const p = romeParts(new Date(t));
+            const giorni = Math.round((giornoUtc(p) - giornoUtc(primo)) / 86_400_000);
+            return romeDate(giornoDopo(giorno, giorni), { h: p.h, m: p.mi }).toISOString();
+        };
+    }
+    const steps = tour.steps.map((s) => {
+        const { fatta, openNow, currentHours, ...resto } = s; // eslint-disable-line no-unused-vars
+        return s.scheduledTime ? { ...resto, scheduledTime: sposta(s) } : resto;
+    });
+    const { salvatoDa, ...base } = tour; // eslint-disable-line no-unused-vars
+    return { ...base, id: `rifatto-${riga.id}-${adesso.getTime().toString(36)}`, steps, stops: steps, rifattoDa: riga.id };
 }

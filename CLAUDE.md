@@ -562,6 +562,17 @@ Report: `docs/prove/2026-11-07-per-te-tre.md`. Nessuna funzione del server, ness
 - **Nomi a schermo** (`src/lib/testiHome.js`): «Crea il tuo Percorso» è «Su misura», il Quiz è «Al volo», l'etichetta di «Crea il tuo Tour» è «Con una guida o a sorpresa». Route e nomi interni restano.
 - Prova: casi in `scripts/prova-perte/` (`comeLaHome` in `generaPerTe` = la chiamata di DashboardUser), `diagnosi.giro.js` (0 $), `controlli.mjs`, `perte-tempi.webkit.mjs`. I grezzi stanno in `docs/prove/dati/per-te-tre/`, non in `docs/prove/dati/`: `titoliGiro.test.js` legge ogni `.json` di quella cartella.
 
+### Le sezioni del Profilo funzionano o non si vedono (PROFILO-SEZIONI, T28)
+
+Report: `docs/prove/2026-11-07-profilo-sezioni.md`. Nessuna migrazione, nessuna funzione del server. Testi: `TESTI_PROFILO` (`testiAccount.js`), `TESTI_DNA_PROFILO` (`dnaDelGiro.js`).
+- **Mete** (`meteDalRegistro`): lo stesso `tour_id` finito due volte sono due Mete (oltre 60 s fra le righe `tour_completed`), ogni tappa va al giro che l'ha chiusa. L'elenco si ferma a 5, poi «Vedi tutte».
+- **Risultati** (`risultatiDalRegistro`, `RisultatiProfilo`): giri, città, tappe, km dal `value` di `stop_reached` (linea d'aria, le righe vecchie non li hanno), traguardi su quei numeri (`SOGLIE_TRAGUARDI`). Niente punti, niente premi.
+- **Rivivi** (`RiviviGiri`, `MappaDelGiro`): il registro non ha le tappe, quindi a giro completato MapPage scrive l'istantanea in `saved_tours` con `tour_id` «fatto-…» (`salvaGiroFatto`, ogni tappa con `fatta`). **Non è un salvato**: niente `tour_saved`, `leggiGiriSalvati` la esclude, `leggiGiriFatti` la legge. In elenco il tracciato SVG (0 $), nella scheda la mappa vera (una per apertura; senza Google il tracciato). I giri finiti prima di T28 stanno solo nelle Mete.
+- **Rifai** (`giroDaRifare`): stesse tappe, stessi orari sull'orologio, oggi se la prima tappa è ancora da venire, altrimenti domani; id nuovo `rifatto-…`; via `fatta`, `openNow`, `currentHours`. Nessuna generazione.
+- **Richieste** (guide, V2): non si monta, il pannello resta pronto in `components/RichiesteGuide.jsx`. Il Profilo non legge più `guide_requests` né `user_photos` (0 righe) e non porta a `/photos`.
+- **DNA**: le schede usano `components/profilo/SchedaProfilo.jsx` (`SchedaProfilo`, `PillolaProfilo`, `TastoSalva`). Solo lettura e salvataggio: i pesi non cambiano. Dalla prima correzione l'ordine delle righe resta fermo.
+- Prova: `scripts/prova-nav/profilo-sezioni.webkit.mjs` (`vero,nuovo,ospite,finto`, `PROFILO_RIFAI=1` rifà il giro fino in fondo); tocca ogni tasto del Profilo.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

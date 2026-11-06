@@ -12,7 +12,7 @@ const HOST = /https:\/\/[a-z0-9]+\.supabase\.co\//;
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 
 export function creaServer() {
-    const srv = { utenti: new Map(), preferenze: new Map(), dna: new Map(), posta: [], chiamate: [], n: 0 };
+    const srv = { utenti: new Map(), preferenze: new Map(), dna: new Map(), giri: new Map(), posta: [], chiamate: [], n: 0 };
 
     srv.nuovoUtente = ({ email = null, password = null, confermato = false, anonimo = false, meta = {} } = {}) => {
         const id = `00000000-0000-4000-8000-${String(++srv.n).padStart(12, '0')}`;
@@ -168,6 +168,19 @@ export async function collegaServer(ctx, srv) {
                     srv.dna.set(u.id, [...righe, ...nuove]);
                     return json(route, 201, oggetto ? nuove[0] : nuove);
                 }
+                return json(route, 201, []);
+            }
+            // PROFILO-SEZIONI — saved_tours: i giri salvati e quelli finiti («fatto-…»), con i filtri che usa l'app
+            if (tabella === 'saved_tours') {
+                const righe = u ? (srv.giri.get(u.id) || []) : [];
+                if (metodo === 'GET') {
+                    const f = new URL(req.url()).searchParams.get('tour_id') || '';
+                    const fatto = (r) => r.tour_id.startsWith('fatto-');
+                    const scelte = f.startsWith('like.') ? righe.filter(fatto) : f.startsWith('not.like.') ? righe.filter(r => !fatto(r)) : righe;
+                    return json(route, 200, [...scelte].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+                }
+                if (metodo === 'DELETE') { const id = (new URL(req.url()).searchParams.get('id') || '').replace('eq.', ''); srv.giri.set(u?.id, righe.filter(r => r.id !== id)); return json(route, 204); }
+                if (u) srv.giri.set(u.id, [...righe, ...(Array.isArray(corpo) ? corpo : [corpo]).map((r, i) => ({ id: `g${Date.now()}${i}`, created_at: new Date().toISOString(), ...r }))]);
                 return json(route, 201, []);
             }
             if (tabella.startsWith('rpc/')) return json(route, 200, null);

@@ -98,10 +98,11 @@ describe('DNA-6 — salvaGiro', () => {
 
 describe('DNA-6 — lettura e rimozione', () => {
     it('legge i giri salvati dal più recente', async () => {
-        const chain = { select: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), limit: vi.fn().mockResolvedValue({ data: [{ id: 'a' }], error: null }) };
+        const chain = { select: vi.fn().mockReturnThis(), not: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), limit: vi.fn().mockResolvedValue({ data: [{ id: 'a' }], error: null }) };
         vi.mocked(supabase.from).mockReturnValue(chain);
         expect(await leggiGiriSalvati()).toEqual({ ok: true, giri: [{ id: 'a' }] });
         expect(supabase.from).toHaveBeenCalledWith('saved_tours');
+        expect(chain.not).toHaveBeenCalledWith('tour_id', 'like', 'fatto-%'); // PROFILO-SEZIONI: i giri finiti stanno in «Rivivi»
         expect(chain.order).toHaveBeenCalledWith('created_at', { ascending: false });
     });
     it('lettura fallita: ok falso, mai un\'eccezione', async () => {

@@ -41,13 +41,53 @@ export const TESTI_DNA = {
     interessi: (valori) => `Nel Profilo hai scelto ${valori}.`,
     pochiDati: 'Ancora nessun giro finito: il DNA impara dalle tappe che raggiungi.',
 };
+/** I testi delle impostazioni del DNA nel Profilo (DnaProfilo, editor di interessi e a tavola): come si leggono, cosa cambia, cosa e' salvato. */
+export const TESTI_DNA_PROFILO = {
+    etichetta: 'I tuoi gusti',
+    titolo: 'Il tuo DNA',
+    formazione: 'Il tuo DNA si sta formando: ogni giro che completi e ogni tappa che raggiungi aggiunge un pezzo.',
+    gesti: (n) => `Costruito su ${n} ${n === 1 ? 'tuo gesto' : 'tuoi gesti'}.`,
+    comeSiLegge: 'La percentuale dice quanto quel gusto pesa quando scelgo i posti: 0% non conta, 100% è il massimo. Sale con le tappe che raggiungi e si attenua col tempo.',
+    comeCorreggi: 'Con + e − lo sposti di 15 punti, con Azzera riparte da zero. Si salva subito e vale dal prossimo giro.',
+    fiducia: {
+        0: 'Per ora i tuoi giri non lo usano ancora: inizia a contare quando scegli i tuoi interessi o dopo qualche giro finito.',
+        1: 'Oggi guida poco i tuoi giri: conta di più a ogni giro finito.',
+        2: 'Oggi guida una parte dei tuoi giri.',
+        3: 'Oggi guida molto i tuoi giri.',
+    },
+    livello: { forte: 'Forte', medio: 'Medio', leggero: 'Leggero', zero: 'Non conta' },
+    fatto: {
+        piu: (e) => `Fatto: più ${e}.`,
+        meno: (e) => `Fatto: meno ${e}.`,
+        azzera: (e) => `Fatto: ${e} riparte da zero.`,
+    },
+    numeri: (prima, dopo) => `${prima}% → ${dopo}%`,
+    fermoAZero: 'Sotto lo 0% non si vede, ma conta: questo gusto risalirà più piano.',
+    fermoAlMassimo: 'È già al massimo.',
+    nonSalvata: 'Non sono riuscito a salvare la correzione. Riprova tra poco.',
+    azzeraTutto: 'Azzera tutto il DNA',
+    azzeraConferma: 'Sicuro? Tocca di nuovo per azzerare tutto',
+    azzerato: 'Fatto: il tuo DNA riparte da zero.',
+    nonAzzerato: 'Non sono riuscito ad azzerare tutto. Riprova tra poco.',
+    accedi: 'Accedi per correggere il tuo DNA.',
+    // gli editor: una riga su cosa cambiano, e lo stato del salvataggio
+    interessiTitolo: 'I tuoi interessi',
+    interessiSotto: 'Il punto di partenza del DNA: poi contano i giri veri.',
+    interessiNessuno: 'Scegline almeno uno.',
+    tavolaTitolo: 'A tavola',
+    tavolaSotto: 'Dieta e budget sono regole: un posto che non va non entra. Lo stile è una spinta.',
+    salvaModifiche: 'Salva le modifiche',
+    salvo: 'Salvo…',
+    salvato: 'Salvato',
+    daSalvare: 'Modifiche non ancora salvate.',
+};
 /** I testi del Profilo per ritmo e compagnia (RitmoCompagniaEditor). */
 export const TESTI_RITMO_COMPAGNIA = {
     titolo: 'Come giri',
     ritmo: 'Che ritmo?',
     compagnia: 'Di solito con chi?',
     impara: 'Lo impara Unnivai',
-    nota: 'Senza una scelta, Unnivai usa i tuoi giri finiti.',
+    sotto: 'Quello che scegli qui vince su quello che imparo. Senza una scelta, uso i tuoi giri finiti.',
     // ONBOARDING-ACCESSO — cosa hai detto al primo ingresso (punto di partenza, non una scelta del Profilo)
     inizio: (parti) => `Al primo ingresso: ${parti.join(', ')}. È il punto di partenza: poi decidono i tuoi giri.`,
     salva: 'Salva ritmo e compagnia',

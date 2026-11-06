@@ -4,9 +4,14 @@
  * non c'e' (citta', totale delle tappe) non si scrive.
  */
 
+import { useState } from 'react';
 import { MapPin, Bookmark, X } from 'lucide-react';
 import { testoTappe, ETICHETTE_CATEGORIA } from '../lib/dnaProfilo';
 import { etichettaGiornata } from '../lib/tourTiming';
+import { TESTI_PROFILO } from '../lib/testiAccount';
+
+/** Le Mete mostrate prima di «Vedi tutte»: con molti giri il Profilo non diventa un elenco senza fine. */
+const METE_IN_ELENCO = 5;
 
 const dataBreve = (iso) => {
     const d = new Date(iso);
@@ -16,6 +21,8 @@ const dataBreve = (iso) => {
 };
 
 export default function MeteProfilo({ mete = [], giriSalvati = [], onRimuovi, onApri }) {
+    const [tutte, setTutte] = useState(false);
+    const mostrate = tutte ? mete : mete.slice(0, METE_IN_ELENCO);
     return (
         <div data-testid="mete-profilo">
             {mete.length === 0 ? (
@@ -24,8 +31,8 @@ export default function MeteProfilo({ mete = [], giriSalvati = [], onRimuovi, on
                 </p>
             ) : (
                 <ul className="space-y-3">
-                    {mete.map((m) => (
-                        <li key={m.tourId || m.data} className="bg-obsidian-bg p-4 rounded-xl border border-obsidian-border" data-testid="meta">
+                    {mostrate.map((m) => (
+                        <li key={`${m.tourId}|${m.data}`} className="bg-obsidian-bg p-4 rounded-xl border border-obsidian-border" data-testid="meta">
                             <div className="flex items-start justify-between gap-3">
                                 <h4 className="font-bold text-obsidian-primary text-sm flex items-center">
                                     <MapPin className="w-3.5 h-3.5 mr-1.5 text-obsidian-secondary shrink-0" />
@@ -46,6 +53,11 @@ export default function MeteProfilo({ mete = [], giriSalvati = [], onRimuovi, on
                         </li>
                     ))}
                 </ul>
+            )}
+            {!tutte && mete.length > METE_IN_ELENCO && (
+                <button type="button" onClick={() => setTutte(true)} data-testid="mete-altre" className="w-full min-h-[44px] mt-2 text-sm font-semibold text-obsidian-secondary hover:text-obsidian-primary cursor-pointer">
+                    {TESTI_PROFILO.METE_ALTRE(mete.length)}
+                </button>
             )}
 
             {giriSalvati.length > 0 && (

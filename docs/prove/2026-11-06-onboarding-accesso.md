@@ -185,3 +185,23 @@ non valido) apre l'accesso col codice col messaggio chiaro. Suite 3493/3493, lin
   istante: un giro conta 1. Decisione di Ivano (05/11): il formato resta. Test `src/__tests__/lib/giroUnaVolta.test.js` (il caso vero di Catania:
   2 righe, 1 giro nel Profilo, 1 evento di fiducia, peso su entrambe le categorie).
 - Suite 3497/3497, lint 0 errori, build ok, `banco:guardia` 12/12 e 10/10, pertinenza senza ❌ nuovi.
+
+## 11. Dal vivo dopo il merge (05/11 sera)
+
+PR #50 su `main` (`7db5d3e`, merge senza `--admin`, CI verde), Vercel «success» sul commit. Ogni passo in produzione col «sì» di Ivano.
+
+- **Funzioni ripubblicate da `main`**: `lista-attesa-email` v3 e `avvisi` v3 (`--no-verify-jwt --use-api`); il codice attivo coincide con i file di `main`.
+- **Modelli delle email caricati da `main`** (`scripts/email/carica-modelli.mjs`, token dal Portachiavi, mai stampato): gli 8 campi in produzione
+  coincidono col repo; `mailer_otp_length` 6, SMTP Resend, accessi anonimi accesi, `site_url` `https://unnivai.vercel.app`.
+- **Email vere** a un indirizzo di Ivano: codice d'accesso (17:59, dall'interfaccia del sito) e recupero password (18:00). Ivano conferma: tutte e due
+  in Posta in arrivo (non in Spam), con il logo e la grafica nuova.
+- **Ospite nuovo sul sito**: il primo ingresso compare una volta (consenso, interessi, a tavola, come giri: 4 passi), il segno si scrive sul server,
+  dopo la ricarica non ricompare né il primo ingresso né il consenso; 0 errori di pagina (`docs/prove/dati/2026-11-05-onboarding-ospite-dal-vivo.json`,
+  schermate in `docs/prove/schermate/onboarding-dal-vivo/`).
+- **Collaudo completo** (`scripts/prova-nav/collaudo-sito.webkit.mjs`, voce del telefono, sito pubblicato): **13/13**. Nel primo giro
+  (`docs/prove/dati/2026-11-05-onboarding-collaudo.json`) 11 su 13: i punti 5 e 6 erano caduti su `page.reload` (Mac sotto carico: i punti 3 e 12
+  hanno impiegato ~1000 s); rifatti da soli (`…-collaudo-5-6.json`) sono passati. Punto 5: 10 schede con racconto o frase breve, ognuna con la sua riga
+  in `place_racconti` (lettura: 9 passati, Piazza del Campidoglio scartato = frase breve a schermo). Punto 6: «Sei arrivato a 2 tappe su 3.», Profilo
+  +1 e stabile dopo ricarica e home, nessuna proposta di ripresa. Punto 7 da ospite e da account fino alla fine giro.
+- **Restano**: le icone vengono dai file a 512 px (nessun sorgente a 1024 nella cartella del marchio); le prove hanno creato 2 utenti anonimi
+  (vanno con gli altri anonimi da pulire nel tempo).

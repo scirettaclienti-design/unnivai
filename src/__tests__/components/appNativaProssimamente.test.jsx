@@ -59,9 +59,10 @@ describe('App nativa: niente Prossimamente', () => {
         expect(landing).toMatch(/isAppNativa\(\) && \(\s*<Link to="\/prossimamente\/guide"/);
         const dash = leggi('../../pages/DashboardUser.jsx');
         expect(dash).toMatch(/isAppNativa\(\) && \(\s*<>[\s\S]*?<Link to="\/prossimamente\/guide"/);
+        // PROFILO-SEZIONI: il Profilo non porta piu' a nessuna pagina «in costruzione», nemmeno sul web
         const profilo = leggi('../../pages/Profile.jsx');
-        expect(profilo.match(/<Link to="\/photos"/g).length).toBe(1); // solo dentro LinkFoto
-        expect(profilo).toContain('isAppNativa() ? null');
+        expect(profilo).not.toContain('/photos');
+        expect(profilo).not.toContain('/prossimamente');
         const app = leggi('../../App.jsx');
         for (const k of ['guide', 'attivita', 'foto']) expect(app).toContain(`<SoloWeb><Prossimamente kind="${k}" /></SoloWeb>`);
         expect(app).toContain('<SoloWeb><Photos /></SoloWeb>');

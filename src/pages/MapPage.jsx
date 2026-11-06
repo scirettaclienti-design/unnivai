@@ -38,6 +38,7 @@ import { creaCamminoSimulato } from '../lib/camminoSimulato';
 import SimulaCammino from '../components/Nav/SimulaCammino';
 import { salvaGiro, leggiGiro, chiudiGiro, chiaveGiro, puntoDelGiro, centroDelGiro } from '../lib/navSession';
 import { logDnaEvent } from '../lib/dnaRegistro';
+import { salvaGiroFatto } from '../lib/giriSalvati';
 import { valoreTappaRaggiunta } from '../lib/dnaRitmo';
 import { stayOf, haversineKm as kmFra } from '../lib/tourTiming';
 import { placeKind } from '../lib/placeKind';
@@ -1705,6 +1706,8 @@ const MapPage = () => {
         const tappe = soloRaggiunte ? raggiunte.map(t => tourData?.steps?.[t.index] || t) : tappeDelGiro;
         // DNA-6: `value` = «raggiunte/totali» (es. 3/5), cosi' le Mete del Profilo dicono quante tappe su quante.
         trackDnaEvent?.('tour_completed', tappe, { city: tourData?.city || null, tourId: tourData?.id || tourData?.tourId || null, value: `${raggiunte.length}/${activeRoute.length}` });
+        // PROFILO-SEZIONI: l'istantanea del giro per «Rivivi» (mappa, tappe, «Rifai»); non e' un gesto del DNA e non blocca niente
+        salvaGiroFatto(utente?.id, tourData, raggiunte.map(t => t.index));
         return true;
     };
 

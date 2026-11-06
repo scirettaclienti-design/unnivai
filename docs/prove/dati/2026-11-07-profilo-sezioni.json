@@ -1,0 +1,1750 @@
+{
+ "base": "http://localhost:4371",
+ "iniziato": "2026-11-06T17:39:48.299Z",
+ "parti": {
+  "nuovo": {
+   "richieste": 0,
+   "contatori": "0 GIRI 0 CITTÀ 0 TAPPE",
+   "risultati": "Tutto a zero: il primo traguardo arriva col primo giro finito. 0 GIRI FINITI Prossimo traguardo: Primo giro 0 CITTÀ Prossimo traguardo: Prima città 0 TAPPE RAGGIUNTE Prossimo traguardo: 5 tappe 0 KM FRA LE TAPPE Prossimo traguardo: 5 km",
+   "vuoti": {
+    "rivivi": "Finisci un giro e lo ritrovi qui, con la mappa e le tappe.",
+    "risultati": "Tutto a zero: il primo traguardo arriva col primo giro finito."
+   },
+   "tasti": 58,
+   "toccati": 56,
+   "difetti": [],
+   "tastiElenco": [
+    {
+     "nome": "Ciao!",
+     "href": "/profile",
+     "dopo": "/profile",
+     "testo": 1869,
+     "errori": []
+    },
+    {
+     "nome": "",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1996,
+     "errori": []
+    },
+    {
+     "nome": "",
+     "href": "/notifications",
+     "dopo": "/notifications",
+     "testo": 155,
+     "errori": []
+    },
+    {
+     "nome": "Esci",
+     "saltato": true
+    },
+    {
+     "nome": "Torna alla Home",
+     "href": "/dashboard-user",
+     "dopo": "/dashboard-user",
+     "testo": 323,
+     "errori": []
+    },
+    {
+     "nome": "Torna alla Home",
+     "href": null,
+     "dopo": "/dashboard-user",
+     "testo": 323,
+     "errori": []
+    },
+    {
+     "nome": "Modifica il nome",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1871,
+     "errori": []
+    },
+    {
+     "nome": "Meno cultura e storia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1967,
+     "errori": []
+    },
+    {
+     "nome": "Più cultura e storia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Meno cibo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1955,
+     "errori": []
+    },
+    {
+     "nome": "Più cibo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1904,
+     "errori": []
+    },
+    {
+     "nome": "Meno serate",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1957,
+     "errori": []
+    },
+    {
+     "nome": "Più serate",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1906,
+     "errori": []
+    },
+    {
+     "nome": "Meno natura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1957,
+     "errori": []
+    },
+    {
+     "nome": "Più natura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1906,
+     "errori": []
+    },
+    {
+     "nome": "Meno avventura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1960,
+     "errori": []
+    },
+    {
+     "nome": "Più avventura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1909,
+     "errori": []
+    },
+    {
+     "nome": "Meno shopping",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1959,
+     "errori": []
+    },
+    {
+     "nome": "Più shopping",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1908,
+     "errori": []
+    },
+    {
+     "nome": "Meno relax",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1956,
+     "errori": []
+    },
+    {
+     "nome": "Più relax",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1905,
+     "errori": []
+    },
+    {
+     "nome": "Meno arte",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1955,
+     "errori": []
+    },
+    {
+     "nome": "Più arte",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1904,
+     "errori": []
+    },
+    {
+     "nome": "Mangiare e bere",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Storia e arte",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Natura e panorami",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Vita notturna",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Camminare e scoprire",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Ritmo lento",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Shopping e mercati",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Lo impara Unnivai",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1869,
+     "errori": []
+    },
+    {
+     "nome": "Tranquillo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Medio",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Intenso",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Da solo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "In coppia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Con bambini",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Con amici",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Nessuna restrizione",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1869,
+     "errori": []
+    },
+    {
+     "nome": "Vegetariano",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Vegano",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Senza glutine",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Halal",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "€€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "€€€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Cucina d'autore",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Trattoria",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Street food",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Mete",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1869,
+     "errori": []
+    },
+    {
+     "nome": "Risultati",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2035,
+     "errori": []
+    },
+    {
+     "nome": "Privacy",
+     "href": "/privacy",
+     "dopo": "/privacy",
+     "testo": 10352,
+     "errori": []
+    },
+    {
+     "nome": "Termini",
+     "href": "/termini",
+     "dopo": "/termini",
+     "testo": 2621,
+     "errori": []
+    },
+    {
+     "nome": "Elimina account",
+     "saltato": true
+    },
+    {
+     "nome": "Home",
+     "href": "/dashboard-user",
+     "dopo": "/dashboard-user",
+     "testo": 323,
+     "errori": []
+    },
+    {
+     "nome": "Esplora",
+     "href": "/explore",
+     "dopo": "/explore",
+     "testo": 260,
+     "errori": []
+    },
+    {
+     "nome": "Foto",
+     "href": "/photos",
+     "dopo": "/photos",
+     "testo": 432,
+     "errori": []
+    },
+    {
+     "nome": "Profilo",
+     "href": "/profile",
+     "dopo": "/profile",
+     "testo": 1869,
+     "errori": []
+    }
+   ],
+   "ok": true
+  },
+  "vero": {
+   "contatoriPrima": "53 GIRI 2 CITTÀ 317 TAPPE",
+   "giro": {
+    "titolo": "Tour di Catania",
+    "citta": "Catania",
+    "tappe": [
+     "Chiesa di San Francesco Borgia",
+     "Antica Putia Odeon",
+     "Palazzo degli Elefanti",
+     "Museo degli Antichi Strumenti di Scrittura"
+    ]
+   },
+   "richieste": 0,
+   "contatori": "54 GIRI 2 CITTÀ 321 TAPPE",
+   "risultati": "54 GIRI FINITI Traguardi finiti: sei oltre. 2 CITTÀ Prossimo traguardo: 3 città 321 TAPPE RAGGIUNTE Traguardi finiti: sei oltre. 6,8 KM FRA LE TAPPE Prossimo traguardo: 25 km TRAGUARDI PRESI Primo giro 5 giri 10 giri 25 giri 50 giri Prima città 5 tappe 25 tappe 50 tappe 100 tappe 250 tappe 5 km DOVE",
+   "rivivi": 2,
+   "mappaVera": true,
+   "tappeScheda": 3,
+   "rifaiUrl": "/map",
+   "tasti": 72,
+   "toccati": 46,
+   "difetti": [],
+   "tastiElenco": [
+    {
+     "nome": "Ciao, ProvaAccesso!",
+     "href": "/profile",
+     "dopo": "/profile",
+     "testo": 2633,
+     "errori": []
+    },
+    {
+     "nome": "",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2744,
+     "errori": []
+    },
+    {
+     "nome": "",
+     "href": "/notifications",
+     "dopo": "/notifications",
+     "testo": 155,
+     "errori": []
+    },
+    {
+     "nome": "Esci",
+     "saltato": true
+    },
+    {
+     "nome": "Torna alla Home",
+     "href": "/dashboard-user",
+     "dopo": "/dashboard-user",
+     "testo": 417,
+     "errori": []
+    },
+    {
+     "nome": "Torna alla Home",
+     "href": null,
+     "dopo": "/dashboard-user",
+     "testo": 417,
+     "errori": []
+    },
+    {
+     "nome": "Modifica il nome",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2634,
+     "errori": []
+    },
+    {
+     "nome": "Azzera cibo",
+     "saltato": true
+    },
+    {
+     "nome": "Meno cibo",
+     "saltato": true
+    },
+    {
+     "nome": "Più cibo",
+     "saltato": true
+    },
+    {
+     "nome": "Azzera natura",
+     "saltato": true
+    },
+    {
+     "nome": "Meno natura",
+     "saltato": true
+    },
+    {
+     "nome": "Più natura",
+     "saltato": true
+    },
+    {
+     "nome": "Azzera arte",
+     "saltato": true
+    },
+    {
+     "nome": "Meno arte",
+     "saltato": true
+    },
+    {
+     "nome": "Più arte",
+     "saltato": true
+    },
+    {
+     "nome": "Azzera cultura e storia",
+     "saltato": true
+    },
+    {
+     "nome": "Meno cultura e storia",
+     "saltato": true
+    },
+    {
+     "nome": "Più cultura e storia",
+     "saltato": true
+    },
+    {
+     "nome": "Meno serate",
+     "saltato": true
+    },
+    {
+     "nome": "Più serate",
+     "saltato": true
+    },
+    {
+     "nome": "Meno avventura",
+     "saltato": true
+    },
+    {
+     "nome": "Più avventura",
+     "saltato": true
+    },
+    {
+     "nome": "Meno shopping",
+     "saltato": true
+    },
+    {
+     "nome": "Più shopping",
+     "saltato": true
+    },
+    {
+     "nome": "Meno relax",
+     "saltato": true
+    },
+    {
+     "nome": "Più relax",
+     "saltato": true
+    },
+    {
+     "nome": "Azzera tutto il DNA",
+     "saltato": true
+    },
+    {
+     "nome": "Mangiare e bere",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Storia e arte",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Natura e panorami",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Vita notturna",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Camminare e scoprire",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Ritmo lento",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Shopping e mercati",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Lo impara Unnivai",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2633,
+     "errori": []
+    },
+    {
+     "nome": "Tranquillo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Medio",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Intenso",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Da solo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "In coppia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Con bambini",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Con amici",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Nessuna restrizione",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2633,
+     "errori": []
+    },
+    {
+     "nome": "Vegetariano",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Vegano",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Senza glutine",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Halal",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "€€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "€€€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Cucina d'autore",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Trattoria",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Street food",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2674,
+     "errori": []
+    },
+    {
+     "nome": "Mete",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2633,
+     "errori": []
+    },
+    {
+     "nome": "Risultati",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2213,
+     "errori": []
+    },
+    {
+     "nome": "Vedi tutte (54)",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 5437,
+     "errori": []
+    },
+    {
+     "nome": "Apri Caffè e Storia di Catania",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 4477,
+     "errori": []
+    },
+    {
+     "nome": "Rimuovi Caffè e Storia di Catania",
+     "saltato": true
+    },
+    {
+     "nome": "Apri Caffè e storia di Catania",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 4674,
+     "errori": []
+    },
+    {
+     "nome": "Rimuovi Caffè e storia di Catania",
+     "saltato": true
+    },
+    {
+     "nome": "Apri Tour di Catania",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2944,
+     "errori": []
+    },
+    {
+     "nome": "Rimuovi Tour di Catania",
+     "saltato": true
+    },
+    {
+     "nome": "Rivivi Il tuo giro a Roma",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2897,
+     "errori": []
+    },
+    {
+     "nome": "Rivivi Tour di Catania",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2984,
+     "errori": []
+    },
+    {
+     "nome": "Privacy",
+     "href": "/privacy",
+     "dopo": "/privacy",
+     "testo": 10352,
+     "errori": []
+    },
+    {
+     "nome": "Termini",
+     "href": "/termini",
+     "dopo": "/termini",
+     "testo": 2621,
+     "errori": []
+    },
+    {
+     "nome": "Elimina account",
+     "saltato": true
+    },
+    {
+     "nome": "Home",
+     "href": "/dashboard-user",
+     "dopo": "/dashboard-user",
+     "testo": 417,
+     "errori": []
+    },
+    {
+     "nome": "Esplora",
+     "href": "/explore",
+     "dopo": "/explore",
+     "testo": 259,
+     "errori": []
+    },
+    {
+     "nome": "Foto",
+     "href": "/photos",
+     "dopo": "/photos",
+     "testo": 442,
+     "errori": []
+    },
+    {
+     "nome": "Profilo",
+     "href": "/profile",
+     "dopo": "/profile",
+     "testo": 2633,
+     "errori": []
+    }
+   ],
+   "rifaiPrima": {
+    "giri": 54,
+    "tappe": 321,
+    "rivivi": 2
+   },
+   "rifaiId": "rifatto-a8cba919-2f58-416a-b713-5d83e95e0aaa-…",
+   "rifaiDopo": {
+    "giri": 55,
+    "tappe": 324,
+    "rivivi": 3
+   },
+   "rifaiTappe": 3,
+   "ok": true
+  },
+  "ospite": {
+   "richieste": 0,
+   "contatori": "0 GIRI 0 CITTÀ 0 TAPPE",
+   "risultati": "Tutto a zero: il primo traguardo arriva col primo giro finito. 0 GIRI FINITI Prossimo traguardo: Primo giro 0 CITTÀ Prossimo traguardo: Prima città 0 TAPPE RAGGIUNTE Prossimo traguardo: 5 tappe 0 KM FRA LE TAPPE Prossimo traguardo: 5 km",
+   "tasti": 58,
+   "toccati": 56,
+   "difetti": [],
+   "tastiElenco": [
+    {
+     "nome": "Ciao!",
+     "href": "/profile",
+     "dopo": "/profile",
+     "testo": 1875,
+     "errori": []
+    },
+    {
+     "nome": "",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2002,
+     "errori": []
+    },
+    {
+     "nome": "",
+     "href": "/notifications",
+     "dopo": "/notifications",
+     "testo": 155,
+     "errori": []
+    },
+    {
+     "nome": "Esci",
+     "saltato": true
+    },
+    {
+     "nome": "Torna alla Home",
+     "href": "/dashboard-user",
+     "dopo": "/dashboard-user",
+     "testo": 323,
+     "errori": []
+    },
+    {
+     "nome": "Torna alla Home",
+     "href": null,
+     "dopo": "/dashboard-user",
+     "testo": 323,
+     "errori": []
+    },
+    {
+     "nome": "Modifica il nome",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1877,
+     "errori": []
+    },
+    {
+     "nome": "Meno cultura e storia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1973,
+     "errori": []
+    },
+    {
+     "nome": "Più cultura e storia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1922,
+     "errori": []
+    },
+    {
+     "nome": "Meno cibo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1961,
+     "errori": []
+    },
+    {
+     "nome": "Più cibo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Meno serate",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1963,
+     "errori": []
+    },
+    {
+     "nome": "Più serate",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1912,
+     "errori": []
+    },
+    {
+     "nome": "Meno natura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1963,
+     "errori": []
+    },
+    {
+     "nome": "Più natura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1912,
+     "errori": []
+    },
+    {
+     "nome": "Meno avventura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1966,
+     "errori": []
+    },
+    {
+     "nome": "Più avventura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1915,
+     "errori": []
+    },
+    {
+     "nome": "Meno shopping",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1965,
+     "errori": []
+    },
+    {
+     "nome": "Più shopping",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1914,
+     "errori": []
+    },
+    {
+     "nome": "Meno relax",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1962,
+     "errori": []
+    },
+    {
+     "nome": "Più relax",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1911,
+     "errori": []
+    },
+    {
+     "nome": "Meno arte",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1961,
+     "errori": []
+    },
+    {
+     "nome": "Più arte",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1910,
+     "errori": []
+    },
+    {
+     "nome": "Mangiare e bere",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Storia e arte",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Natura e panorami",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Vita notturna",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Camminare e scoprire",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Ritmo lento",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Shopping e mercati",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Lo impara Unnivai",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1875,
+     "errori": []
+    },
+    {
+     "nome": "Tranquillo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Medio",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Intenso",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Da solo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "In coppia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Con bambini",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Con amici",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Nessuna restrizione",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1875,
+     "errori": []
+    },
+    {
+     "nome": "Vegetariano",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Vegano",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Senza glutine",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Halal",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "€€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "€€€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Cucina d'autore",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Trattoria",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Street food",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1916,
+     "errori": []
+    },
+    {
+     "nome": "Mete",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1875,
+     "errori": []
+    },
+    {
+     "nome": "Risultati",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2041,
+     "errori": []
+    },
+    {
+     "nome": "Privacy",
+     "href": "/privacy",
+     "dopo": "/privacy",
+     "testo": 10352,
+     "errori": []
+    },
+    {
+     "nome": "Termini",
+     "href": "/termini",
+     "dopo": "/termini",
+     "testo": 2621,
+     "errori": []
+    },
+    {
+     "nome": "Elimina account",
+     "saltato": true
+    },
+    {
+     "nome": "Home",
+     "href": "/dashboard-user",
+     "dopo": "/dashboard-user",
+     "testo": 323,
+     "errori": []
+    },
+    {
+     "nome": "Esplora",
+     "href": "/explore",
+     "dopo": "/explore",
+     "testo": 260,
+     "errori": []
+    },
+    {
+     "nome": "Foto",
+     "href": "/photos",
+     "dopo": "/photos",
+     "testo": 432,
+     "errori": []
+    },
+    {
+     "nome": "Profilo",
+     "href": "/profile",
+     "dopo": "/profile",
+     "testo": 1875,
+     "errori": []
+    }
+   ],
+   "ok": true
+  },
+  "finto": {
+   "richieste": 0,
+   "contatori": "1 GIRI 1 CITTÀ 2 TAPPE",
+   "risultati": "1 GIRI FINITI Prossimo traguardo: 5 giri 1 CITTÀ Prossimo traguardo: 3 città 2 TAPPE RAGGIUNTE Prossimo traguardo: 5 tappe 0,8 KM FRA LE TAPPE Prossimo traguardo: 5 km TRAGUARDI PRESI Primo giro Prima città DOVE HAI GIRATO Roma ×1 Ti fermi di più su: Cultura e storia (1 tappa). I km sono in linea d'",
+   "tracciato": true,
+   "dnaEsito": "Natura 44% MEDIO Azzera Fatto: più natura. 29% → 44%",
+   "righeCorrezione": 1,
+   "interessiStato": "salvato",
+   "tasti": 64,
+   "toccati": 61,
+   "difetti": [],
+   "tastiElenco": [
+    {
+     "nome": "Ciao!",
+     "href": "/profile",
+     "dopo": "/profile",
+     "testo": 1733,
+     "errori": []
+    },
+    {
+     "nome": "",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1860,
+     "errori": []
+    },
+    {
+     "nome": "",
+     "href": "/notifications",
+     "dopo": "/notifications",
+     "testo": 155,
+     "errori": []
+    },
+    {
+     "nome": "Esci",
+     "saltato": true
+    },
+    {
+     "nome": "Torna alla Home",
+     "href": "/dashboard-user",
+     "dopo": "/dashboard-user",
+     "testo": 312,
+     "errori": []
+    },
+    {
+     "nome": "Torna alla Home",
+     "href": null,
+     "dopo": "/dashboard-user",
+     "testo": 312,
+     "errori": []
+    },
+    {
+     "nome": "Modifica il nome",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1735,
+     "errori": []
+    },
+    {
+     "nome": "Azzera cibo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1779,
+     "errori": []
+    },
+    {
+     "nome": "Meno cibo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1827,
+     "errori": []
+    },
+    {
+     "nome": "Più cibo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1776,
+     "errori": []
+    },
+    {
+     "nome": "Azzera natura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1741,
+     "errori": []
+    },
+    {
+     "nome": "Meno natura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1789,
+     "errori": []
+    },
+    {
+     "nome": "Più natura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1738,
+     "errori": []
+    },
+    {
+     "nome": "Azzera shopping",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1794,
+     "errori": []
+    },
+    {
+     "nome": "Meno shopping",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1842,
+     "errori": []
+    },
+    {
+     "nome": "Più shopping",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1791,
+     "errori": []
+    },
+    {
+     "nome": "Azzera cultura e storia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1776,
+     "errori": []
+    },
+    {
+     "nome": "Meno cultura e storia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1825,
+     "errori": []
+    },
+    {
+     "nome": "Più cultura e storia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1774,
+     "errori": []
+    },
+    {
+     "nome": "Meno serate",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1815,
+     "errori": []
+    },
+    {
+     "nome": "Più serate",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1764,
+     "errori": []
+    },
+    {
+     "nome": "Meno avventura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1818,
+     "errori": []
+    },
+    {
+     "nome": "Più avventura",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1767,
+     "errori": []
+    },
+    {
+     "nome": "Meno relax",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1814,
+     "errori": []
+    },
+    {
+     "nome": "Più relax",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1763,
+     "errori": []
+    },
+    {
+     "nome": "Meno arte",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1813,
+     "errori": []
+    },
+    {
+     "nome": "Più arte",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1762,
+     "errori": []
+    },
+    {
+     "nome": "Azzera tutto il DNA",
+     "assente": true
+    },
+    {
+     "nome": "Mangiare e bere",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Storia e arte",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Natura e panorami",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Vita notturna",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Camminare e scoprire",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Ritmo lento",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Shopping e mercati",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Lo impara Unnivai",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1727,
+     "errori": []
+    },
+    {
+     "nome": "Tranquillo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Medio",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Intenso",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Da solo",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "In coppia",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Con bambini",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Con amici",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Nessuna restrizione",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1727,
+     "errori": []
+    },
+    {
+     "nome": "Vegetariano",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Vegano",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Senza glutine",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Halal",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "€€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "€€€",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Cucina d'autore",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Trattoria",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Street food",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1768,
+     "errori": []
+    },
+    {
+     "nome": "Mete",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1727,
+     "errori": []
+    },
+    {
+     "nome": "Risultati",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 2050,
+     "errori": []
+    },
+    {
+     "nome": "Rivivi Il tuo giro a Roma",
+     "href": null,
+     "dopo": "/profile",
+     "testo": 1959,
+     "errori": []
+    },
+    {
+     "nome": "Privacy",
+     "href": "/privacy",
+     "dopo": "/privacy",
+     "testo": 10352,
+     "errori": []
+    },
+    {
+     "nome": "Termini",
+     "href": "/termini",
+     "dopo": "/termini",
+     "testo": 2621,
+     "errori": []
+    },
+    {
+     "nome": "Elimina account",
+     "saltato": true
+    },
+    {
+     "nome": "Home",
+     "href": "/dashboard-user",
+     "dopo": "/dashboard-user",
+     "testo": 312,
+     "errori": []
+    },
+    {
+     "nome": "Esplora",
+     "href": "/explore",
+     "dopo": "/explore",
+     "testo": 260,
+     "errori": []
+    },
+    {
+     "nome": "Foto",
+     "href": "/photos",
+     "dopo": "/photos",
+     "testo": 432,
+     "errori": []
+    },
+    {
+     "nome": "Profilo",
+     "href": "/profile",
+     "dopo": "/profile",
+     "testo": 1727,
+     "errori": []
+    }
+   ],
+   "ok": true
+  }
+ }
+}

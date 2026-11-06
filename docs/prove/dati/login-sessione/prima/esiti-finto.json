@@ -1,0 +1,53 @@
+{
+ "base": "http://localhost:5391",
+ "modo": "finto",
+ "iniziato": "2026-11-06T16:14:02.519Z",
+ "prove": {
+  "A": {
+   "titolo": "accesso, chiudo il browser, riapro con la memoria del sito: dentro senza codice",
+   "ok": true,
+   "note": [],
+   "token": {
+    "chiave": "sb-<progetto>-auth-token",
+    "scadeFraS": 3593,
+    "haRefreshToken": true
+   },
+   "url": "/dashboard-user",
+   "visti": [
+    "/",
+    "/dashboard-user"
+   ]
+  },
+  "B": {
+   "titolo": "riapro dopo ore (token d'accesso scaduto): si rinnova da solo, nessun codice",
+   "ok": true,
+   "note": [],
+   "url": "/dashboard-user",
+   "visti": [
+    "/",
+    "/dashboard-user"
+   ],
+   "rinnovato": true
+  },
+  "C": {
+   "titolo": "riapro dopo ore con la rete assente: niente schermata del codice; torna la rete, si è dentro",
+   "ok": true,
+   "note": [],
+   "senzaRete": {
+    "url": "/",
+    "schermataCodice": false
+   },
+   "conRete": {
+    "url": "/dashboard-user"
+   }
+  },
+  "E": {
+   "titolo": "dopo «Esci» riaprendo si torna al login (codice)",
+   "ok": true,
+   "note": [],
+   "restaToken": false,
+   "url": "/login"
+  }
+ },
+ "finito": "2026-11-06T16:14:41.640Z"
+}

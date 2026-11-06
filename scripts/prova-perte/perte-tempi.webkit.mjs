@@ -27,6 +27,8 @@ const IPHONE = { ...devices['iPhone 14'], deviceScaleFactor: 2, locale: 'it-IT',
 const browser = await webkit.launch();
 const ctx = await browser.newContext(IPHONE);
 const page = await ctx.newPage();
+// la città dal GPS: Nominatim limita le richieste ripetute e senza città la home non parte (la query aspetta la città): risposta fissa
+await page.route('**/nominatim.openstreetmap.org/**', (r) => r.fulfill({ json: { address: { city: 'Roma', country: 'Italia', country_code: 'it' }, display_name: 'Roma, Italia' } }));
 const SCHEDA = 'a[href^="/tour-details/home-"]';
 const esiti = { base: BASE, etichetta: ETICHETTA, ora: new Date().toISOString(), misure: {} };
 const salva = () => fs.writeFileSync(path.join(OUT, `tempi-${ETICHETTA}.json`), JSON.stringify(esiti, null, 1));
@@ -68,11 +70,14 @@ await page.waitForTimeout(25000);
 const chiudi = page.getByText('Conferma Posizione');
 if (await chiudi.count()) { try { await chiudi.first().click({ timeout: 2000 }); } catch { /* */ } }
 await page.waitForTimeout(800);
-await page.screenshot({ path: path.join(OUT, `home-${ETICHETTA}.jpg`), type: 'jpeg', quality: 60, fullPage: true });
+await page.screenshot({ path: path.join(OUT, `home-${ETICHETTA}.jpg`), type: 'jpeg', quality: 60 });
+await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+await page.waitForTimeout(500);
+await page.screenshot({ path: path.join(OUT, `home-per-te-${ETICHETTA}.jpg`), type: 'jpeg', quality: 60 });
 if (VIEW) {
     await page.getByRole('link', { name: 'Vedi tutte' }).click();
     await page.waitForTimeout(1500);
-    await page.screenshot({ path: path.join(OUT, `vedi-tutte-${ETICHETTA}.jpg`), type: 'jpeg', quality: 60, fullPage: true });
+    await page.screenshot({ path: path.join(OUT, `vedi-tutte-${ETICHETTA}.jpg`), type: 'jpeg', quality: 60 });
     esiti.vediTutte = { url: new URL(page.url()).pathname, schede: await page.locator(SCHEDA).count() };
     salva();
 }

@@ -1,0 +1,499 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-05T17:20:14.973Z",
+ "commitSito": null,
+ "punti": {
+  "1": {
+   "nome": "freccia sparisce dopo 10 m",
+   "allAvvio": "Parti da qui verso Porta Uzeda",
+   "fotoAvvio": "docs/prove/schermate/collaudo-sito/1-avvio.png",
+   "a5m": "Parti da qui verso Porta Uzeda",
+   "a15m": null,
+   "ok": true,
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/1-dopo-15m.png",
+   "errori": [],
+   "secondi": 20
+  },
+  "2": {
+   "nome": "tappa 2 dopo «Salta»: niente freccia",
+   "allAvvio": "Parti da qui verso Porta Uzeda",
+   "tappa2": null,
+   "pillola": "55 m · verso Basilica Cattedrale di Sant'Agata",
+   "ok": true,
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/2-tappa-2.png",
+   "errori": [],
+   "secondi": 19
+  },
+  "3": {
+   "nome": "GPS muto 60 s e ripresa: niente freccia",
+   "allAvvio": "Parti da qui verso Porta Uzeda",
+   "avvisoDuranteSilenzio": "Ho perso il segnale. Continua pure: quando torna, riparto da dove sei.",
+   "frecciaDuranteSilenzio": null,
+   "fotoSilenzio": "docs/prove/schermate/collaudo-sito/3-silenzio.png",
+   "dopoRipresa": null,
+   "avvisoDopo": null,
+   "ok": true,
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/3-ripresa.png",
+   "errori": [],
+   "secondi": 1007
+  },
+  "4": {
+   "nome": "curiosità del cammino: Roma con fonte di Roma, Catania mai Roma, niente fontanelle",
+   "roma": {
+    "metri": 552,
+    "toast": [
+     "🎧 Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno."
+    ],
+    "voceCuriosita": [
+     "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno."
+    ],
+    "voceNasoni": [],
+    "curiosita": [
+     {
+      "esito": "passata",
+      "luogo": "Trastevere",
+      "fonte": "https://it.wikipedia.org/wiki/Trastevere"
+     }
+    ],
+    "foto": "docs/prove/schermate/collaudo-sito/4-roma.png",
+    "errori": []
+   },
+   "catania": {
+    "metri": 723,
+    "toast": [
+     "🎧 Piazza Stesicoro ha un pezzo di Anfiteatro Romano a circa dieci metri sotto il livello della strada: è stato riportato alla luce nel 1903 e aperto al pubblico nel 1907. Il Palazzo della Borsa, inaugurato nel 1933, era la sede dei fasci e delle corporazioni, e oggi ospita la Camera di Commercio. Il Corso Sicilia, largo più di venti metri, è nato dallo Sventramento di San Berillo, la demolizione parziale del quartiere tra il maggio 1956 e il 1958."
+    ],
+    "voceCuriosita": [
+     "Piazza Stesicoro ha un pezzo di Anfiteatro Romano a circa dieci metri sotto il livello della strada: è stato riportato alla luce nel 1903 e aperto al pubblico nel 1907. Il Palazzo della Borsa, inaugurato nel 1933, era la sede dei fasci e delle corporazioni, e oggi ospita la Camera di Commercio. Il Corso Sicilia, largo più di venti metri, è nato dallo Sventramento di San Berillo, la demolizione parziale del quartiere tra il maggio 1956 e il 1958."
+    ],
+    "voceNasoni": [],
+    "curiosita": [
+     {
+      "esito": "passata",
+      "luogo": "Piazza Stesicoro",
+      "fonte": "https://it.wikipedia.org/wiki/Piazza_Stesicoro"
+     }
+    ],
+    "foto": "docs/prove/schermate/collaudo-sito/4-catania.png",
+    "errori": []
+   },
+   "ok": true,
+   "romaOk": true,
+   "cataniaOk": true,
+   "secondi": 216
+  },
+  "5": {
+   "nome": "schede: racconto o frase breve; riga in place_racconti",
+   "ok": false,
+   "errore": "page.reload: Frame load interrupted\nCall log:\n\u001b[2m  - waiting for navigation until \"domcontentloaded\"\u001b[22m\n",
+   "secondi": 1
+  },
+  "6": {
+   "nome": "«Fine» a 2/3: nota, Profilo +1, nessun doppione",
+   "ok": false,
+   "errore": "page.reload: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for navigation until \"domcontentloaded\"\u001b[22m\n",
+   "secondi": 982
+  },
+  "7": {
+   "nome": "«Salta» fino in fondo + 3 tocchi (anche da ospite, fino alla fine giro)",
+   "ospite": {
+    "ospite": true,
+    "via": "prova senza account → avvia",
+    "url": "/map",
+    "fineGiro": true,
+    "nota": "Hai saltato tutte le tappe: il giro finisce qui.",
+    "login": false,
+    "testo": "1 3 4 Scorciatoie da tastiera Dati mappa ©2026 Google Termini Il tuo giro a Catania AUTO PIEDI 4 min BICI Percorso Consigliato 4 min a piedi · 282 m Avvia Navigazione In pausa Giro completato FINE TAP",
+    "salvaOspite": true,
+    "ok": true,
+    "foto": "docs/prove/schermate/collaudo-sito/7-ospite.png",
+    "errori": [
+     "/ahecpiwsdhghkndncejb.supabase.co/functions/v1/places-proxy?language=it&path=place%2Ftextsearch&query=trattoria+ristorante+pizzeria+osteria+Catania&location=37.",
+     "/ahecpiwsdhghkndncejb.supabase.co/functions/v1/places-proxy?language=it&path=place%2Ftextsearch&query=bar+cocktail+pub+locale+musica+vino+Catania&location=37.50",
+     "/ahecpiwsdhghkndncejb.supabase.co/functions/v1/places-proxy?language=it&path=place%2Ftextsearch&query=trattoria+ristorante+pizzeria+osteria+Catania&location=37.",
+     "/ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy due to access control checks.",
+     "/ahecpiwsdhghkndncejb.supabase.co/functions/v1/places-proxy?language=it&path=place%2Ftextsearch&query=trattoria+ristorante+pizzeria+osteria+Catania&location=37."
+    ]
+   },
+   "account": {
+    "ospite": false,
+    "via": "riprendi",
+    "url": "/map",
+    "fineGiro": true,
+    "nota": "Hai saltato tutte le tappe: il giro finisce qui.",
+    "login": false,
+    "testo": "1 2 3 4 Scorciatoie da tastiera Dati mappa ©2026 Google Termini Il tuo giro a Catania AUTO PIEDI 4 min BICI Percorso Consigliato 4 min a piedi · 282 m Avvia Navigazione In pausa Giro completato FINE T",
+    "salvaOspite": false,
+    "ok": true,
+    "foto": "docs/prove/schermate/collaudo-sito/7-account.png",
+    "errori": []
+   },
+   "ok": true,
+   "secondi": 32
+  },
+  "8": {
+   "nome": "GPS a Roma, Crea «un giro a Catania»: «Domani · 9:30 · cambia»",
+   "ok": true,
+   "partenza": "Domani · 9:30 · cambia",
+   "orari": [
+    "9:30",
+    "09:30",
+    "09:59",
+    "10:39",
+    "12:28",
+    "12:30",
+    "14:30",
+    "15:14",
+    "15:34",
+    "17:59",
+    "18:00",
+    "19:01"
+   ],
+   "foto": "docs/prove/schermate/collaudo-sito/8-crea.png"
+  },
+  "9": {
+   "nome": "panoramica con pochi km fra le tappe",
+   "ok": true,
+   "card": "Dall'Anfiteatro Romano di Catania a Piazza Giuseppe Mazzini Giornata 9:30–21:15 · 29 min a piedi · 2,2 km · 8 tappe Cambia mezzo Chiedi alla guida AVVIA",
+   "km": 2.2,
+   "foto": "docs/prove/schermate/collaudo-sito/9-panoramica.png"
+  },
+  "10": {
+   "nome": "«Avvia» da lontano: «Sei a … km», mappa non nera",
+   "ok": true,
+   "avviso": "Sei a 536 km da Catania: la guida parte quando sei lì.",
+   "navigazione": false,
+   "camDopo": {
+    "zoom": 14,
+    "tilt": 0,
+    "heading": 0
+   },
+   "segnaposti": 0,
+   "foto": "docs/prove/schermate/collaudo-sito/10-avvia.png"
+  },
+  "11": {
+   "nome": "Per Te a Roma alle 01:00 e alle 20:00: almeno 4 schede, quelle non per adesso lo dicono",
+   "ok": true,
+   "notte": {
+    "ora": "2026-10-31T01:00:00+01:00",
+    "secondi": 10,
+    "schede": [
+     {
+      "titolo": "Intorno al Gianicolo Belvedere",
+      "badge": "Scelto per te"
+     },
+     {
+      "titolo": "Forni di Roma",
+      "badge": "Per stamattina"
+     },
+     {
+      "titolo": "Tre musei a Roma",
+      "badge": "Per stamattina"
+     },
+     {
+      "titolo": "Panorami a Roma",
+      "badge": "Per stamattina"
+     }
+    ],
+    "riga": "Adesso è aperto poco. Le altre sono per stamattina.",
+    "citta": "Roma",
+    "giri": [
+     {
+      "titolo": "Intorno al Gianicolo Belvedere",
+      "perDopo": false,
+      "tappe": [
+       "In Vino Veritas Trastevere",
+       "Gianicolo Belvedere"
+      ]
+     },
+     {
+      "titolo": "Forni di Roma",
+      "perDopo": true,
+      "tappe": [
+       "Giardino di Sant'Alessio",
+       "Antico Forno Santini",
+       "Le Levain"
+      ]
+     },
+     {
+      "titolo": "Tre musei a Roma",
+      "perDopo": true,
+      "tappe": [
+       "Galleria del Cardinale Colonna",
+       "Galleria Doria Pamphilj",
+       "Il Palazzo dei Conservatori"
+      ]
+     },
+     {
+      "titolo": "Panorami a Roma",
+      "perDopo": true,
+      "tappe": [
+       "Giardino degli Aranci",
+       "Terrazza delle Quadrighe",
+       "Fontana del Mascherone"
+      ]
+     }
+    ],
+    "foto": "docs/prove/schermate/collaudo-sito/11-per-te-roma-0100.png",
+    "errori": []
+   },
+   "sera": {
+    "ora": "2026-10-30T20:00:00+01:00",
+    "secondi": 44,
+    "schede": [
+     {
+      "titolo": "Intorno alla Fontana del Mascherone",
+      "badge": "Scelto per te"
+     },
+     {
+      "titolo": "Giardini di Roma",
+      "badge": "Per domattina"
+     },
+     {
+      "titolo": "Panorami a Roma",
+      "badge": "Per domattina"
+     },
+     {
+      "titolo": "Tre musei a Roma",
+      "badge": "Per domattina"
+     }
+    ],
+    "riga": "Adesso è aperto poco. Le altre sono per domattina.",
+    "citta": "Roma",
+    "giri": [
+     {
+      "titolo": "Intorno alla Fontana del Mascherone",
+      "perDopo": false,
+      "tappe": [
+       "In Vino Veritas Trastevere",
+       "Fontana del Mascherone",
+       "Osteria da Fortunata - Baullari"
+      ]
+     },
+     {
+      "titolo": "Giardini di Roma",
+      "perDopo": true,
+      "tappe": [
+       "Giardino di Sant'Alessio",
+       "Antico Forno Santini",
+       "Gianicolo Belvedere"
+      ]
+     },
+     {
+      "titolo": "Panorami a Roma",
+      "perDopo": true,
+      "tappe": [
+       "Terrazza delle Quadrighe",
+       "Piazza del Campidoglio",
+       "Giardino degli Aranci"
+      ]
+     },
+     {
+      "titolo": "Tre musei a Roma",
+      "perDopo": true,
+      "tappe": [
+       "Museo Centrale del Risorgimento",
+       "Il Palazzo dei Conservatori",
+       "Musei Capitolini"
+      ]
+     }
+    ],
+    "foto": "docs/prove/schermate/collaudo-sito/11-per-te-roma-2000.png",
+    "errori": []
+   },
+   "secondi": 57
+  },
+  "12": {
+   "nome": "scheda monumento: si apre subito, i cenni arrivano dopo",
+   "ok": true,
+   "ritardoMs": 8000,
+   "aperturaMs": 107,
+   "durante": {
+    "spinner": 0,
+    "cenni": false,
+    "titolo": true
+   },
+   "rispostaPaginaMs": 2,
+   "fotoDurante": "docs/prove/schermate/collaudo-sito/12-scheda-durante.png",
+   "cenniMs": 8418,
+   "cenni": "\"Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Una cappella associata a un presunto miracolo del XVI secolo è aperta solo il 16 marzo.\"",
+   "richiesteRacconto": 1,
+   "esitoRacconto": "passato",
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/12-scheda-dopo.png",
+   "errori": [],
+   "console": [],
+   "secondi": 943
+  },
+  "13": {
+   "nome": "titoli dei giri generati a Roma e Catania, con le tappe",
+   "ok": true,
+   "giri": [
+    {
+     "dove": "roma-0100",
+     "titolo": "Intorno al Gianicolo Belvedere",
+     "perDopo": false,
+     "tappe": [
+      "In Vino Veritas Trastevere",
+      "Gianicolo Belvedere"
+     ]
+    },
+    {
+     "dove": "roma-0100",
+     "titolo": "Forni di Roma",
+     "perDopo": true,
+     "tappe": [
+      "Giardino di Sant'Alessio",
+      "Antico Forno Santini",
+      "Le Levain"
+     ]
+    },
+    {
+     "dove": "roma-0100",
+     "titolo": "Tre musei a Roma",
+     "perDopo": true,
+     "tappe": [
+      "Galleria del Cardinale Colonna",
+      "Galleria Doria Pamphilj",
+      "Il Palazzo dei Conservatori"
+     ]
+    },
+    {
+     "dove": "roma-0100",
+     "titolo": "Panorami a Roma",
+     "perDopo": true,
+     "tappe": [
+      "Giardino degli Aranci",
+      "Terrazza delle Quadrighe",
+      "Fontana del Mascherone"
+     ]
+    },
+    {
+     "dove": "roma-2000",
+     "titolo": "Intorno alla Fontana del Mascherone",
+     "perDopo": false,
+     "tappe": [
+      "In Vino Veritas Trastevere",
+      "Fontana del Mascherone",
+      "Osteria da Fortunata - Baullari"
+     ]
+    },
+    {
+     "dove": "roma-2000",
+     "titolo": "Giardini di Roma",
+     "perDopo": true,
+     "tappe": [
+      "Giardino di Sant'Alessio",
+      "Antico Forno Santini",
+      "Gianicolo Belvedere"
+     ]
+    },
+    {
+     "dove": "roma-2000",
+     "titolo": "Panorami a Roma",
+     "perDopo": true,
+     "tappe": [
+      "Terrazza delle Quadrighe",
+      "Piazza del Campidoglio",
+      "Giardino degli Aranci"
+     ]
+    },
+    {
+     "dove": "roma-2000",
+     "titolo": "Tre musei a Roma",
+     "perDopo": true,
+     "tappe": [
+      "Museo Centrale del Risorgimento",
+      "Il Palazzo dei Conservatori",
+      "Musei Capitolini"
+     ]
+    },
+    {
+     "dove": "catania",
+     "titolo": "Caffè, chiese e trattorie di Catania",
+     "perDopo": false,
+     "tappe": [
+      "Bar Popolare",
+      "Piazza del Duomo",
+      "De Fiore Nuova Trattoria del Forestiero"
+     ]
+    },
+    {
+     "dove": "catania",
+     "titolo": "Palazzi di Catania",
+     "perDopo": true,
+     "tappe": [
+      "Casa Natale di Vincenzo Bellini",
+      "Palazzo degli Elefanti",
+      "Palazzo dei Chierici"
+     ]
+    },
+    {
+     "dove": "catania",
+     "titolo": "Dalla Chiesa della Badia di Sant'Agata a Porta Uzeda",
+     "perDopo": true,
+     "tappe": [
+      "Chiesa della Badia di Sant'Agata",
+      "Fontana dell'Elefante (uʻ Liotru)",
+      "Porta Uzeda"
+     ]
+    }
+   ],
+   "catania": {
+    "schede": [
+     {
+      "titolo": "Caffè, chiese e trattorie di Catania",
+      "badge": "Scelto per te"
+     },
+     {
+      "titolo": "Palazzi di Catania",
+      "badge": "Per domattina"
+     },
+     {
+      "titolo": "Dalla Chiesa della Badia di Sant'Agata a Porta Uzeda",
+      "badge": "Per domattina"
+     }
+    ],
+    "citta": "Catania",
+    "foto": "docs/prove/schermate/collaudo-sito/11-per-te-catania.png"
+   },
+   "secondi": 13
+  }
+ },
+ "crea": {
+  "generazioneS": 13,
+  "partenza": "Domani · 9:30 · cambia",
+  "orari": [
+   "9:30",
+   "09:30",
+   "09:59",
+   "10:39",
+   "12:28",
+   "12:30",
+   "14:30",
+   "15:14",
+   "15:34",
+   "17:59",
+   "18:00",
+   "19:01"
+  ],
+  "fotoGiro": "docs/prove/schermate/collaudo-sito/8-crea.png",
+  "card": "Dall'Anfiteatro Romano di Catania a Piazza Giuseppe Mazzini Giornata 9:30–21:15 · 29 min a piedi · 2,2 km · 8 tappe Cambia mezzo Chiedi alla guida AVVIA",
+  "camPanoramica": {
+   "zoom": 14,
+   "tilt": 0,
+   "heading": 0
+  },
+  "fotoPanoramica": "docs/prove/schermate/collaudo-sito/9-panoramica.png",
+  "avviso": "Sei a 536 km da Catania: la guida parte quando sei lì.",
+  "navigazione": false,
+  "camDopo": {
+   "zoom": 14,
+   "tilt": 0,
+   "heading": 0
+  },
+  "segnaposti": 0,
+  "fotoAvvia": "docs/prove/schermate/collaudo-sito/10-avvia.png",
+  "errori": []
+ },
+ "finito": "2026-11-05T18:15:50.872Z"
+}

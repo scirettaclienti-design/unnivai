@@ -1,0 +1,16 @@
+{
+  "base": "https://unnivai.vercel.app",
+  "quando": "2026-11-05T18:19:00+01:00",
+  "commitInProduzione": "7db5d3e",
+  "passiPrimoIngresso": 4,
+  "titoli": ["Prima di partire: chi scrive i tuoi giri", "Cosa ti fa fermare?", "A tavola", "Come giri?"],
+  "anonimo": true,
+  "segno": true,
+  "percorsoDopo": ["/dashboard-user", "/", "/", "/dashboard-user"],
+  "onboardingDopo": false,
+  "consensoDopo": false,
+  "finale": "/dashboard-user",
+  "erroriPagina": 0,
+  "ok": true,
+  "foto": ["docs/prove/schermate/onboarding-dal-vivo/ospite-1-primo-ingresso.jpg", "docs/prove/schermate/onboarding-dal-vivo/ospite-2-dopo-ricarica.jpg"]
+}

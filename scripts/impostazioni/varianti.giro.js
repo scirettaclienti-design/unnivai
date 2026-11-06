@@ -19,7 +19,7 @@ vi.mock('@/services/factsService', async (importOriginal) => {
 });
 
 const OUT = process.env.IMP_OUT;
-const FILE = (process.env.IMP_IN || 'docs/prove/dati/banco-40-tracciati.json.gz').split(',').map(s => s.trim()).filter(Boolean);
+const FILE = (process.env.IMP_IN || 'docs/prove/dati/impostazioni-verifica/tracciati.json.gz').split(',').map(s => s.trim()).filter(Boolean);
 if (!OUT) throw new Error('IMP_OUT mancante');
 const SELETTORE = process.env.IMP_SELETTORE === 'registrato' ? 'registrato' : 'vuoto';
 const leggi = (f) => { const g = readFileSync(f); return JSON.parse((f.endsWith('.gz') ? gunzipSync(g) : g).toString('utf8')); };

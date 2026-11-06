@@ -2908,7 +2908,8 @@ export const aiRecommendationService = {
             // no-results) se ne occupa, senza duplicare quella logica qui.
             if (catStretta) {
                 const beforeCategoria = candidates.length;
-                candidates = candidates.filter(c => candidateMatchesIntentCategoria(c, intent.categoria));
+                // T29 — in Al volo i locali della lista della citta' restano per pranzo e cena: con Natura a Catania i 5 locali della ricerca mirata erano chiusi e il pranzo spariva
+                candidates = candidates.filter(c => candidateMatchesIntentCategoria(c, intent.categoria) || (opts.pathType === 'quick' && c._citta && isMealPlace(c)));
                 if (candidates.length < beforeCategoria) {
                     console.warn(`[Gate RAGGIO-CATEGORIA] ${city}: ${beforeCategoria - candidates.length}/${beforeCategoria} candidati scartati per categoria≠"${intent.categoria}" prima del selettore`);
                 }

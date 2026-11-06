@@ -1,6 +1,6 @@
 // T29 IMPOSTAZIONI-VERIFICA — le varianti: una impostazione alla volta, stesso luogo, stessa ora. Dati puri.
 
-const BASI = { Roma: 'a-roma', Catania: 'a-catania' };
+const BASI = { Roma: 'sm-roma-neutro', Catania: 'sm-catania-neutro' };
 
 /** Su misura: le preferenze come le manda AiItinerary (ogni voce del wizard, vuota se non scelta). */
 const suMisura = (citta, id, prefs, richiesta = null) => ({ id: `sm-${citta.toLowerCase()}-${id}`, flusso: 'Su misura', citta, base: BASI[citta], gruppo: id.split('-')[0], prefs, ...(richiesta ? { richiesta } : {}) });
@@ -35,7 +35,7 @@ const AL_VOLO = {
             relax: { main: 'relax', sub: 'spa', mainTitle: 'Relax', subTitle: 'Benessere' } } },
 };
 const alVolo = (citta, id, { scelta = AL_VOLO[citta].base, durata = 'Medio', gruppo = 'Solo' } = {}) => ({
-    id: `av-${citta.toLowerCase()}-${id}`, modo: 'veloce', luogo: citta, ora: '11:00', giorno: GIORNO, attesa: citta, scelta, durata, gruppo, onboarding: null,
+    id: `av-${citta.toLowerCase()}-${id}`, modo: 'veloce', luogo: citta, ora: '11:00', giorno: GIORNO, attesa: citta, scelta, durata, gruppo, onboarding: null, comeLaPagina: true,
 });
 export const CASI_AL_VOLO = ['Roma', 'Catania'].flatMap(c => [
     alVolo(c, 'neutro'), alVolo(c, 'controllo'),

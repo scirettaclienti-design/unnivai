@@ -129,7 +129,7 @@ describe('DNA-6 — il tasto Salva è nelle quattro superfici', () => {
         expect(td).toContain('<SalvaGiro tour={tour}');
         expect(td).toContain("'sorprendimi'");
         expect(td).toContain("'per_te'");
-        expect(LEGGI('pages/DashboardUser.jsx')).toContain("origine: 'per_te'");
+        expect(LEGGI('components/PerTeCard.jsx')).toContain("origine: 'per_te'"); // PER-TE-TRE: la scheda della home e di «Vedi tutte»
         expect(LEGGI('pages/SurpriseTour.jsx')).toContain("origine: 'sorprendimi'");
     });
     it('il giro completato scrive «raggiunte/totali» e il motore dei giri non è toccato', () => {

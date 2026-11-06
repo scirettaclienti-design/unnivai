@@ -18,7 +18,9 @@ import { useAILearning } from '../hooks/useAILearning';
 import { resolveFoodPrefs, foodPrefsFingerprint } from '@/lib/foodPrefs';
 import { placesDiscoveryService, PlacesSearchError } from '@/services/placesDiscoveryService';
 import { MESSAGGIO_TECNICO, TASTO_RIPROVA } from '@/lib/esitoVuoto';
-import { giornoEFasciaPerTe, leggiPerTe, salvaPerTe, ultimoPerTe, fasciaDnaEffettiva, registraFasciaDna } from '@/lib/perTeSalvato';
+import { giornoEFasciaPerTe, leggiPerTe, perTeDellaFascia, salvaPerTe, ultimoPerTe, fasciaDnaEffettiva, registraFasciaDna } from '@/lib/perTeSalvato';
+import { TESTI_HOME, TESTI_PER_TE } from '@/lib/testiHome';
+import PerTeCard from '@/components/PerTeCard';
 import { fasciaDna } from '@/lib/fasciaDna';
 import { dnaGiroDaApprendimento, giroDnaPerMotore, tracciatoGiroDna } from '@/lib/giroDna';
 import { ordinaPerTe } from '@/lib/perTeDna';
@@ -38,7 +40,6 @@ const experiencesErrorText = (err) => {
 import { normalizeTour } from '@/services/tourShape';
 import { displayedTourMinutes, formatEstimate, etichettaGiornata } from '@/lib/tourTiming';
 import { resolveCityCenter, CityCenterUnresolvedError } from '@/services/cityCenterService';
-import TourCover from '@/components/TourCover';
 import { isAppNativa } from '../lib/appNativa';
 import CardGiroDemo from '../components/CardGiroDemo';
 // 🧠 AI-POWERED EXPERIENCE GENERATOR (REAL POI DISCOVERY)
@@ -49,6 +50,8 @@ import CardGiroDemo from '../components/CardGiroDemo';
 // prima maglia della catena di stock che finiva sulla copertina dei tour "Per Te".
 
 const THEME_EMOJIS = {};
+// PER-TE-TRE — quante schede stanno nella fila della home: le altre sono in «Vedi tutte»
+const PROPOSTE_IN_HOME = 5;
 
 // Gate II (16/07): THEME_CONFIGS + getPoiTypeImage RIMOSSI.
 // Erano dead code post-refactor: THEME_CONFIGS conteneva titoli statici
@@ -210,12 +213,16 @@ const DashboardUser = () => {
         queryKey: chiavePerTe,
         enabled: !!city && !!dnaPronto,
         initialData: () => leggiPerTe(chiavePerTe, utenteId),
+        // PER-TE-TRE — a chiave cambiata (il DNA ha passato un gradino) le schede salvate per questa fascia compaiono subito, poi lasciano il
+        // posto alle nuove. A freddo la generazione dura 10-12 secondi: prima erano 10 secondi di skeleton.
+        placeholderData: () => perTeDellaFascia(chiavePerTe, utenteId),
         staleTime: Infinity,
         queryFn: async ({ signal, queryKey }) => {
             const superata = () => { if (signal?.aborted) throw new Error('[Per Te] richiesta superata'); };
             const currentCity = city;
             let finalTours = [];
             let chiusoOra = null;
+            let passioniMancanti = [];
 
             try {
                 const tours = await dataService.getToursByCity(currentCity);
@@ -325,6 +332,7 @@ const DashboardUser = () => {
                     throw new Error(`generateHomeTours: ${homeToursResult._error || 'errore'}`);
                 }
                 chiusoOra = homeToursResult?._source === 'closed-now' ? homeToursResult._messaggio : null;
+                passioniMancanti = homeToursResult?.passioniMancanti || [];
 
                 // Mapping output → shape UI. Ogni tour del narratore diventa una
                 // card, insider in cima (badge dedicato). Regola II.2 applicata a
@@ -355,7 +363,8 @@ const DashboardUser = () => {
                         : null;
 
                     const emoji = null;
-                    const category = isInsider ? 'Insider AI' : "Consigliato dall'AI";
+                    // PER-TE-TRE — un giro composto dal codice non lo dice il modello: la scheda non lo chiama «dall'AI»
+                    const category = tour.composto ? (hasPreferences ? 'Basato sui tuoi gusti' : `Popolare a ${currentCity}`) : (isInsider ? 'Insider AI' : "Consigliato dall'AI");
                     // Gate VERITÀ VISIVA (F26) DIFF 4 — rimossa la catena
                     // THEME_FALLBACK_IMAGES -> CITY_IMAGES -> GENERIC.piazza.
                     // Erano tre livelli di stock Unsplash mostrati come copertina di
@@ -422,7 +431,8 @@ const DashboardUser = () => {
             // città" era il nome gentile di "metti uno stock che assomigli al posto":
             // il Colosseo su Roma, una piazza generica ovunque. Senza foto vera la
             // copertina e' il gradient di categoria di TourCover.
-            const tours = finalTours.slice(0, 5).map((t, i) => ({
+            // PER-TE-TRE — si salvano tutte: la home ne mostra PROPOSTE_IN_HOME, «Vedi tutte» l'elenco completo
+            const tours = finalTours.map((t, i) => ({
                 ...t,
                 image: t.image || t.imageUrl || null,
                 images: (t.images?.length > 0) ? t.images : [t.image || t.imageUrl].filter(Boolean),
@@ -433,7 +443,7 @@ const DashboardUser = () => {
                         : (t.category || (hasPreferences ? 'Basato sui tuoi gusti' : 'Popolare a ' + currentCity)),
             }));
             superata();
-            const dati = { tours, chiusoOra };
+            const dati = { tours, chiusoOra, passioniMancanti };
             salvaPerTe(queryKey, utenteId, dati);
             registraFasciaDna(fasciaDelDna, giorno, utenteId);
             return dati;
@@ -448,6 +458,7 @@ const DashboardUser = () => {
     const chiusoOra = perTe?.chiusoOra ?? null;
     // PER-TE-PROPOSTE — se una parte delle card non è per adesso, la riga lo dice.
     const nDopo = (experiences || []).filter(e => e.perDopo).length;
+    const rigaPassioni = TESTI_PER_TE.passioneMancante(perTe?.passioniMancanti, city);
     const rigaProposte = nDopo === 0 ? null : rigaPerDopo((experiences || []).find(e => e.perDopo).perDopo.quando, nDopo === (experiences || []).length);
 
     const [tourHistory, setTourHistory] = useState([]);
@@ -552,8 +563,8 @@ const DashboardUser = () => {
                 >
                     <div className="flex items-center justify-between relative z-10">
                         <div>
-                            <h3 className="font-bold text-obsidian-primary text-lg leading-tight">Crea il tuo Tour</h3>
-                            <p className="text-xs text-obsidian-secondary mt-1 font-medium bg-obsidian-raised border border-obsidian-border px-2 py-0.5 rounded-full w-fit">Su misura per te</p>
+                            <h3 className="font-bold text-obsidian-primary text-lg leading-tight">{TESTI_HOME.creaIlTuoTour.titolo}</h3>
+                            <p className="text-xs text-obsidian-secondary mt-1 font-medium bg-obsidian-raised border border-obsidian-border px-2 py-0.5 rounded-full w-fit">{TESTI_HOME.creaIlTuoTour.etichetta}</p>
                         </div>
                         <div className={`transition-transform duration-300 ${showCustomOptions ? 'rotate-180' : ''}`}>
                             <div className="bg-obsidian-raised border border-obsidian-border p-3 rounded-full group-hover:border-brand-orange transition-colors">
@@ -610,11 +621,11 @@ const DashboardUser = () => {
                                     <div>
                                         <div className="mb-1">
                                             <span className="bg-brand-orange/15 text-brand-orange border border-brand-orange/30 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wide w-fit block">
-                                                Gratis & Su Misura
+                                                {TESTI_HOME.suMisura.etichetta}
                                             </span>
                                         </div>
-                                        <h3 className="text-xl font-bold font-playfair text-obsidian-primary leading-tight">Crea il tuo Percorso</h3>
-                                        <p className="text-obsidian-secondary text-xs font-medium mt-0.5">Intelligenza artificiale per te</p>
+                                        <h3 className="text-xl font-bold font-playfair text-obsidian-primary leading-tight">{TESTI_HOME.suMisura.titolo}</h3>
+                                        <p className="text-obsidian-secondary text-xs font-medium mt-0.5">{TESTI_HOME.suMisura.sottotitolo}</p>
                                     </div>
                                 </div>
                                 <ChevronRight className="w-5 h-5 text-obsidian-secondary group-hover:text-brand-orange group-hover:translate-x-1 transition-transform" />
@@ -639,14 +650,8 @@ const DashboardUser = () => {
                                             <Gamepad2 className="w-8 h-8" />
                                         </div>
                                         <div>
-                                            <div className="mb-1">
-                                                <span className="bg-obsidian-raised text-obsidian-secondary border border-obsidian-border text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex w-fit items-center">
-                                                    <Brain className="w-3 h-3 mr-1" />
-                                                    AI Powered
-                                                </span>
-                                            </div>
-                                            <h3 className="text-xl font-bold font-playfair text-obsidian-primary leading-tight">Quiz Veloce</h3>
-                                            <p className="text-obsidian-secondary text-xs font-medium mt-0.5">Scopri il tuo stile di viaggio</p>
+                                            <h3 className="text-xl font-bold font-playfair text-obsidian-primary leading-tight">{TESTI_HOME.alVolo.titolo}</h3>
+                                            <p className="text-obsidian-secondary text-xs font-medium mt-0.5">{TESTI_HOME.alVolo.sottotitolo}</p>
                                         </div>
                                     </div>
                                     <ChevronRight className="w-5 h-5 text-obsidian-secondary group-hover:text-obsidian-primary group-hover:translate-x-1 transition-transform" />
@@ -691,14 +696,15 @@ const DashboardUser = () => {
                 <section>
                     <div className="flex items-center justify-between mb-4 px-1">
                         <h3 className="text-xl font-bold text-obsidian-primary font-playfair">
-                            {hasPreferences ? 'Per Te' : 'Esperienze Uniche'}
+                            {hasPreferences ? TESTI_PER_TE.titolo : TESTI_PER_TE.titoloSenzaGusti}
                         </h3>
-                        <Link to="/explore" className="text-xs font-bold text-obsidian-secondary hover:text-obsidian-primary uppercase tracking-widest transition-colors">
-                            Vedi tutte
+                        <Link to="/per-te" className="text-xs font-bold text-obsidian-secondary hover:text-obsidian-primary uppercase tracking-widest transition-colors">
+                            {TESTI_HOME.vediTutte}
                         </Link>
                     </div>
 
                     {rigaProposte && <p className="text-obsidian-secondary text-xs mb-2">{rigaProposte}</p>}
+                    {rigaPassioni && <p className="text-obsidian-secondary text-xs mb-2">{rigaPassioni}</p>}
                     <div className="flex overflow-x-auto gap-3 pb-6 -mx-6 px-6 scrollbar-hide snap-x">
                         {experiencesError ? (
                             <div className="flex flex-col items-center justify-center py-8 w-full text-center">
@@ -722,72 +728,9 @@ const DashboardUser = () => {
                                     </div>
                                 </div>
                             ))
-                        ) : (experiences && experiences.length > 0) ? experiences.map((exp) => (
-                            <Link
-                                to={`/tour-details/${exp.id}`}
-                                state={{ tourData: exp, origine: 'per_te' }}
-                                key={exp.id}
-                                className="block w-[calc((100vw-60px)/2)] max-w-[170px] min-w-[150px] shrink-0 snap-start"
-                            >
-                                <motion.div
-                                    className="group flex flex-col h-[265px] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-obsidian-border bg-obsidian-card"
-                                    whileHover={{ y: -3 }}
-                                >
-                                    {/* Foto Places PULITA (ramo A) o Gradient Categoria (ramo B) con rapporto fisso */}
-                                    <div className="relative h-28 w-full overflow-hidden shrink-0 border-b border-obsidian-border bg-obsidian-raised">
-                                        <TourCover
-                                            cover={exp.image}
-                                            category={exp.category || exp.type}
-                                            type={exp.type}
-                                            title={exp.title}
-                                            animateKey={exp.image}
-                                            overlay={false}
-                                        />
-                                    </div>
-
-                                    {/* Blocco Dati su bg-obsidian-card: due card intere a schermo */}
-                                    <div className="p-2.5 flex flex-col flex-1 justify-between">
-                                        <div>
-                                            {/* Badge discreto */}
-                                            <div className="mb-1">
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-obsidian-raised text-obsidian-secondary border border-obsidian-border tracking-tight truncate max-w-full">
-                                                    {exp.category}
-                                                </span>
-                                            </div>
-
-                                            {/* Titolo compatto */}
-                                            <h4 className="font-playfair font-bold text-xs text-obsidian-primary leading-snug line-clamp-2 mb-1">
-                                                {exp.title}
-                                            </h4>
-
-                                            {/* Riga Include o Luogo */}
-                                            {exp.featuredPoi && Number.isFinite(exp.featuredPoi.rating) ? (
-                                                <div className="flex items-center gap-1 text-[10px] text-obsidian-secondary truncate">
-                                                    <Star className="w-3 h-3 text-brand-orange fill-current shrink-0" />
-                                                    <span className="truncate">{exp.featuredPoi.name}</span>
-                                                    <span className="font-semibold text-obsidian-primary shrink-0">· {exp.featuredPoi.rating.toFixed(1)}</span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-1 text-[10px] text-obsidian-secondary truncate">
-                                                    <MapPin className="w-3 h-3 text-obsidian-secondary/80 shrink-0" />
-                                                    <span className="truncate">{exp.location || (city ? `Tour a ${city}` : 'Esperienza')}</span>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Metadati ancorati in basso */}
-                                        <div className="mt-auto pt-2 border-t border-obsidian-border flex items-center justify-between text-[10px] text-obsidian-secondary">
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="w-3 h-3 text-obsidian-secondary shrink-0" />
-                                                <span className="truncate">{exp.duration}</span>
-                                            </div>
-                                            {Number.isFinite(exp.price) && (
-                                                <span className="font-bold text-xs text-obsidian-primary shrink-0">€{exp.price}</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </Link>
+                        ) : (experiences && experiences.length > 0) ? experiences.slice(0, PROPOSTE_IN_HOME).map((exp, i) => (
+                            // PER-TE-TRE — chiave stabile: quando le schede salvate lasciano il posto a quelle nuove non si rismontano (niente sfarfallio)
+                            <PerTeCard key={`${exp.themeType || 'tour'}-${i}`} exp={exp} city={city} />
                         )) : (
                             <div className="flex flex-col items-center justify-center py-10 w-full text-center">
                                 <div className="w-12 h-12 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center mx-auto mb-3 text-obsidian-secondary">

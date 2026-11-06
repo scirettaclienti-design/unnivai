@@ -129,9 +129,10 @@ describe('Per Te — risposta tagliata a meta\'', () => {
         vi.stubGlobal('fetch', proxyFetch(full.slice(0, 60), { finish_reason: 'length', completion_tokens: 4000 }));
         const res = await home(POOLS);
         expect(res._source).not.toBe('error');
-        // PER-TE-PROPOSTE — nessun giro dall'AI per adesso; restano le proposte per dopo, composte dal codice, e dicono di esserlo
-        expect(res.tours.filter(t => !t.perDopo)).toEqual([]);
-        expect(res.tours.every(t => t.perDopo)).toBe(true);
+        // PER-TE-TRE — nessun giro dall'AI: i temi si compongono in codice dagli stessi pool, con le regole di sempre, e un tour resta un tour
+        expect(res.tours.length).toBeGreaterThan(0);
+        expect(res.tours.every(t => t.stops.length >= 3)).toBe(true);
+        expect(res._report.temiComposti.length).toBeGreaterThan(0);
     });
 });
 

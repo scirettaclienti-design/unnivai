@@ -287,7 +287,9 @@ describe('P7a — "Per Te": tour con meno di 3 tappe e luogo ceduto', () => {
         // P7a2 — con un terzo luogo nel pool il tour verrebbe completato in
         // codice (perTePieno.test.js): qui il pool food ha solo le sue 2 tappe.
         const res = await home({ cultura: CULTURA, food: FOOD.slice(0, 2) });
-        expect(res.tours.map(t => t.themeType)).toEqual(['cultura']);
+        // PER-TE-TRE — il tour da 2 tappe del modello resta fuori; il tema cibo si ricompone in codice solo se regge a 3 tappe vere
+        expect(res.tours.some(t => t.themeType === 'cultura')).toBe(true);
+        expect(res.tours.every(t => t.stops.length >= 3)).toBe(true);
         expect(res._report.scarti.filter(s => /meno di 3 tappe/.test(s.motivo))).toHaveLength(2);
     });
 

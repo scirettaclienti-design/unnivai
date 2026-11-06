@@ -155,7 +155,7 @@ else
 fi
 
 # --- 7. Crea, mappa, navigazione con posizione simulata ----------------------------------------------
-passo "Vai in «Crea il tuo Percorso», scrivi «un giro a piedi di due ore nel centro» e genera."
+passo "Vai in «Su misura», scrivi «un giro a piedi di due ore nel centro» e genera."
 scatta "03-crea-risultato"
 passo "Apri il giro sulla mappa (panoramica)."
 scatta "04-mappa"

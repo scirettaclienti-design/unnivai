@@ -32,6 +32,21 @@ export function leggiPerTe(chiave, utente) {
     return undefined;
 }
 
+/**
+ * PER-TE-TRE (T27) — il Per Te salvato che vale ancora per questa citta', questo giorno e questa fascia, anche se il resto della chiave e' cambiato
+ * (il DNA ha passato un gradino, il profilo si e' mosso). Serve a far comparire subito le schede mentre si rigenera, e all'elenco di «Vedi tutte».
+ * Cambiata la fascia non vale piu': un giro del mattino non si propone di sera.
+ */
+export function perTeDellaFascia(chiave, utente) {
+    try {
+        const r = JSON.parse(localStorage.getItem(PER_TE_SALVATO_KEY) || 'null');
+        if (!r || r.utente !== (utente || null) || !r.dati) return undefined;
+        const salvata = JSON.parse(r.chiave);
+        return [1, 2, 3].every(i => salvata?.[i] === chiave?.[i]) ? r.dati : undefined;
+    } catch { /* storage illeggibile: si genera */ }
+    return undefined;
+}
+
 /** OSPITE-GIRO — l'ultimo Per Te salvato per questo utente, qualunque chiave (l'ospite ha finito i suoi Per Te: resta quello). */
 export function ultimoPerTe(utente) {
     try {

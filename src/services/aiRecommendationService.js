@@ -400,6 +400,7 @@ import { gruppoNelTetto, migliorePartenza, TETTO_PIEDI_KM, TESTI_TETTO } from '.
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 import { PER_TE_TESTI } from '../lib/esitoVuoto';
+import { ordineTemi, temiDaComporre, gruppoDelTema, tappeDelTemaMinime, TAPPE_GRUPPO, PASSIONI_MINIME, TEMA_DELLA_PASSIONE } from '../lib/perTeTemi';
 import { PROPOSTE_MINIME, riferimentoPerDopo, placeIdDeiGiri, unisciProposte } from '../lib/perTeProposte';
 // C10 — la lista della città: l'AI propone (sul server, una per città e giorno), Google verifica, le regole compongono.
 import { fetchCityKnowledge, fetchQuartiereKnowledge } from './cityKnowledgeService';
@@ -421,7 +422,7 @@ import { riempiBuchi, testoBucoLungo, ripristinaPasti } from '../lib/riempiBuchi
 const COSTO_RICERCA_SOSTA_USD = 0.032;
 // DNA-5 — la merenda della famiglia: dalle 15:30.
 const MERENDA_DALLE = 15 * 60 + 30;
-import { weightsToAIProfile } from './preferenceEngine';
+import { weightsToAIProfile, stopCoreCategory } from './preferenceEngine';
 import { mapCandidateToCoreCategories, selectScoredCandidatePool, passesQualityThreshold, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport, computeAffinityScore, dnaShareOf } from './candidateScoring';
 import {
     resolveFoodPrefs, applyFoodConstraints, foodPrefBonus, foodPrefsFingerprint, hasFoodPrefs,
@@ -1495,15 +1496,36 @@ export const buildInsiderPool = (themedPools, cityCenter, city, size = HOME_INSI
 // PER-TE-PROPOSTE — i tour «per dopo» senza AI: per ogni tema il codice prende i primi posti del pool (gia' ordinato per merito
 // e DNA da prepareHomePools). Il titolo e' il dato nudo del tema (testi: PER_TE_TESTI).
 // PER-TE-PROPOSTE — l'ora di una proposta «per dopo» e' esplicita (anche in produzione, dove simulatedNow e' ignorato).
+// PER-TE-TRE (T27) — l'ordine dei temi secondo il DNA che il motore legge davvero (senza fiducia: quello di difetto).
+const ordineTemiDi = (opts) => ordineTemi(opts?.dnaWeights && opts.dnaWeights._share > 0 ? opts.dnaWeights : { _share: 0 });
 const oraDiPerTe = (opts) => (opts?.oraRiferimento instanceof Date && !Number.isNaN(opts.oraRiferimento.getTime()) ? opts.oraRiferimento : requestNow(opts));
-const TEMI_PER_DOPO = ['insider', 'food', 'cultura', 'romance', 'nature'];
-const tourDaiPool = (pools, city) => TEMI_PER_DOPO
-    .filter(t => Array.isArray(pools[t]) && pools[t].length > 0)
-    .map(t => ({
-        themeType: t,
-        title: PER_TE_TESTI.titoloTema(t, city),
-        stops: pools[t].slice(0, 4).map(c => ({ place_id: homePid(c) })).filter(st => st.place_id),
-    }));
+// PER-TE-TRE (T27) — prima i primi 4 del pool per merito, ovunque stessero: il tetto di 1,2 km li spezzava e il tema spariva. Ora per ogni
+// tema, nell'ordine del DNA, il gruppo di tappe dentro il tetto e aperte all'arrivo (gruppoDelTema); le tappe prese attorno, dagli altri temi,
+// entrano nel pool del tema (i passi dopo le cercano li'). Un tema senza gruppo non si serve.
+const tourDaiPool = (pools, city, { ordine, alleati, start, valido, volute }) => {
+    const usati = new Set();
+    const tours = [];
+    const temi = ordine.filter(t => Array.isArray(pools[t]) && pools[t].length > 0);
+    const delTema = (t) => [...pools[t], ...alleati.filter(c => TEMA_DELLA_PASSIONE[stopCoreCategory(c)] === t)]; // un giardino nel pool di un altro tema resta natura
+    const componi = (t, altri) => {
+        const scelti = gruppoDelTema({ tema: delTema(t), altri, start, valido, escludi: usati, minTema: tappeDelTemaMinime(t), ...(volute ? { volute: Math.max(volute, TAPPE_GRUPPO.minime) } : {}) });
+        if (!scelti) return false;
+        const nelPool = new Set(pools[t].map(homePid));
+        pools[t] = [...pools[t], ...scelti.filter(c => !nelPool.has(homePid(c)))];
+        scelti.forEach(c => usati.add(homePid(c)));
+        tours.push({ themeType: t, title: PER_TE_TESTI.titoloTema(t, city), stops: scelti.map(c => ({ place_id: homePid(c) })) });
+        return true;
+    };
+    // Primo giro: attorno a un tema non si prendono i posti dei temi che vengono dopo (a Catania il verde si mangiava i forni del cibo).
+    // Secondo giro: chi e' rimasto senza gruppo riprova con tutti i posti rimasti.
+    const restati = temi.filter((t, i) => {
+        const dopo = new Set(temi.slice(i + 1).flatMap(x => delTema(x).map(homePid)));
+        return !componi(t, alleati.filter(c => !dopo.has(homePid(c))));
+    });
+    for (const t of restati) if (!componi(t, alleati)) console.info(`[PER-TE-TRE] ${city}: tema ${t} senza un gruppo di tappe dentro il tetto, aperte all'arrivo`);
+    // l'ordine del DNA, non quello in cui i gruppi si sono trovati
+    return tours.sort((x, y) => temi.indexOf(x.themeType) - temi.indexOf(y.themeType));
+};
 
 
 /**
@@ -4010,7 +4032,49 @@ export const aiRecommendationService = {
     // @returns {Promise<{ tours: Array, _source: string }>}
     async generateHomeTours(args = {}) {
         const base = await this._homeTemiOBorgo(args);
-        return this._conProposteMinime(base, args);
+        const conPassioni = await this._conPassioni(base, args);
+        return this._dichiaraPassioni(await this._conProposteMinime(conPassioni, args), args);
+    },
+
+    /**
+     * PER-TE-TRE (T27) — una proposta per ogni passione del DNA. Il modello sceglie senza coordinate: i temi che non reggono al tetto o agli
+     * orari cadono. Di giorno i temi rimasti fuori si compongono in codice dagli stessi pool (nessuna chiamata AI, nessuna quota, 0 $), per
+     * adesso e con le stesse regole, nell'ordine del DNA. Di sera resta il giro della sera: le passioni stanno nelle proposte per domattina.
+     */
+    async _conPassioni(r, args = {}) {
+        if (!r || r._source === 'error') return r;
+        const { city, themedCandidates, opts = {} } = args;
+        const ora = oraDiPerTe(opts);
+        const pool = themedCandidates && Object.values(themedCandidates).some(a => Array.isArray(a) && a.length > 0);
+        if (isSeraStart(ora) || !pool) return r;
+        const adesso = r.tours || [];
+        const mancanti = temiDaComporre(adesso.map(t => t.themeType), ordineTemiDi(opts));
+        if (mancanti.length === 0) return r;
+        const dopo = await this._homeTemi({
+            ...args,
+            opts: {
+                ...opts, oraRiferimento: ora, senzaAI: true, ordineTemi: mancanti,
+                frasiGiaUsate: [...frasiUsateDa(adesso)],
+                escludiTemi: adesso.map(t => t.themeType),
+                escludiPlaceIds: placeIdDeiGiri(adesso),
+            },
+        });
+        const aggiunti = (dopo?.tours || []).map(t => ({ ...t, composto: true }));
+        console.info(`[PER-TE-TRE] ${city}: ${adesso.length} dal modello + ${aggiunti.length} composti (${aggiunti.map(t => t.themeType).join(', ') || 'nessuno'})`);
+        if (aggiunti.length === 0) return r;
+        return { ...r, tours: [...adesso, ...aggiunti], _source: 'unified-home', _messaggio: undefined, _report: { ...(r._report || {}), temiComposti: aggiunti.map(t => t.themeType) } };
+    },
+
+    /** PER-TE-TRE (T27) — quali passioni hanno la loro proposta (per adesso o per dopo) e quali no: la home dice le seconde. Nei borghi basta una proposta. */
+    _dichiaraPassioni(r, args = {}) {
+        if (!r || r._source === 'error') return r;
+        const { city, cityCenter, opts = {} } = args;
+        const ordine = ordineTemiDi(opts);
+        const passioni = ordine.slice(0, PASSIONI_MINIME);
+        const temi = new Set((r.tours || []).map(t => t.themeType));
+        const scoperte = passioni.filter(t => !temi.has(t));
+        const borgo = cityCenter?.isSmallTown ?? isSmallTown(city);
+        return { ...r, ...(borgo ? {} : { passioniMancanti: scoperte }), _report: { ...(r._report || {}), passioni: { ordine, passioni, coperte: passioni.filter(t => temi.has(t)), scoperte, composti: r._report?.temiComposti || [] } } };
     },
 
     /**
@@ -4082,11 +4146,20 @@ export const aiRecommendationService = {
         // DNA-5 — ritmo e compagnia del DNA (opts.dnaGiro, da DashboardUser): tappe per tour, soste, pasti, posti per la compagnia.
         // Per Te non ha un ritmo chiesto: vale quello del DNA (Profilo → giri → scelte). Senza opts.dnaGiro: come prima.
         const giroDna = giroDnaPerMotore(opts.dnaGiro, {});
-        const nonEmptyPools = prepareHomePools(themedCandidates, cityCenter, city, { dnaWeights, foodPrefs: food, compagnia: giroDna.compagnia?.valore || null });
+        const regolePool = { dnaWeights, foodPrefs: food, compagnia: giroDna.compagnia?.valore || null };
+        // PER-TE-TRE (T27) — senza il modello l'insider non toglie posti ai temi (i temi vengono prima): il suo pool si prepara a parte
+        const nonEmptyPools = prepareHomePools(opts.senzaAI ? { ...themedCandidates, insider: [] } : themedCandidates, cityCenter, city, regolePool);
+        if (opts.senzaAI) {
+            const { insider } = prepareHomePools({ insider: themedCandidates?.insider || [] }, cityCenter, city, regolePool);
+            if (insider) nonEmptyPools.insider = insider;
+        }
         // PER-TE-PROPOSTE — le proposte «per dopo» (opts.senzaAI): nessun tema già servito, nessun posto già in un altro tour.
+        let alleati = [];
         if (opts.senzaAI) {
             const fuoriTemi = new Set(opts.escludiTemi || []);
             const fuoriPosti = new Set(opts.escludiPlaceIds || []);
+            // PER-TE-TRE (T27) — i posti di tutti i temi, anche di quelli gia' serviti: attorno a un pasto o a un parco stanno le visite vicine
+            alleati = [...new Map(Object.keys(nonEmptyPools).flatMap(t => nonEmptyPools[t]).filter(c => homePid(c) && !fuoriPosti.has(homePid(c))).map(c => [homePid(c), c])).values()];
             for (const tema of Object.keys(nonEmptyPools)) {
                 if (tema === 'ceduti') continue;
                 if (fuoriTemi.has(tema)) { delete nonEmptyPools[tema]; continue; }
@@ -4107,6 +4180,15 @@ export const aiRecommendationService = {
         const moment = momentAtClock(nowRome.h, nowRome.mi);
         const romeDay = `${nowRome.y}-${String(nowRome.m).padStart(2, '0')}-${String(nowRome.d).padStart(2, '0')}`;
         const timeContext = `${moment.label} (${tableClock(moment.start)}–${tableClock(moment.end)}) — ${moment.categories.join(', ')}`;
+        // P3d-g — "Per Te" e' adesso: la luce e l'ora si controllano sull'ora di ADESSO (il tramonto non compare dopo cena).
+        const sunNow = sunTimes({ y: nowRome.y, m: nowRome.m, d: nowRome.d },
+            Number.isFinite(cityCenter?.latitude) ? cityCenter.latitude : ROMA_FALLBACK.latitude,
+            Number.isFinite(cityCenter?.longitude) ? cityCenter.longitude : ROMA_FALLBACK.longitude);
+        // C8b — le stesse fasce dei pasti di Crea: un ristorante solo a pranzo e a cena, la mattina una colazione.
+        // BORGO-FIX — decisione 3: la natura «da fuori» dopo il tramonto non e' una tappa nemmeno in Per Te
+        // NOTTE-FIX — la terza copia della regola: «al buio» = prima dell'alba o dal tramonto (eBuio), non solo dal tramonto
+        const regolaPerTe = (c, arrivo, altre) => perTeMealProblem(c, romeMinutes(arrivo), arrivo, altre)
+            || (arrivo instanceof Date && eBuio(arrivo, sunNow) && isNaturaDaFuori(c, cityCenter) ? 'natura da fuori al buio' : null);
 
         // Cache key: city + cityCenter fingerprint + DATA e MOMENTO (ora di
         // Roma) + hash del pool aggregato. Gate PER TE — data e momento
@@ -4156,7 +4238,9 @@ export const aiRecommendationService = {
                 // PER-TE-PROPOSTE — nessuna chiamata AI: i tour li compone il codice dai pool (ordinati per merito e DNA), le frasi
                 // sono quelle di riserva di sempre. Serve per le proposte «per dopo» (domattina): costo 0, nessuna quota.
                 clearTimeout(timeoutId);
-                rawTours = tourDaiPool(nonEmptyPools, city);
+                rawTours = tourDaiPool(nonEmptyPools, city, {
+                    ordine: opts.ordineTemi || [...ordineTemi(dnaWeights), 'insider'], alleati, start: now, valido: regolaPerTe, volute: giroDna.tappePerTe,
+                });
             } else {
             const data = await callOpenAIProxy({
                 model: 'gpt-4o-mini',
@@ -4273,12 +4357,6 @@ export const aiRecommendationService = {
             })), { city });
             const facts = factsRes.byId;
             const locali = localeInfoFor(sceltePerTe, poolById, { food: hasFoodPrefs(food) ? food : null, dnaWeights });
-            // P3d-g — "Per Te" e' adesso: la luce e l'ora si controllano sull'ora
-            // di ADESSO (il tramonto non compare dopo cena), e ogni tappa ha il
-            // suo motivo (tema del tour, DNA).
-            const sunNow = sunTimes({ y: nowRome.y, m: nowRome.m, d: nowRome.d },
-                Number.isFinite(cityCenter?.latitude) ? cityCenter.latitude : ROMA_FALLBACK.latitude,
-                Number.isFinite(cityCenter?.longitude) ? cityCenter.longitude : ROMA_FALLBACK.longitude);
             const composizione = [];
 
             // (1b) P7a2 — RIEMPIRE PRIMA DI NASCONDERE. Un tour sotto le 3 tappe
@@ -4389,12 +4467,10 @@ export const aiRecommendationService = {
                 }
                 const aperti = keepOpenStops({
                     maxLegKm: TETTO_PIEDI_KM, want: quante,
-                    // C8b — le stesse fasce dei pasti di Crea: un ristorante solo a pranzo e a cena, la mattina una colazione.
                     // GIRO-EDIT — la colazione scelta qui sopra e' un posto da colazione aperto: non passa dalla regola del dolce (una pasticceria e' la colazione).
-                    invalidAt: (c, arrivo, altre) => (colazioneId && homePid(c) === colazioneId ? (mealFitsClock(c, romeMinutes(arrivo)) ? null : 'pasto fuori fascia') : perTeMealProblem(c, romeMinutes(arrivo), arrivo, altre))
-                        // BORGO-FIX — decisione 3: la natura «da fuori» dopo il tramonto non e' una tappa nemmeno in Per Te
-                        // NOTTE-FIX — la terza copia della regola: «al buio» = prima dell'alba o dal tramonto (eBuio), non solo dal tramonto
-                        || (arrivo instanceof Date && eBuio(arrivo, sunNow) && isNaturaDaFuori(c, cityCenter) ? 'natura da fuori al buio' : null),
+                    invalidAt: (c, arrivo, altre) => (colazioneId && homePid(c) === colazioneId
+                        ? (mealFitsClock(c, romeMinutes(arrivo)) ? null : 'pasto fuori fascia') || (arrivo instanceof Date && eBuio(arrivo, sunNow) && isNaturaDaFuori(c, cityCenter) ? 'natura da fuori al buio' : null)
+                        : regolaPerTe(c, arrivo, altre)),
                     stops: riordina(tappe), pool: poolTema, start: now, exclude: usati,
                     retime: riordina,
                     toStop: (c) => {

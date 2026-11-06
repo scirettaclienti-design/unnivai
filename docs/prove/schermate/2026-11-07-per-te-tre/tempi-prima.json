@@ -1,0 +1,19 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "etichetta": "prima",
+ "ora": "2026-11-06T16:46:10.843Z",
+ "misure": {
+  "freddo": {
+   "ms": 11997,
+   "schede": 2
+  },
+  "cache": {
+   "ms": 969,
+   "schede": 2
+  },
+  "fascia": {
+   "ms": 10502,
+   "schede": 2
+  }
+ }
+}

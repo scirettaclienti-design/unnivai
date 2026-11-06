@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**15 su 22 fatte** · aggiornato il 06/11/2026 (ONBOARDING-ACCESSO verificata dal vivo) · fonte dello stato: `docs/prove/` e `git log` di `main` (`7db5d3e`)
+**15 su 22 fatte** · aggiornato il 06/11/2026 (T26 LOGIN-SESSIONE: «Esci» solo da questo telefono, sessione che regge senza rete; `docs/prove/2026-11-07-login-sessione.md`) · fonte dello stato: `docs/prove/` e `git log` di `main` (`7db5d3e`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.

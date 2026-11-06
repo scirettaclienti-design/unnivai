@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { SCOPE_ESCI } from './sessione';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
@@ -40,7 +41,7 @@ export const signIn = async (email, password) => {
  * Helper function to sign out
  */
 export const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({ scope: SCOPE_ESCI });
     return { error };
 };
 

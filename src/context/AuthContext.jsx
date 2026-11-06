@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { SchermataCaricamento } from '../components/marchio/Marchio';
 import { verificaLinkEmail } from '../lib/linkEmail';
+import { leggiSessioneAlAvvio, chiediMemoriaStabile, SCOPE_ESCI } from '../lib/sessione';
 
 const AuthContext = createContext({});
 
@@ -26,7 +27,8 @@ export const AuthProvider = ({ children }) => {
                 // true finché non ha finito, così /update-password non rimanda a /login prima del tempo.
                 const link = await verificaLinkEmail(supabase);
                 if (link.esito === 'ok' && link.tipo === 'recovery') setIsPasswordRecovery(true);
-                const { data: { session } } = await supabase.auth.getSession();
+                // LOGIN-SESSIONE: rete assente o lettura appesa non sono un «esci»: si resta dentro con la sessione salvata.
+                const { session } = await leggiSessioneAlAvvio(supabase);
                 if (session?.user) {
                     setUser(session.user);
                 } else {
@@ -55,6 +57,12 @@ export const AuthProvider = ({ children }) => {
         return () => subscription.unsubscribe();
     }, []);
 
+    // LOGIN-SESSIONE: una volta dentro, si chiede al browser di tenere la memoria del sito (non è un obbligo: silenzioso).
+    const idUtente = user?.id || null;
+    useEffect(() => {
+        if (idUtente) chiediMemoriaStabile();
+    }, [idUtente]);
+
     // 🛡️ LOADING SCREEN BLOCCANTE — ONBOARDING-ACCESSO: il marchio sul fondo dell'app (prima: bianca, «Loading Unnivai...»).
     if (loading) return <SchermataCaricamento />;
 
@@ -67,7 +75,8 @@ export const AuthProvider = ({ children }) => {
     // 3. ACTIONS
     const signOut = async () => {
         setLoading(true);
-        await supabase.auth.signOut();
+        // LOGIN-SESSIONE: «Esci» chiude solo questo telefono (prima: scope 'global' = fuori da tutti i telefoni).
+        await supabase.auth.signOut({ scope: SCOPE_ESCI });
         // Gate S.3 — cleanup completo di tutte le chiavi user-derived.
         // Audit fatto durante Gate S: se sopravvive al logout, prossimo utente
         // sullo stesso device vede lo stato del precedente (privacy leak).

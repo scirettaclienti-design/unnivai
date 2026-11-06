@@ -15,6 +15,7 @@ import { buildPromptFromSelections, buildQuickPrefs } from '@/pages/QuickPath';
 import { groupStopsByDayAndMoment } from '@/lib/stopMoments';
 import { typeLabelOf } from '@/lib/italianLabels';
 import { weightsToAIProfile } from '@/services/preferenceEngine';
+import { dnaGiroDaApprendimento } from '@/lib/giroDna';
 import { row, conComposizione } from '../prova-reale/righe.js';
 import { istanteSimulato } from './casi-esteso.js';
 // GUARDIA-PERTINENZA — la sonda (senza momento, intento del traduttore): solo registrazione, vedi pertinenza-sonda.js
@@ -129,6 +130,10 @@ export async function genera(caso, E) {
     return { r, rec, cc, now, food };
 }
 
+// T29 — `caso.comeLaPagina`: il dnaGiro che la pagina calcola per un utente nuovo (ritmo, Gruppo, frase). Senza, il caso del banco resta com'era.
+const dnaGiroDelCaso = (caso, { pace, group, testo }) => (caso.dnaGiro ? { dnaGiro: caso.dnaGiro }
+    : caso.comeLaPagina ? { dnaGiro: dnaGiroDaApprendimento({}, { scelto: pace, gruppo: group, testo }) } : {});
+
 async function generaItinerario(caso, { base, onboarding, cc, rec }) {
     let r;
     if (caso.modo === 'crea') {
@@ -137,7 +142,7 @@ async function generaItinerario(caso, { base, onboarding, cc, rec }) {
         // C10 — i profili A e B portano il loro DNA (con fiducia piena) e il profilo al selettore, come il banco nazionale
         r = await aiRecommendationService.generateItinerary(caso.luogo, prefs, caso.richiesta, meteoApp, caso.dna ? weightsToAIProfile(caso.dna) : '', cc,
             // DNA-5 — `caso.dnaGiro` (ritmo e compagnia del DNA, come li calcola AiItinerary); assente nei casi del banco: invariato
-            { dnaWeights: caso.dna || {}, pathType: 'custom', onboardingPrefs: onboarding, ...base, ...(caso.dnaGiro ? { dnaGiro: caso.dnaGiro } : {}) });
+            { dnaWeights: caso.dna || {}, pathType: 'custom', onboardingPrefs: onboarding, ...base, ...dnaGiroDelCaso(caso, { pace: prefs.pace, group: prefs.group, testo: caso.richiesta }) });
     } else if (caso.modo === 'veloce') {
         const s = caso.scelta;
         const durata = { Veloce: 'veloce', Medio: 'medio', Lungo: 'lungo' }[caso.durata];
@@ -146,7 +151,7 @@ async function generaItinerario(caso, { base, onboarding, cc, rec }) {
         const prefs = buildQuickPrefs({ main: s.main, mainTitle: s.mainTitle, subTitle: s.subTitle, durationTitle: caso.durata, groupTitle: caso.gruppo });
         rec.chiamata = { pagina: 'QuickPath.jsx', pathType: 'quick', prefs, testo: prompt };
         r = await aiRecommendationService.generateItinerary(caso.luogo, prefs, prompt, meteoApp, '', cc,
-            { dnaWeights: {}, pathType: 'quick', onboardingPrefs: onboarding, ...base });
+            { dnaWeights: {}, pathType: 'quick', onboardingPrefs: onboarding, ...base, ...dnaGiroDelCaso(caso, { pace: prefs.pace, group: prefs.group, testo: '' }) });
     } else if (caso.modo === 'sorprendimi') {
         const prefs = { interests: caso.tema ? [caso.tema] : ['Arte', 'Cibo', 'Scoperte Urbane'], duration: 'Mezza Giornata' };
         const prompt = `Sei l'intelligenza di Unnivai. Genera un'esperienza a sorpresa esaltante a ${caso.luogo}.

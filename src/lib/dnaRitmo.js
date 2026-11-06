@@ -97,9 +97,39 @@ export function leggiValoreTappa(value) {
  * @returns {{ tourId: string, citta: string|null, inizio: string, tappe: { categoria: string|null, tipo: string|null,
  *   arrivo: number, km: number|null, sostaPrevista: number|null, sostaMisurata: number|null }[], km: number|null }[]}
  */
+/** Due righe `tour_completed` dello stesso giro entro un minuto sono la stessa chiusura (una riga per categoria), come nelle Mete. */
+const STESSA_CHIUSURA_MS = 60 * 1000;
+function chiusureDeiGiri(righe) {
+    const out = new Map();
+    const fatte = (Array.isArray(righe) ? righe : []).filter(r => r?.kind === 'tour_completed' && r.tour_id)
+        .map(r => [r.tour_id, new Date(r.created_at).getTime()]).filter(([, t]) => Number.isFinite(t)).sort((a, b) => a[1] - b[1]);
+    for (const [id, t] of fatte) {
+        const elenco = out.get(id) || [];
+        if (!elenco.length || t - elenco.at(-1) > STESSA_CHIUSURA_MS) elenco.push(t);
+        else elenco[elenco.length - 1] = t;
+        out.set(id, elenco);
+    }
+    return out;
+}
+
+/** T29 — lo stesso tour rifatto sono due percorsi: le sue tappe si dividono alle chiusure. Prima km e tappe del giro si sommavano e il ritmo sembrava veloce. */
+function spezzaPerChiusure(lista, chiusure) {
+    const tappe = [...lista].sort((a, b) => (a.arrivo - b.arrivo) || String(a.id).localeCompare(String(b.id)));
+    const gruppi = [];
+    let i = 0;
+    for (const t of chiusure) {
+        const g = [];
+        while (i < tappe.length && tappe[i].arrivo <= t) g.push(tappe[i++]);
+        if (g.length) gruppi.push(g);
+    }
+    if (i < tappe.length) gruppi.push(tappe.slice(i));
+    return gruppi;
+}
+
 export function giriDalRegistro(righe = []) {
     const visti = new Set();
     const perGiro = new Map();
+    const chiusure = chiusureDeiGiri(righe);
     for (const r of Array.isArray(righe) ? righe : []) {
         if (!r || r.kind !== 'stop_reached' || !r.tour_id) continue;
         if (r.id) { if (visti.has(r.id)) continue; visti.add(r.id); }
@@ -111,8 +141,8 @@ export function giriDalRegistro(righe = []) {
         perGiro.set(r.tour_id, lista);
     }
     const giri = [];
-    for (const [tourId, lista] of perGiro) {
-        const tappe = lista.sort((a, b) => (a.arrivo - b.arrivo) || String(a.id).localeCompare(String(b.id)));
+    const percorsi = [...perGiro].flatMap(([tourId, lista]) => spezzaPerChiusure(lista, chiusure.get(tourId) || []).map(tappe => [tourId, tappe]));
+    for (const [tourId, tappe] of percorsi) {
         for (let i = 0; i < tappe.length - 1; i++) {
             const dopo = tappe[i + 1];
             if (!Number.isFinite(dopo.km)) continue;

@@ -29,6 +29,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 import { QuickPathSummary } from "@/components/Map/QuickPathSummary";
 import { useUserContext } from "@/hooks/useUserContext";
 import { useAILearning } from "@/hooks/useAILearning";
+import { dnaGiroDaApprendimento } from "@/lib/giroDna";
 import { useModificaGiro } from "@/hooks/useModificaGiro";
 import { gestiDelQuiz, logDnaGesti } from "@/lib/dnaRegistro";
 import { DEMO_CITIES } from "@/data/demoData";
@@ -268,7 +269,8 @@ export function buildQuickPrefs({ main, mainTitle, subTitle, durationTitle, grou
         duration: durationTitle || '',
         group: groupTitle || '',
         interests: [...new Set([mainTitle, subTitle, chip].filter(Boolean))],
-        pace: MOOD_PACE[mainKey] || 'Attivo',
+        // T29 — il ritmo c'e' solo se lo dice l'umore (Relax): «Attivo» non l'ha scelto nessuno e spegneva il passo della famiglia e il ritmo del DNA.
+        pace: MOOD_PACE[mainKey] || '',
     };
 }
 
@@ -538,7 +540,7 @@ export default function QuickPathPage() {
     // questo task, non era nel perimetro dichiarato — corretto perché la nuova
     // formula di punteggio (0.45 affinità DNA) è inutile se dnaWeights è
     // sempre vuoto per l'unico flusso che lo popolava "di riferimento".
-    const { trackGeneratedTour, getAIContext, dnaWeights, dnaShare, onboardingPrefs, righeRegistro, semeInteressi } = useAILearning();
+    const { trackGeneratedTour, getAIContext, dnaWeights, dnaShare, onboardingPrefs, righeRegistro, semeInteressi, ritmoPreferito, compagniaPreferita } = useAILearning();
     // Gate E-2: hasHitPaywall + unlockPremium + showPaywall rimossi (paywall
     // morto). Prima: dopo 10 tour vita hasHitPaywall=true → click su gruppo
     // apriva showPaywall, ma <PaywallModal> non era MAI renderizzato nel JSX,
@@ -682,7 +684,9 @@ export default function QuickPathPage() {
                 // G3 — Percorso Veloce: parte SEMPRE da adesso, il testo non conta.
                 // P7b2 — dieta e budget del primo accesso, con la stessa gerarchia
                 // di Crea il tuo percorso (la applica il motore).
-                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'quick', onboardingPrefs },
+                // T29 — il Gruppo cambia il giro come in Su misura (pasti, tappe, passo con i bambini): la compagnia e il ritmo del DNA valgono anche qui
+                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'quick', onboardingPrefs,
+                    dnaGiro: dnaGiroDaApprendimento({ righeRegistro, onboardingPrefs, ritmoPreferito, compagniaPreferita }, { scelto: prefsObject.pace, gruppo: prefsObject.group }) },
             );
 
             if (timedOut) return; // il timeout ha già gestito l'errore

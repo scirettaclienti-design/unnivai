@@ -607,7 +607,7 @@ export function nextStops(plan) {
 }
 
 function repairPass({
-    moments, buckets, aiStops, pool, dnaWeights = {}, requestedFamilies: asked = null,
+    moments, buckets, aiStops, pool, dnaWeights = {}, spinta = null, requestedFamilies: asked = null,
     maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES,
     searchedIds = null, searchedMoments = null, startPoint = null, registraPool = true,
     tempoLiberoMinuti = null,
@@ -636,7 +636,7 @@ function repairPass({
     const scoreCache = new Map();
     const scoreOf = (c) => {
         const k = idOf(c);
-        if (!scoreCache.has(k)) scoreCache.set(k, computeCandidateScore(c, pool || [], dnaWeights) + bonusLista(c));
+        if (!scoreCache.has(k)) scoreCache.set(k, computeCandidateScore(c, pool || [], dnaWeights) + bonusLista(c) + (spinta ? spinta(c) : 0));
         return scoreCache.get(k);
     };
     const famCache = new Map();
@@ -1155,11 +1155,11 @@ const POLISH_MIN_GAIN = 2;
  *     una scelta del modello.
  * Il numero di tappe e i momenti non cambiano; ogni sostituzione va nel report.
  */
-export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES, searchedIds = null, startPoint = null, dellaRichiesta = null }, report) {
+export function polishRoute(plan, { buckets, pool, dnaWeights = {}, spinta = null, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES, searchedIds = null, startPoint = null, dellaRichiesta = null }, report) {
     const scoreCache = new Map();
     const scoreOf = (c) => {
         const k = idOf(c);
-        if (!scoreCache.has(k)) scoreCache.set(k, computeCandidateScore(c, pool || [], dnaWeights) + bonusLista(c));
+        if (!scoreCache.has(k)) scoreCache.set(k, computeCandidateScore(c, pool || [], dnaWeights) + bonusLista(c) + (spinta ? spinta(c) : 0));
         return scoreCache.get(k);
     };
     const used = new Set(plan.flatMap(p => p.stops.map(s => idOf(s.candidate))));

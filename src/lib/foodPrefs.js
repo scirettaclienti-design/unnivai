@@ -314,6 +314,11 @@ export const applyFoodConstraints = (candidates, fp, isMeal = () => false) => {
 // mangiare. Un price_level sconosciuto, con un budget scelto, vale un po' meno.
 export const STILE_BONUS = 0.12;
 export const PREZZO_IGNOTO_MALUS = 0.04;
+// T29 IMPOSTAZIONI-VERIFICA — IL BUDGET SCEGLIE, NON SOLO ESCLUDE. Il solo tetto faceva di «Lusso» un giro uguale a quello senza budget
+// (€€€ non esclude niente) e di «Medio» quasi (solo il livello 4 fuori). Ora ogni budget spinge i locali della sua fascia di price_level.
+export const BUDGET_BONUS = 0.2;
+export const BUDGET_FASCIA = { '€': [0, 1], '€€': [2], '€€€': [3, 4] };
+export const nellaFasciaBudget = (c, budget) => (BUDGET_FASCIA[budget] || []).includes(priceLevelOf(c));
 
 const NOME_TRATTORIA = /\b(osteria|osterie|trattoria|trattorie|hostaria|taverna|fraschetta|bottega)\b/i;
 const NOME_STREET = /\b(forno|panificio|street|friggitoria|rosticceria|paninoteca|panino|pizza al taglio|mercato|kebab|arancin|supplì|suppli|tavola calda)\b/i;
@@ -332,6 +337,7 @@ export const foodPrefBonus = (c, fp, isMeal = () => false) => {
     let b = 0;
     if (fp.stile && matchesStile(c, fp.stile)) b += STILE_BONUS;
     if (Number.isFinite(fp.maxPriceLevel) && priceLevelOf(c) === null) b -= PREZZO_IGNOTO_MALUS;
+    if (nellaFasciaBudget(c, fp.budget)) b += BUDGET_BONUS;
     return b;
 };
 
@@ -349,6 +355,9 @@ export const hierarchyPromptBlock = (fp) => {
     ];
     if (fp && (fp.dieta?.length || fp.budget)) {
         righe.push('   Dieta e budget sono gia\' applicati dal codice ai candidati qui sotto: non dire mai che un locale "e\' vegetariano", "e\' vegano", "e\' senza glutine" o "e\' halal".');
+    }
+    if (BUDGET_FASCIA[fp?.budget]) {
+        righe.push(`   Budget scelto (${fp.budget}): dove si mangia preferisci i locali con price_level ${BUDGET_FASCIA[fp.budget].join(' o ')}.`);
     }
     if (fp?.stile) {
         righe.push(`   Gusto a tavola (primo accesso, solo una preferenza): ${STILI[fp.stile].label}.`);

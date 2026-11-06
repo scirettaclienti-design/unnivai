@@ -306,6 +306,12 @@ export function pesiDaEventi(eventi = [], seme = [], ora = Date.now()) {
         const c = normalizeCategory(e.category);
         if (!Number.isFinite(w) || !c) continue;
         if (azzeratoA[c] !== undefined && !(new Date(e.created_at).getTime() > azzeratoA[c])) continue;
+        // T29 — una correzione parte dal valore che vedi. Il grezzo puo' stare sotto 0 o sopra 1 (a schermo 0% e 100%): un «meno» a 0% lasciava
+        // un debito nascosto e il «piu'» dopo non muoveva niente, un «meno» a 100% non si vedeva. Il peso della correzione (±0,15) non cambia.
+        if (e.kind === 'dna_correction') {
+            grezzi[c] = Math.max(0, Math.min(1, Math.max(0, grezzi[c])) + w * decadimento(e.created_at, ora));
+            continue;
+        }
         grezzi[c] += w * decadimento(e.created_at, ora);
     }
     const pesi = {};

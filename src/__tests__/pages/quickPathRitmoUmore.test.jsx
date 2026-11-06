@@ -78,13 +78,27 @@ describe('QuickPath — ritmo e umore arrivano al motore come in Crea', () => {
     });
     it('umore Natura → ritmo Attivo e l\'interesse Natura (la stessa parola del chip di Crea)', async () => {
         const [, prefs] = await percorso('Natura', 'Parchi e Verde');
-        expect(prefs.pace).toBe('Attivo');
+        expect(prefs.pace).toBe('');
         expect(prefs.interests).toEqual(['Natura', 'Parchi e Verde']);
     });
     it('umore Storia → interesse Storia (privilegia la cultura come in Crea)', async () => {
         const [, prefs] = await percorso('Storia', 'Cultura e Musei');
         expect(prefs.interests).toContain('Storia');
-        expect(prefs.pace).toBe('Attivo');
+        expect(prefs.pace).toBe('');
+    });
+});
+
+describe('T29 — il Gruppo di Al volo arriva al motore', () => {
+    it('la pagina manda il dnaGiro con la compagnia scelta', async () => {
+        render(createElement(QuickPath));
+        fireEvent.click(screen.getByText('Natura').closest('button'));
+        fireEvent.click(screen.getByText('Parchi e Verde').closest('button'));
+        fireEvent.click(screen.getByText('Lungo').closest('button'));
+        fireEvent.click(screen.getByText('In famiglia').closest('button'));
+        await waitFor(() => expect(generateItinerary).toHaveBeenCalledTimes(1));
+        const [, prefs, , , , , opts] = generateItinerary.mock.calls[0];
+        expect(prefs.pace).toBe('');
+        expect(opts.dnaGiro.compagnia).toMatchObject({ valore: 'famiglia', fonte: 'richiesta' });
     });
 });
 
@@ -100,7 +114,7 @@ describe('buildQuickPrefs — la forma di Crea', () => {
         expect(buildQuickPrefs({ main: 'citta', mainTitle: 'Città', subTitle: 'Rioni Storici' }).interests).toEqual(['Città', 'Rioni Storici']);
         expect(buildQuickPrefs({ main: 'natura', mainTitle: 'Natura', subTitle: 'Natura' }).interests).toEqual(['Natura']);
     });
-    it('senza scelte non esplode: ritmo Attivo, nessun interesse', () => {
-        expect(buildQuickPrefs()).toEqual({ duration: '', group: '', interests: [], pace: 'Attivo' });
+    it('senza scelte non esplode: nessun ritmo, nessun interesse', () => {
+        expect(buildQuickPrefs()).toEqual({ duration: '', group: '', interests: [], pace: '' });
     });
 });

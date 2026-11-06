@@ -26,6 +26,8 @@ import { CASI_BANCO40 } from './casi-banco40.js';
 import { CASI_NAV_SIM } from '../prova-nav/casi-nav-sim.js';
 // PER-TE-TRE (T27) — i casi della prova di Per Te (Roma, Catania, Troina a tre ore), per nome
 import { CASI_PERTE_TRE } from '../prova-perte/casi-perte-tre.js';
+// T29 IMPOSTAZIONI-VERIFICA — i casi di Al volo e di Su misura che i tracciati non coprono, per nome
+import { CASI_IMPOSTAZIONI } from '../impostazioni/casi-impostazioni.js';
 import { FORMATO, creaRegistratore, fattiRegistrati } from './replay/rete.js';
 
 // C10c-replay — i fatti aperti delle tappe si registrano (per place_id) per il replay: la funzione vera gira com'e'.
@@ -65,7 +67,7 @@ for (const t of new Set([...CASI_ESTESI, ...CASI_HOME].filter(c => c.scelta).fla
 const SCELTI = (process.env.BANCO_CASI || '').split(',').map(s => s.trim()).filter(Boolean);
 // TROINA-FIX — i casi della guardia della home (casi-home.js) si scelgono per nome: BANCO_CASI=home-troina-perte,…
 // BORGO-DIAGNOSI — anche i casi di Ivano a Troina (casi-borgo.js), per nome
-const casi = SCELTI.length ? [...CASI_ESTESI, ...CASI_HOME, ...CASI_BORGO, ...CASI_BANCO40, ...CASI_NAV_SIM, ...CASI_PERTE_TRE].filter(c => SCELTI.includes(c.id)) : CASI_ESTESI;
+const casi = SCELTI.length ? [...CASI_ESTESI, ...CASI_HOME, ...CASI_BORGO, ...CASI_BANCO40, ...CASI_NAV_SIM, ...CASI_PERTE_TRE, ...CASI_IMPOSTAZIONI].filter(c => SCELTI.includes(c.id)) : CASI_ESTESI;
 // BANCO-40 — BANCO_ORDINE=1: i casi girano nell'ordine di BANCO_CASI (le citta' a gruppi: la cache del proxy rende i casi dopo il primo piu' economici)
 if (process.env.BANCO_ORDINE && SCELTI.length) casi.sort((a, b) => SCELTI.indexOf(a.id) - SCELTI.indexOf(b.id));
 const out = { avvio: new Date().toISOString(), identita: null, motore: process.env.BANCO_PLACES === 'new' ? 'new' : 'legacy', giornoSimulato: E.giornoSimulato, casi: [], costo: null };

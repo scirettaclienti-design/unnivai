@@ -385,8 +385,9 @@ import { zoneReason } from '@/lib/zone';
 import { isSitDownMeal, perTeMealProblem, mealFitsClock, isBreakfastPlace, isOutdoorWalk } from '@/lib/mealRules';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
+import { chipDegliInteressi, bonusInteressi, bonusUmore, ricercaDelBudget, ricercheDegliInteressi, rigaInteressi } from '@/lib/interessiGiro';
 import { buildDaySkeleton, addEveningWalk, normalizePace, isSeraStart, parseExplicitCategory, COLAZIONE_AUTO_ENTRO_MINUTES, colazioneAutoSpenta, MAX_VISITS_PER_DAY, MAX_VISITS_RILASSATO } from '@/lib/daySkeleton';
-import {
+import { isBarOrPub,
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace, scheduleHoursSources,
     requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme, WALK_NATURA_BORGO_MINUTES,
@@ -425,7 +426,7 @@ const MERENDA_DALLE = 15 * 60 + 30;
 import { weightsToAIProfile, stopCoreCategory } from './preferenceEngine';
 import { mapCandidateToCoreCategories, selectScoredCandidatePool, passesQualityThreshold, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport, computeAffinityScore, dnaShareOf } from './candidateScoring';
 import {
-    resolveFoodPrefs, applyFoodConstraints, foodPrefBonus, foodPrefsFingerprint, hasFoodPrefs,
+    resolveFoodPrefs, applyFoodConstraints, foodPrefBonus, nellaFasciaBudget, foodPrefsFingerprint, hasFoodPrefs,
     searchFoodWithDiet, dietNoteLine, dietCriteria, hierarchyPromptBlock, priceLevelOf,
     matchesStile, STILI,
 } from '@/lib/foodPrefs';
@@ -1112,10 +1113,14 @@ const CATEGORIA_TO_TOUR_CATEGORY = {
 // tourist_attraction — misurato: "Spiaggia di Maimoni" a Cabras arriva anche con
 // types=[establishment, point_of_interest] soltanto, a seconda di quale query
 // textsearch la trova per prima (dedup per place_id tiene la prima vista).
+// T29 — storia, arte e cultura sono la stessa famiglia di luoghi: quasi ogni monumento porta anche `tourist_attraction` o `museum`
+// (cultura), e con «storia» il filtro lasciava 1 posto su 38 a Roma (Al volo Storia e Natura davano lo stesso giro).
+const CATEGORIE_CULTURALI = new Set(['storia', 'arte', 'cultura']);
 const candidateConflictsWithCategoria = (candidate, targetCategory) => {
     const types = Array.isArray(candidate?.types) ? candidate.types : [];
     return types.some(t => {
         const cat = normalizeStepCategory(t);
+        if (CATEGORIE_CULTURALI.has(targetCategory) && CATEGORIE_CULTURALI.has(cat)) return false;
         return cat !== 'place' && cat !== targetCategory;
     });
 };
@@ -1278,7 +1283,7 @@ export const candidateMatchesIntentCategoria = (candidate, categoriaRaw) => {
 // generateItinerary renderebbe il test dipendente dagli interni del motore.
 // Gate NARRATORE-DOPO — `weather`/`weatherIcon` non servono piu' qui: il meteo
 // lo riceve il narratore, e il selettore non scrive il blocco "weather".
-export const buildSelectorSystemPrompt = ({ city, timeContext, prefs, aiProfile, cityCenter, candidates, userPrompt, intent, moments = null, buckets = null, foodPrefs = null }) => {
+export const buildSelectorSystemPrompt = ({ city, timeContext, prefs, aiProfile, cityCenter, candidates, userPrompt, intent, moments = null, buckets = null, foodPrefs = null, chipInteressi = [] }) => {
     const candidatesLite = candidates.map(p => {
         const lite = {
             place_id: p.place_id || p.googlePlaceId,
@@ -1287,6 +1292,8 @@ export const buildSelectorSystemPrompt = ({ city, timeContext, prefs, aiProfile,
             user_ratings_total: p.user_ratings_total,
             types: (p.types || []).slice(0, 5),
             address: p.address || null,
+            // T29 — col budget scelto il selettore vede la fascia di prezzo: senza, non poteva preferire i locali giusti
+            ...(foodPrefs?.budget && Number.isFinite(p.price_level) ? { price_level: p.price_level } : {}),
         };
         // Gate NARRATORE ANCORATO (DIFF 3) — `open_now` NON viene più passato.
         // Il Gate TOUR-SENSATO lo aveva aggiunto per dare al modello un dato su
@@ -1304,7 +1311,7 @@ export const buildSelectorSystemPrompt = ({ city, timeContext, prefs, aiProfile,
     });
     const N = candidatesLite.length;
     const groupLabel = prefs?.group || 'chiunque';
-    const transitHint = prefs?.pace === 'intenso' ? 'con qualche mezzo' : 'a piedi';
+    const transitHint = normalizePace(prefs?.pace) === 'intenso' ? 'con qualche mezzo' : 'a piedi';
     const radiusInfo = cityCenter && Number.isFinite(cityCenter.latitude)
         ? ` Tutte le tappe devono restare entro ${(cityCenter.radiusKm ?? ((cityCenter.isSmallTown ?? isSmallTown(city)) ? 5 : 10))} km dal centro di ${city}.`
         : '';
@@ -1370,12 +1377,12 @@ export const buildSelectorSystemPrompt = ({ city, timeContext, prefs, aiProfile,
    scartata e sostituita dal codice; un momento lasciato vuoto lo riempie il codice.
 ${momentsBlock}
    Dentro ogni momento scegli i più adatti a:
-   • gruppo: ${groupLabel}
+   • gruppo: ${groupLabel}${rigaInteressi(chipInteressi)}
    • richiesta utente: "${(userPrompt || '').slice(0, 300)}"${aiProfile ? `
    • profilo implicito: ${aiProfile}` : ''}`
         : `1. SCELTA — 4-5 luoghi tra i ${N} disponibili, quelli più adatti a:
    • orario: ${timeContext}
-   • gruppo: ${groupLabel}
+   • gruppo: ${groupLabel}${rigaInteressi(chipInteressi)}
    • richiesta utente: "${(userPrompt || '').slice(0, 300)}"${aiProfile ? `
    • profilo implicito: ${aiProfile}` : ''}`;
     const ordineBlock = hasMoments
@@ -1672,7 +1679,7 @@ const buildUnifiedHomeToursPrompt = ({ city, timeContext, weather, prefs, aiProf
     // P3d-j — gli interessi dell'utente, chiusi (chiavi di stopPhrases.INTERESSI).
     const interessiLabel = interessi.length ? interessi.map(k => `"${k}"`).join(', ') : 'nessuno (allora null)';
     const groupLabel = prefs?.group || 'chiunque';
-    const transitHint = prefs?.pace === 'intenso' ? 'con qualche mezzo' : 'a piedi';
+    const transitHint = normalizePace(prefs?.pace) === 'intenso' ? 'con qualche mezzo' : 'a piedi';
     // Gate PER TE — via la frase "Tutte le tappe devono restare entro N km":
     // il modello non riceve coordinate e non poteva verificarla. La distanza
     // la decide il codice prima del prompt (prepareHomePools).
@@ -2696,8 +2703,35 @@ export const aiRecommendationService = {
                 ? { latitude: area.centro.latitude, longitude: area.centro.longitude, biasMeters: Math.round(area.raggioKm * 1000) }
                 : cityCenter;
             if (area) cittaReport.centroRicerche = { latitude: centroRicerche.latitude, longitude: centroRicerche.longitude, biasKm: area.raggioKm, area: area.nome };
-            const { candidates: rawDalleRicerche, intent } = await fetchRealPOICandidates(city, centroRicerche, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
+            const { candidates: rawDallaFrase, intent } = await fetchRealPOICandidates(city, centroRicerche, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
+            // T29 — i chip di Su misura: con una frase le ricerche seguono solo la frase. Un chip che non ha portato quasi niente del suo
+            // tipo ha UNA ricerca sua (al massimo due per generazione); un chip gia' coperto dalla frase o dalla lista non costa niente.
+            const chipInteressi = chipDegliInteressi(prefs, opts.pathType);
+            const conFrase = !!String(userPrompt || '').trim() && !opts.baseQueries;
+            const ricercheChip = conFrase ? ricercheDegliInteressi(chipInteressi, [...rawDallaFrase, ...poiCitta]) : [];
+            // ... e il budget del modulo: una ricerca sola se dove si mangia manca la sua fascia
+            const ricercaBudget = ricercaDelBudget(food, [...rawDallaFrase, ...poiCitta], (c) => isMealPlace(c) && nellaFasciaBudget(c, food.budget));
+            if (ricercaBudget) ricercheChip.push(ricercaBudget);
+            const rawDalleRicerche = [...rawDallaFrase];
+            if (ricercheChip.length > 0 && Number.isFinite(centroRicerche?.latitude)) {
+                const { placesDiscoveryService } = await import('./placesDiscoveryService');
+                const bias = Number.isFinite(centroRicerche.biasMeters) ? { radiusMeters: centroRicerche.biasMeters } : {};
+                const liste = await settleSearches(ricercheChip.map(r => placesDiscoveryService.discoverRealPOIs(city, centroRicerche.latitude, centroRicerche.longitude, null,
+                    { customQuery: r.customQuery, customKind: r.customKind, skipLegacyFallback: true, ...bias })), `interessi ${city}`);
+                const visti = new Set(rawDalleRicerche.map(c => c.place_id || c.googlePlaceId));
+                for (const lista of liste) {
+                    for (const c of Array.isArray(lista) ? lista : []) {
+                        const id = c.place_id || c.googlePlaceId;
+                        if (!id || visti.has(id)) continue;
+                        visti.add(id);
+                        rawDalleRicerche.push(c);
+                    }
+                }
+                console.info(`[T29 INTERESSI] ${city}: ricerche mirate per ${ricercheChip.map(r => r.chip).join(', ')}`);
+            }
             modelliReport.traduttore = intent?._modello ?? null;
+            // T29 — in Al volo l'umore e' una scelta: con Natura la categoria e' natura, anche se il traduttore legge «ville storiche» come storia
+            if (opts.pathType === 'quick' && intent && Array.isArray(prefs?.interests) && prefs.interests.includes('Natura')) intent.categoria = 'natura';
             // C10b3 — BORGHI (decisione di Ivano): il giro corto si colloca nella fascia della giornata in cui i posti della lista sono
             // aperti; la via principale vale come passeggiata (una sola) e non la toglie la regola delle zone.
             const nonZona = (c) => !zoneReason({ ...c, primaryType: c.primaryType ?? c.primary_type }, city);
@@ -2872,6 +2906,11 @@ export const aiRecommendationService = {
                 if (candidates.length < beforeCategoria) {
                     console.warn(`[Gate RAGGIO-CATEGORIA] ${city}: ${beforeCategoria - candidates.length}/${beforeCategoria} candidati scartati per categoria≠"${intent.categoria}" prima del selettore`);
                 }
+                // T29 — in Al volo, con Natura le piazze e le chiese della lista della citta' non passano davanti al verde: Natura a
+                // Catania partiva da Piazza del Duomo e Via Etnea con Villa Bellini a due passi. Se di verde ce n'e' poco, restano.
+                if (opts.pathType === 'quick' && catStretta === 'natura' && candidates.filter(isNaturaOPanorama).length >= 2) {
+                    candidates = candidates.filter(c => !c._citta || isNaturaOPanorama(c) || isMealPlace(c) || isBarOrPub(c));
+                }
             }
 
             // ─── Gate MERITO — soglia + punteggio, QUI, al posto del taglio ──
@@ -2926,10 +2965,17 @@ export const aiRecommendationService = {
                 if (tipicoEsclusi.length > 0) console.info(`[C7 TIPICO] ${city}: ${tipicoEsclusi.length} cucine estere escluse — ${tipicoEsclusi.join(' | ')}`);
                 candidates = tenuti;
             }
-            const foodBonus = (foodOn || tema.tipico || giroDna.bonus)
+            const alVolo = opts.pathType === 'quick';
+            // T29 — le ricerche dei chip e del budget stanno dentro il tetto delle ricerche mirate della generazione
+            const tettoRicerche = Math.max(0, MAX_EXTRA_SEARCHES - ricercheChip.length);
+            const foodBonus = (foodOn || tema.tipico || giroDna.bonus || chipInteressi.length > 0 || alVolo)
                 ? (c) => (foodOn ? foodPrefBonus(c, food, isMealPlace) : 0) + (tema.tipico && isMealPlace(c) ? tipicoBonus(c, { dieta: foodOn ? food.dieta : [] }) : 0)
                     // DNA-5 — la spinta della compagnia (parchi e giochi per la famiglia, belvedere per la coppia…): si somma al merito
                     + (giroDna.bonus ? giroDna.bonus(c) : 0)
+                    // T29 — la spinta dei chip di Su misura
+                    + bonusInteressi(c, chipInteressi)
+                    // T29 — in Al volo i posti trovati dalla ricerca dell'umore passano davanti alla lista della citta'
+                    + (alVolo && !isMealPlace(c) ? bonusUmore(c) : 0)
                 : null;
             // C10 — decisione di Ivano su P7a: le ancore (al massimo 3 essenziali per giornata intera, 1 per mezza) e i posti
             // «da locale» della lista passano davanti e FUORI dal merito (non contano nel limite dei 20 ne' nel tetto delle
@@ -3104,7 +3150,7 @@ export const aiRecommendationService = {
                 seraleVeloce = veloce && moments.some(m => (m.bevuta && m.soloCategorie) || m.cenaPrima || m.key === 'passeggiata');
                 // BORGO-FIX — decisione 3: il drink di riserva (la sera tardi) cerca un bar: la categoria chiesta (natura) non filtra quella ricerca
                 drinkDiRiserva = moments.some(m => m.daRiserva && m.bevuta);
-                extraThemes = buckets ? shortMomentThemes(moments, openBuckets().buckets, candidates, undefined, { requestedFamilies: familiesAsked }) : [];
+                extraThemes = buckets ? shortMomentThemes(moments, openBuckets().buckets, candidates, tettoRicerche, { requestedFamilies: familiesAsked }) : [];
                 if (extraThemes.length > 0) {
                     const foodAnchor = extraThemes.includes('food')
                         ? mealSearchAnchor(moments, openBuckets().buckets, candidates, { requestedFamilies: familiesAsked })
@@ -3166,7 +3212,7 @@ export const aiRecommendationService = {
             if (selectorCandidates.length >= 1) {
                 const selectorPrompt = buildSelectorSystemPrompt({
                     city, timeContext,
-                    prefs, aiProfile: aiProfileEff, cityCenter, candidates: selectorCandidates, userPrompt,
+                    prefs, aiProfile: aiProfileEff, cityCenter, candidates: selectorCandidates, userPrompt, chipInteressi,
                     // C7 — col tema cibo la categoria `cibo` non e' una clausola dura per tutti i momenti: al selettore
                     // arriva `misto` (i momenti dicono gia' cosa serve: esperienze la mattina e il pomeriggio).
                     intent: tema.tema ? { ...intent, categoria: 'misto' } : intent, // Gate B — clausole dure (categoria/escludi/tempo/note) nel prompt
@@ -3259,7 +3305,7 @@ export const aiRecommendationService = {
                             const searchedMoments = new Set();
                             const ricercheDopo = [];
                             // C8a — con momenti facoltativi (passeggiata, cena del Veloce) il tetto e' di 3 ricerche in tutto.
-                            let budget = Math.max(0, MAX_EXTRA_SEARCHES - extraThemes.length);
+                            let budget = Math.max(0, tettoRicerche - extraThemes.length);
                             // C8a — la passeggiata fra drink e cena ha UNA ricerca sua, dalla tappa prima, in piu' del tetto dei momenti veri.
                             let walkBudget = moments.some(x => x.key === 'passeggiata') ? 1 : 0;
                             const eWalk = (x) => moments.find(m => m.id === x.momento)?.key === 'passeggiata';
@@ -3273,7 +3319,7 @@ export const aiRecommendationService = {
                                         cittaReport.ancoreSpostate = [...(cittaReport.ancoreSpostate || []), ...sp.spostate];
                                     }
                                     return aiStops;
-                                })(), pool: candidates, dnaWeights: dnaW,
+                                })(), pool: candidates, dnaWeights: dnaW, spinta: foodBonus,
                                 requestedFamilies: familiesAsked, searchedIds, searchedMoments, dellaRichiesta: catStretta === 'natura' ? isNaturaOPanorama : null,
                                 // C5b — il punto di partenza, se il chiamante lo conosce;
                                 // senza, la prima tappa si misura dal centro del gruppo.
@@ -3524,7 +3570,7 @@ export const aiRecommendationService = {
                                 const nelPool = new Set(candidates.map(c => c.place_id || c.googlePlaceId));
                                 const punteggio = (c) => (Number(c.rating) || 0) + (nelPool.has(c.place_id || c.googlePlaceId) ? 0.3 : 0)
                                     + (dnaShare > 0 ? 2 * Math.max(0, ...[...mapCandidateToCoreCategories(c)].map(k => Number(opts.dnaWeights?.[k]) || 0)) : 0)
-                                    + (giroDna.bonus ? giroDna.bonus(c) : 0);
+                                    + (giroDna.bonus ? giroDna.bonus(c) : 0) + bonusInteressi(c, chipInteressi);
                                 const rilassato = normalizePace(prefs?.pace) === 'rilassato' || giroDna.passo === 'rilassato';
                                 // il ritmo Tranquillo e la famiglia tengono le pause lunghe (C8d, DNA-5): il buco si dichiara col suo motivo, non si riempie
                                 const soloDichiara = giroDna.famiglia ? 'famiglia' : (rilassato ? 'ritmo' : null);
@@ -3556,7 +3602,7 @@ export const aiRecommendationService = {
                             let tappeSenzaFiltro = null;
                             if (hoursReport.chiusi.length > 0 || veto.size > 0) {
                                 const senza = repairMomentSelection({
-                                    moments, buckets, aiStops, pool: candidates, dnaWeights: dnaW,
+                                    moments, buckets, aiStops, pool: candidates, dnaWeights: dnaW, spinta: foodBonus,
                                     requestedFamilies: familiesAsked, searchedIds, searchedMoments, dellaRichiesta: catStretta === 'natura' ? isNaturaOPanorama : null,
                                     startPoint: opts.startPoint || null, tempoLiberoMinuti: FREE_TIME_MAX_MINUTES, registraPool: false,
                                 });

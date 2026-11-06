@@ -222,3 +222,24 @@ describe('DNA-5 — il Profilo resta la fonte principale', () => {
         expect(g.compagnia).toMatchObject({ valore: 'coppia', fonte: 'profilo' });
     });
 });
+
+describe('T29 — lo stesso tour rifatto sono due percorsi', () => {
+    const tappa = (id, ora, km) => ({ id, kind: 'stop_reached', category: 'cultura', tour_id: 'g', value: `km=${km};sosta=30;tipo=museo`, created_at: ora });
+    const chiusura = (id, ora) => ({ id, kind: 'tour_completed', category: 'cultura', tour_id: 'g', value: null, created_at: ora });
+    const righe = [
+        tappa('a', '2026-10-20T10:00:00Z', 0), tappa('b', '2026-10-20T11:00:00Z', 1), chiusura('c', '2026-10-20T11:00:30Z'), chiusura('c2', '2026-10-20T11:00:40Z'),
+        tappa('d', '2026-10-24T10:00:00Z', 0), tappa('e', '2026-10-24T11:00:00Z', 1), chiusura('f', '2026-10-24T11:00:30Z'),
+    ];
+    it('due chiusure dello stesso tour sono due giri, con i loro km e le loro tappe', () => {
+        const giri = giriDalRegistro(righe);
+        expect(giri).toHaveLength(2);
+        expect(giri.map(g => g.tappe.length)).toEqual([2, 2]);
+        expect(giri.map(g => g.km)).toEqual([1, 1]);
+    });
+    it('un tour mai chiuso resta un giro solo', () => {
+        expect(giriDalRegistro(righe.filter(r => r.kind === 'stop_reached'))).toHaveLength(1);
+    });
+    it('il ritmo appreso conta i giri veri', () => {
+        expect(ritmoAppreso(righe)?.giri ?? giriDalRegistro(righe).length).toBe(2);
+    });
+});

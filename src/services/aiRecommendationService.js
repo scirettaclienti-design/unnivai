@@ -1418,6 +1418,10 @@ Ecco i ${N} luoghi REALI (usa i place_id da qui):
 ${JSON.stringify(candidatesLite, null, 2)}`;
 };
 
+// T29 — il selettore scrive circa 50 token per tappa (place_id e momento). A 1000 fissi «2-3 Giorni» a Roma (30 tappe) si fermava a meta' del JSON, il
+// parse falliva due volte e il giro era vuoto. Fino a 14 tappe il tetto resta 1000.
+export const maxTokensSelettore = (moments = []) => Math.max(1000, 200 + 60 * moments.reduce((a, m) => a + (Number(m.stops) || 0), 0));
+
 const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
 
 // ─── Gate NARRATORE-DOPO — il prompt del narratore ──────────────────────────
@@ -3234,7 +3238,7 @@ export const aiRecommendationService = {
                         ],
                         response_format: { type: 'json_object' },
                         temperature: 0.7,
-                        max_tokens: 1000,
+                        max_tokens: maxTokensSelettore(moments),
                     }, controller.signal, quotaTicket, 'selettore');
                     modelliReport.selettore = data?._modello ?? null;
                     clearTimeout(timeoutId);

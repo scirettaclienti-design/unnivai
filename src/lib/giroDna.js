@@ -1,8 +1,8 @@
 /**
  * DNA-5 — dal ritmo e dalla compagnia del DNA a cosa il motore cambia nel giro. Funzione pura: il motore la chiama una volta
  * (`_generateItinerary`, `_homeTemi`) con `opts.dnaGiro` = { ritmo: ritmoDelGiro(...), compagnia: compagniaDelGiro(...) }, che la
- * pagina calcola (Crea: AiItinerary; Per Te: DashboardUser). Senza `opts.dnaGiro` il giro e' quello di sempre (banco, replay, Quiz,
- * Sorprendimi: invariati).
+ * pagina calcola (Crea: AiItinerary; Al volo: QuickPath, da T29; Per Te: DashboardUser). Senza `opts.dnaGiro` il giro e' quello di sempre
+ * (banco, replay, Sorprendimi: invariati).
  */
 
 import { REGOLE_COMPAGNIA, bonusCompagnia, compagniaDelGiro } from './compagniaDna.js';

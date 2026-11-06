@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { foodPrefBonus, resolveFoodPrefs, hierarchyPromptBlock, BUDGET_BONUS } from '../../lib/foodPrefs';
 import { chipDegliInteressi, postoDelChip, bonusInteressi, ricercheDegliInteressi, ricercaDelBudget, bonusUmore, rigaInteressi, BONUS_INTERESSE, RICERCHE_INTERESSI_MAX } from '../../lib/interessiGiro';
-import { buildSelectorSystemPrompt, candidateMatchesIntentCategoria } from '../../services/aiRecommendationService';
+import { buildSelectorSystemPrompt, candidateMatchesIntentCategoria, maxTokensSelettore } from '../../services/aiRecommendationService';
 import { giroDnaPerMotore, dnaGiroDaApprendimento } from '../../lib/giroDna';
 import { repairMomentSelection } from '../../services/momentSelection';
 
@@ -89,6 +89,14 @@ describe('ritmo nel prompt del selettore', () => {
     it('il ritmo Intenso del modulo (con la maiuscola) arriva', () => {
         const p = buildSelectorSystemPrompt({ city: 'Roma', timeContext: 'ora', prefs: { pace: 'Intenso' }, aiProfile: '', cityCenter: null, userPrompt: 'x', intent: null, candidates: [] });
         expect(p).toMatch(/con qualche mezzo/);
+    });
+});
+
+describe('durata 2-3 Giorni', () => {
+    it('il selettore ha i token per tutte le tappe; un giorno resta a 1000', () => {
+        expect(maxTokensSelettore(Array(8).fill({ stops: 2 }))).toBe(1000);
+        expect(maxTokensSelettore(Array(18).fill({ stops: 2 }))).toBe(2360);
+        expect(maxTokensSelettore()).toBe(1000);
     });
 });
 

@@ -168,7 +168,7 @@ Una correzione cambia sempre la percentuale e, al cambio di gradino, Per Te (la 
 
 ## Prove
 
-- Suite, lint, build, guardia: in fondo alla PR.
+- Suite 3620 test verdi, lint 0 errori, build ok.
 - Guardia 12/12, banco 10/10, pertinenza senza ❌ nuovi.
 - Banco 40 in riproduzione: 40/40 con tutti i controlli. 33 casi uguali al giro vero, 7 con tappe diverse: `b-roma-A`, `b-catania-A`, `b-catania-B`, `a-siracusa-ortigia`, `n-roma-intenso`, `n-palermo-natura`, `n-gangi-1000`. **Gli esiti salvati del banco restano quelli del giro del 3/11**: `npm run banco -- --replay` esce con 1 finché non si rifà il giro pagato.
 - **Schermate**: nessuna. Il task non cambia l'interfaccia, cambia i giri. Il passaggio di `dnaGiro` da QuickPath lo prova il test della pagina.

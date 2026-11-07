@@ -1,0 +1,49 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-07T04:04:37.770Z",
+ "oraRoma": "07/11/2026, 05:04:37",
+ "parti": {
+  "profilo": {
+   "ok": false,
+   "errore": "locator.scrollIntoViewIfNeeded: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Mete', exact: true }).first()\u001b[22m\n",
+   "secondi": 77
+  },
+  "ospite": {
+   "bottone": 0,
+   "secondi": 1
+  },
+  "alVolo": {
+   "alVoloPasso1": "Ciao, ProvaAccesso! Roma 13°C Percorso Veloce Scopri qualcosa di speciale in pochi minuti Il tuo mood oggi? L'ambiente perfetto per iniziare Città Natura Storia Gusto Home Esplora Foto Profilo",
+   "fotoAlVolo1": "docs/prove/schermate/collaudo-finale/g-al-volo-1.png",
+   "alVoloPassi": [
+    [
+     "Città",
+     "Natura",
+     "Storia",
+     "Gusto"
+    ],
+    [
+     "🛵 Rioni Storici Perditi tra i vicoli di Trastever",
+     "⛲ Piazze Eterne La dolce vita tra Piazza Navona e ",
+     "🛍️ Via del Corso Shopping tra vetrine e palazzi s"
+    ],
+    [
+     "Veloce 1-2 ore",
+     "Medio 2-4 ore",
+     "Lungo 4-6 ore"
+    ],
+    [
+     "Solo 1 persona",
+     "In coppia 2 persone",
+     "Con gli amici 3-6 persone",
+     "In famiglia 4-8 persone"
+    ]
+   ],
+   "alVoloSecondi": 10,
+   "alVoloTesto": "Ciao, ProvaAccesso! Roma 13°C Percorso Veloce Scopri qualcosa di speciale in pochi minuti ROMA Da Via Margutta a Piazza di Spagna Itinerario cucito dall'AI IL TUO DNA ESPLORATIVO Hai scelto città · rioni storici. Nei tuoi ultimi 5 giri 7 tappe su 12 erano di storia e cultura. 2 TAPPE 5:06–6:31 GIRO ITINERARIO GENERATO MATTINA 1 Via Margutta 05:06 Attraversi la Via Margutta piano, senza fretta. Ci arrivi alle 5:06. Togli Cambia 2 Piazza di Spagna 05:51 Passi dalla Piazza di Spagna: guardati intor",
+   "fotoAlVolo2": "docs/prove/schermate/collaudo-finale/g-al-volo-2-esito.png",
+   "ok": false,
+   "secondi": 21
+  }
+ }
+}

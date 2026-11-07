@@ -1,0 +1,150 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-07T04:08:50.609Z",
+ "oraRoma": "07/11/2026, 05:08:50",
+ "parti": {
+  "profiloOspite": {
+   "vuoto": "ospite",
+   "contatori": {
+    "giri": "0",
+    "citta": "0",
+    "tappe": "0"
+   },
+   "titoli": [
+    "Viaggiatore",
+    "Il tuo DNA",
+    "I tuoi interessi",
+    "Come giri",
+    "A tavola",
+    "I tuoi giri",
+    "Le tue Mete",
+    "Rivivi i tuoi giri"
+   ],
+   "richiesteVisibile": false,
+   "emailVisibile": false,
+   "sezioni": {
+    "dna": true,
+    "interessi": true,
+    "comeGiri": true,
+    "riviviTitolo": true,
+    "mete": true,
+    "risultati": true
+   },
+   "foto1": "docs/prove/schermate/collaudo-finale/p-ospite-1-alto.png",
+   "rivivi": {
+    "giri": 0,
+    "vuotoTesto": "Finisci un giro e lo ritrovi qui, con la mappa e le tappe."
+   },
+   "foto2": "docs/prove/schermate/collaudo-finale/p-ospite-2-rivivi.png",
+   "tabMete": {
+    "visibile": 1,
+    "foto": "docs/prove/schermate/collaudo-finale/p-ospite-5-mete.png"
+   },
+   "mete": {
+    "elementi": 0,
+    "vuote": 1,
+    "altre": 0
+   },
+   "tabRisultati": {
+    "visibile": 1,
+    "foto": "docs/prove/schermate/collaudo-finale/p-ospite-5-risultati.png"
+   },
+   "risultati": {
+    "vuoti": 1,
+    "valori": [
+     "0",
+     "0",
+     "0",
+     "0"
+    ]
+   },
+   "dnaControlli": {
+    "bottoni": [
+     "Torna alla Home",
+     "Modifica il nome",
+     "Meno cultura e storia",
+     "Più cultura e storia",
+     "Meno cibo",
+     "Più cibo",
+     "Meno serate",
+     "Più serate",
+     "Meno natura",
+     "Più natura",
+     "Meno avventura",
+     "Più avventura",
+     "Meno shopping",
+     "Più shopping",
+     "Meno relax",
+     "Più relax",
+     "Meno arte",
+     "Più arte",
+     "Mangiare e bere",
+     "Storia e arte",
+     "Natura e panorami",
+     "Vita notturna",
+     "Camminare e scoprire",
+     "Ritmo lento",
+     "Shopping e mercati",
+     "Salvato",
+     "Lo impara Unnivai",
+     "Tranquillo",
+     "Medio",
+     "Intenso",
+     "Lo impara Unnivai",
+     "Da solo",
+     "In coppia",
+     "Con bambini",
+     "Con amici",
+     "Salvato",
+     "Nessuna restrizione",
+     "Vegetariano",
+     "Vegano",
+     "Senza glutine",
+     "Halal",
+     "€",
+     "€€",
+     "€€€",
+     "Cucina d'autore",
+     "Trattoria",
+     "Street food",
+     "Salvato",
+     "Mete",
+     "Risultati",
+     "Elimina account"
+    ]
+   },
+   "foto6": "docs/prove/schermate/collaudo-finale/p-ospite-6-dna.png",
+   "foto7": "docs/prove/schermate/collaudo-finale/p-ospite-7-come-giri.png",
+   "collegamenti": [
+    {
+     "href": "/dashboard-user",
+     "url": "/dashboard-user",
+     "caratteri": 319,
+     "nonTrovata": false
+    },
+    {
+     "href": "/privacy",
+     "url": "/privacy",
+     "caratteri": 10352,
+     "nonTrovata": false
+    },
+    {
+     "href": "/termini",
+     "url": "/termini",
+     "caratteri": 2621,
+     "nonTrovata": false
+    }
+   ],
+   "errori": [],
+   "ok": {
+    "richiesteNonVisibile": true,
+    "sezioni": true,
+    "tabMete": true,
+    "tabRisultati": true,
+    "collegamentiNonVuoti": true
+   },
+   "secondi": 21
+  }
+ },
+ "ospiteUrl": "/dashboard-user"
+}

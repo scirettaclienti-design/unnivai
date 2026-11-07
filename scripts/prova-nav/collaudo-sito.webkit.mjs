@@ -16,7 +16,7 @@ import { conVoceTelefono } from './voce-telefono.mjs';
 
 const BASE = process.env.COLLAUDO_BASE || 'https://unnivai.vercel.app';
 const PUNTI = (process.argv[2] || '1,2,3,4,5,6,7,8,11,12,13').split(',').map(Number);
-const OUT = path.resolve('docs/prove/schermate/collaudo-sito');
+const OUT = path.resolve(process.env.COLLAUDO_OUT || 'docs/prove/schermate/collaudo-sito');
 const ESITI = path.resolve(process.env.COLLAUDO_ESITI || 'docs/prove/dati/2026-10-30-collaudo-sito.json');
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'collaudo-'));
 fs.mkdirSync(OUT, { recursive: true });

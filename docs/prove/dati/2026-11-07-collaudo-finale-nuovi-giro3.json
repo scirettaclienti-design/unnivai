@@ -1,0 +1,318 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-07T04:06:45.490Z",
+ "oraRoma": "07/11/2026, 05:06:45",
+ "parti": {
+  "profilo": {
+   "vuoto": false,
+   "dialogoPosizione": true,
+   "contatori": {
+    "giri": "56",
+    "citta": "2",
+    "tappe": "326"
+   },
+   "titoli": [
+    "ProvaAccesso",
+    "Il tuo DNA",
+    "I tuoi interessi",
+    "Come giri",
+    "A tavola",
+    "I tuoi giri",
+    "Le tue Mete",
+    "Rivivi i tuoi giri"
+   ],
+   "richiesteVisibile": false,
+   "emailVisibile": true,
+   "sezioni": {
+    "dna": true,
+    "interessi": true,
+    "comeGiri": true,
+    "riviviTitolo": true,
+    "mete": true,
+    "risultati": true
+   },
+   "foto1": "docs/prove/schermate/collaudo-finale/p-account-1-alto.png",
+   "rivivi": {
+    "giri": 3,
+    "vuotoTesto": null,
+    "scheda": {
+     "tappe": 3,
+     "rifai": 1
+    },
+    "dopoRifai": {
+     "url": "/map",
+     "tappeSullaMappa": 151,
+     "avvia": 1
+    }
+   },
+   "foto2": "docs/prove/schermate/collaudo-finale/p-account-2-rivivi.png",
+   "foto3": "docs/prove/schermate/collaudo-finale/p-account-3-rivivi-scheda.png",
+   "foto4": "docs/prove/schermate/collaudo-finale/p-account-4-rifai-mappa.png",
+   "tabMete": {
+    "visibile": 1,
+    "foto": "docs/prove/schermate/collaudo-finale/p-account-5-mete.png"
+   },
+   "mete": {
+    "elementi": 5,
+    "vuote": 0,
+    "altre": 1,
+    "dopoAltre": 56
+   },
+   "tabRisultati": {
+    "visibile": 1,
+    "foto": "docs/prove/schermate/collaudo-finale/p-account-5-risultati.png"
+   },
+   "risultati": {
+    "vuoti": 0,
+    "valori": [
+     "56",
+     "2",
+     "326",
+     "7,8"
+    ]
+   },
+   "dnaControlli": {
+    "bottoni": [
+     "Torna alla Home",
+     "Modifica il nome",
+     "Azzera",
+     "Meno cibo",
+     "Più cibo",
+     "Azzera",
+     "Meno natura",
+     "Più natura",
+     "Azzera",
+     "Meno arte",
+     "Più arte",
+     "Meno cultura e storia",
+     "Più cultura e storia",
+     "Meno serate",
+     "Più serate",
+     "Meno avventura",
+     "Più avventura",
+     "Meno shopping",
+     "Più shopping",
+     "Meno relax",
+     "Più relax",
+     "Azzera tutto il DNA",
+     "Mangiare e bere",
+     "Storia e arte",
+     "Natura e panorami",
+     "Vita notturna",
+     "Camminare e scoprire",
+     "Ritmo lento",
+     "Shopping e mercati",
+     "Salvato",
+     "Lo impara Unnivai",
+     "Tranquillo",
+     "Medio",
+     "Intenso",
+     "Lo impara Unnivai",
+     "Da solo",
+     "In coppia",
+     "Con bambini",
+     "Con amici",
+     "Salvato",
+     "Nessuna restrizione",
+     "Vegetariano",
+     "Vegano",
+     "Senza glutine",
+     "Halal",
+     "€",
+     "€€",
+     "€€€",
+     "Cucina d'autore",
+     "Trattoria",
+     "Street food",
+     "Salvato",
+     "Mete",
+     "Risultati",
+     "Il tuo giro a Roma\n\nRoma · 7 nov 2026\n\n2 tappe su 3",
+     "Il tuo giro a Roma\n\nRoma · 6 nov 2026\n\n3 tappe su 3",
+     "Il tuo giro a Roma\n\nRoma · 6 nov 2026\n\n2 tappe su 3",
+     "Vedi tutti (4)",
+     "Elimina account"
+    ]
+   },
+   "foto6": "docs/prove/schermate/collaudo-finale/p-account-6-dna.png",
+   "foto7": "docs/prove/schermate/collaudo-finale/p-account-7-come-giri.png",
+   "collegamenti": [
+    {
+     "href": "/dashboard-user",
+     "url": "/dashboard-user",
+     "caratteri": 322,
+     "nonTrovata": false
+    },
+    {
+     "href": "/privacy",
+     "url": "/privacy",
+     "caratteri": 10352,
+     "nonTrovata": false
+    },
+    {
+     "href": "/termini",
+     "url": "/termini",
+     "caratteri": 2621,
+     "nonTrovata": false
+    }
+   ],
+   "errori": [],
+   "ok": {
+    "richiesteNonVisibile": true,
+    "sezioni": true,
+    "tabMete": true,
+    "tabRisultati": true,
+    "collegamentiNonVuoti": true
+   },
+   "secondi": 58
+  },
+  "profiloVuoto": {
+   "vuoto": true,
+   "dialogoPosizione": true,
+   "contatori": {
+    "giri": "0",
+    "citta": "0",
+    "tappe": "0"
+   },
+   "titoli": [
+    "ProvaAccesso",
+    "Il tuo DNA",
+    "I tuoi interessi",
+    "Come giri",
+    "A tavola",
+    "I tuoi giri",
+    "Le tue Mete",
+    "Rivivi i tuoi giri"
+   ],
+   "richiesteVisibile": false,
+   "emailVisibile": true,
+   "sezioni": {
+    "dna": true,
+    "interessi": true,
+    "comeGiri": true,
+    "riviviTitolo": true,
+    "mete": true,
+    "risultati": true
+   },
+   "foto1": "docs/prove/schermate/collaudo-finale/p-vuoto-1-alto.png",
+   "rivivi": {
+    "giri": 0,
+    "vuotoTesto": "Finisci un giro e lo ritrovi qui, con la mappa e le tappe."
+   },
+   "foto2": "docs/prove/schermate/collaudo-finale/p-vuoto-2-rivivi.png",
+   "tabMete": {
+    "visibile": 1,
+    "foto": "docs/prove/schermate/collaudo-finale/p-vuoto-5-mete.png"
+   },
+   "mete": {
+    "elementi": 0,
+    "vuote": 1,
+    "altre": 0
+   },
+   "tabRisultati": {
+    "visibile": 1,
+    "foto": "docs/prove/schermate/collaudo-finale/p-vuoto-5-risultati.png"
+   },
+   "risultati": {
+    "vuoti": 1,
+    "valori": [
+     "0",
+     "0",
+     "0",
+     "0"
+    ]
+   },
+   "dnaControlli": {
+    "bottoni": [
+     "Torna alla Home",
+     "Modifica il nome",
+     "Meno cultura e storia",
+     "Più cultura e storia",
+     "Meno cibo",
+     "Più cibo",
+     "Meno serate",
+     "Più serate",
+     "Meno natura",
+     "Più natura",
+     "Meno avventura",
+     "Più avventura",
+     "Meno shopping",
+     "Più shopping",
+     "Meno relax",
+     "Più relax",
+     "Meno arte",
+     "Più arte",
+     "Mangiare e bere",
+     "Storia e arte",
+     "Natura e panorami",
+     "Vita notturna",
+     "Camminare e scoprire",
+     "Ritmo lento",
+     "Shopping e mercati",
+     "Salvato",
+     "Lo impara Unnivai",
+     "Tranquillo",
+     "Medio",
+     "Intenso",
+     "Lo impara Unnivai",
+     "Da solo",
+     "In coppia",
+     "Con bambini",
+     "Con amici",
+     "Salvato",
+     "Nessuna restrizione",
+     "Vegetariano",
+     "Vegano",
+     "Senza glutine",
+     "Halal",
+     "€",
+     "€€",
+     "€€€",
+     "Cucina d'autore",
+     "Trattoria",
+     "Street food",
+     "Salvato",
+     "Mete",
+     "Risultati",
+     "Elimina account"
+    ]
+   },
+   "foto6": "docs/prove/schermate/collaudo-finale/p-vuoto-6-dna.png",
+   "foto7": "docs/prove/schermate/collaudo-finale/p-vuoto-7-come-giri.png",
+   "collegamenti": [
+    {
+     "href": "/dashboard-user",
+     "url": "/dashboard-user",
+     "caratteri": 322,
+     "nonTrovata": false
+    },
+    {
+     "href": "/privacy",
+     "url": "/privacy",
+     "caratteri": 10352,
+     "nonTrovata": false
+    },
+    {
+     "href": "/termini",
+     "url": "/termini",
+     "caratteri": 2621,
+     "nonTrovata": false
+    }
+   ],
+   "errori": [],
+   "ok": {
+    "richiesteNonVisibile": true,
+    "sezioni": true,
+    "tabMete": true,
+    "tabRisultati": true,
+    "collegamentiNonVuoti": true
+   },
+   "secondi": 17
+  },
+  "profiloOspite": {
+   "ok": false,
+   "errore": "tasto «Prova un giro, senza account» assente",
+   "secondi": 0
+  }
+ }
+}

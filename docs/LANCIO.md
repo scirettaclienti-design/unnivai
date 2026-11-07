@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**15 su 22 fatte** · aggiornato il 07/11/2026 (T31 COLLAUDO-FINALE, nessun conteggio cambia: `docs/prove/2026-11-07-collaudo-finale.md`; prima T30 ESTETICA-MOVIMENTO, `docs/prove/2026-11-07-estetica-movimento.md`) · fonte dello stato: `docs/prove/` e `git log` di `main` (`7db5d3e`)
+**15 su 22 fatte** · aggiornato il 07/11/2026 (coda T26–T31, nessun conteggio cambia: `docs/prove/2026-11-07-coda-riepilogo.md`) · fonte dello stato: `docs/prove/` e `git log` di `main` (`aacf05c`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.

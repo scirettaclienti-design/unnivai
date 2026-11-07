@@ -5,8 +5,10 @@ import App from './App.jsx'
 
 import ErrorBoundary from './components/ErrorBoundary';
 import { installaRaccoltaErrori } from './lib/errorReporting';
+import { inizializzaMovimento } from './lib/movimento';
 
 installaRaccoltaErrori();
+inizializzaMovimento();
 
 createRoot(document.getElementById('root')).render(
     <ErrorBoundary>

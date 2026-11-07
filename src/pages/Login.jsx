@@ -204,9 +204,9 @@ export default function Login() {
 
     return (
         <div className="min-h-svh bg-obsidian-bg text-obsidian-primary font-corpo relative overflow-x-hidden flex flex-col">
-            <FondoMarchio />
+            <FondoMarchio vivo />
             <header className="relative z-10 w-full max-w-md mx-auto px-6 pt-6">
-                <a href="/" aria-label={T.MARCHIO} className="inline-flex min-h-[44px] items-center"><LogoUnnivai className="h-8 w-auto" /></a>
+                <a href="/" aria-label={T.MARCHIO} className="inline-flex min-h-[44px] items-center"><LogoUnnivai className="h-8 w-auto" animato /></a>
             </header>
             <main className="relative z-10 w-full max-w-md mx-auto px-6 pt-6 pb-6 flex-1">{corpo}</main>
             {/* ACCOUNT-PRIVACY — privacy e termini: pubbliche, visibili in ogni vista del login */}

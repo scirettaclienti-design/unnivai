@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import ProvaSenzaAccount from '../components/ProvaSenzaAccount';
 import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { FondoMarchio } from '@/components/marchio/Marchio';
 import { ArrowRight, Globe, Compass, Users, MapPin, Star, Play, X, ChevronRight, ChevronLeft, Search, Brain, MessageCircle, CheckCircle, Clock, Navigation, Sparkles, Wifi, Battery, Signal } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import LinkLegali from '../components/LinkLegali';
@@ -578,13 +579,10 @@ const Landing = () => {
                                 transition={{ duration: 1.2, ease: 'easeInOut' }}
                                 className="absolute inset-0 overflow-hidden"
                             >
-                                <motion.img
+                                <img
                                     src={currentPhoto.url}
                                     alt={currentPhoto.title && currentPhoto.city ? `${currentPhoto.title}, ${currentPhoto.city}` : 'Hero background'}
-                                    className="w-full h-full object-cover object-[50%_35%] md:object-center origin-center"
-                                    initial={shouldReduceMotion ? { scale: 1, y: '0%' } : { scale: 1, y: '0%' }}
-                                    animate={shouldReduceMotion ? { scale: 1, y: '0%' } : { scale: 1.06, y: '-2%' }}
-                                    transition={shouldReduceMotion ? { duration: 0 } : { duration: 20, ease: 'linear' }}
+                                    className="w-full h-full object-cover object-[50%_35%] md:object-center origin-center camera-lenta"
                                     loading={photoIdx === 0 ? 'eager' : 'lazy'}
                                     fetchPriority={photoIdx === 0 ? 'high' : 'auto'}
                                 />
@@ -597,6 +595,9 @@ const Landing = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-obsidian-bg via-black/25 to-black/10 pointer-events-none" />
                     <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/5 hidden md:block pointer-events-none" />
                 </motion.div>
+
+                {/* Curve di livello del marchio sopra la foto: scivolano più piano e in senso opposto alla camera (parallasse) */}
+                <FondoMarchio vivo className="z-[1]" />
 
                 {/* PARTICLES */}
                 <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
@@ -612,10 +613,10 @@ const Landing = () => {
                 <motion.nav initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }}
                     className="relative z-10 flex justify-between items-center px-6 py-6 md:px-12">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 bg-brand-orange rounded-xl flex items-center justify-center shadow-lg">
+                        <div className="w-9 h-9 bg-brand-orange rounded-xl flex items-center justify-center shadow-lg bussola-ingresso">
                             <Compass className="w-5 h-5 text-obsidian-bg" />
                         </div>
-                        <span className="font-bold text-xl tracking-tight text-obsidian-primary">UNNIVAI</span>
+                        <span className="font-bold text-xl tracking-tight text-obsidian-primary logo-ingresso">UNNIVAI</span>
                     </div>
                     <div className="flex items-center gap-4">
                         <Link to="/login" className="text-sm font-semibold text-obsidian-secondary hover:text-obsidian-primary transition-colors">Accedi</Link>

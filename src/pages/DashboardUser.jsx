@@ -1,3 +1,4 @@
+import { FondoMarchio } from '@/components/marchio/Marchio';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { pagamentiVisibili, TIPI_NOTIFICA_PAGAMENTO } from '../config/pagamenti';
 import { Link, useNavigate } from 'react-router-dom';
@@ -500,7 +501,8 @@ const DashboardUser = () => {
     }
 
     return (
-        <div className="min-h-screen bg-obsidian-bg text-obsidian-primary font-quicksand pb-32">
+        <div className="relative isolate min-h-screen bg-obsidian-bg text-obsidian-primary font-quicksand pb-32">
+            <FondoMarchio vivo dietro discreto />
 
             <TopBar />
 

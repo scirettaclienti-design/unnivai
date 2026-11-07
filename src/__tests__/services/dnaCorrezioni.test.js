@@ -88,3 +88,24 @@ describe('DNA-6 — la migrazione', () => {
         expect(sql).toMatch(/ai_quota_test_account/);
     });
 });
+
+describe('T29 — una correzione parte dal valore che vedi', () => {
+    it('«meno» a 0% non lascia debito: il «più» dopo si vede', () => {
+        const p = pesiDaEventi([ev('dna_correction', 'natura', 'meno', '2026-10-23T09:00:00Z'), ev('dna_correction', 'natura', 'meno', '2026-10-23T09:30:00Z'),
+            ev('dna_correction', 'natura', 'piu', '2026-10-23T10:00:00Z')], [], ORA);
+        expect(p.pesi.natura).toBeCloseTo(0.15, 2);
+    });
+    it('un «più» dopo tante tappe saltate parte da 0%, non dal grezzo negativo', () => {
+        const salti = [1, 2, 3, 4].map(i => ev('stop_skipped', 'arte', null, `2026-10-23T0${i}:00:00Z`));
+        expect(pesiDaEventi(salti, [], ORA).pesi.arte).toBe(0);
+        expect(pesiDaEventi([...salti, ev('dna_correction', 'arte', 'piu')], [], ORA).pesi.arte).toBeCloseTo(0.15, 2);
+    });
+    it('«meno» a 100% si vede, anche se il grezzo sta sopra 1', () => {
+        const giri = [1, 2, 3, 4, 5, 6].map(i => ev('tour_completed', 'food', null, `2026-10-23T0${i}:00:00Z`, { tour_id: `g${i}` }));
+        expect(pesiDaEventi(giri, [], ORA).pesi.food).toBe(1);
+        expect(pesiDaEventi([...giri, ev('dna_correction', 'food', 'meno')], [], ORA).pesi.food).toBeCloseTo(0.85, 2);
+    });
+    it('il peso della correzione e il dimezzamento non cambiano', () => {
+        expect(pesiDaEventi([ev('dna_correction', 'food', 'piu', '2026-09-23T12:00:00Z')], [], ORA).pesi.food).toBeCloseTo(0.08, 2); // 0,15 dimezzato a 30 giorni, arrotondato
+    });
+});

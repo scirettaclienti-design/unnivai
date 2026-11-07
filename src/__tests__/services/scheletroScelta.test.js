@@ -285,8 +285,9 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
         const PRIMA = 3;
         // C8a — oltre alle 2 ricerche dei momenti veri, una per la passeggiata fra aperitivo e cena
         // (momento facoltativo senza luoghi all'aperto nel pool): il tetto e' 3 in tutto.
-        expect(stato.textsearch.length).toBeLessThanOrEqual(PRIMA + 3);
-        expect(stato.textsearch.length).toBe(6);
+        // T29 — piu' UNA per il chip Arte, che dalla frase (solo cibo) non ha portato niente del suo tipo
+        expect(stato.textsearch.length).toBeLessThanOrEqual(PRIMA + 4);
+        expect(stato.textsearch.length).toBe(7);
         // C7 — "da romano" e' un tema di vita locale: mattina e pomeriggio cercano esperienze, non cultura generica.
         expect(result._momentReport.ricercheMirate).toEqual(['esperienze', 'nightlife']);
         // C8a — la passeggiata fra aperitivo e cena cerca DOPO la scelta, dalla tappa prima (ricerca mirata C1b)

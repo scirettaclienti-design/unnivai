@@ -16,6 +16,10 @@ const at = (iso) => new Date(iso).toISOString();
 
 // [descrizione, input, atteso]
 const CASI = [
+    // T29 — piu' fasce nella stessa frase: dalla prima all'ultima, mai solo la sera
+    ['"Domani la mattina arte, pranzo in trattoria, la sera un aperitivo" → mar 9:30–22:30',
+        { text: 'Domani la mattina arte, pranzo in trattoria, la sera un aperitivo', requestTime: LUN_2057, pathType: 'custom', duration: '1 Giorno' },
+        { date: '2026-10-06', start: '2026-10-06T09:30:00+02:00', end: '2026-10-06T22:30:00+02:00', shifted: false }],
     ['"Domani voglio vivere Roma da romano" alle 20:57 → mar 9:30–22:30',
         { text: 'Domani voglio vivere Roma da romano', requestTime: LUN_2057, pathType: 'custom' },
         { date: '2026-10-06', start: '2026-10-06T09:30:00+02:00', end: '2026-10-06T22:30:00+02:00', shifted: false }],

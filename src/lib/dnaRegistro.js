@@ -123,6 +123,8 @@ export function logDnaGesti(gesti = []) {
 
 /** Quante righe si leggono al massimo (le piu' recenti): con il decadimento le vecchie pesano quasi zero. */
 export const REGISTRO_LETTURA_MAX = 1000;
+/** Quante pagine da REGISTRO_LETTURA_MAX righe al massimo (5000 righe: circa 350 giri). */
+export const REGISTRO_PAGINE_MAX = 5;
 const CACHE_PREFISSO = 'unnivai_dna_registro_v1';
 const COLONNE = 'id,kind,category,city,value,tour_id,created_at';
 
@@ -137,7 +139,16 @@ export async function leggiRegistro() {
             .order('created_at', { ascending: false })
             .limit(REGISTRO_LETTURA_MAX);
         if (!res || res.error || !Array.isArray(res.data)) return { ok: false, rows: [] };
-        return { ok: true, rows: res.data };
+        // T29 — il server da' al massimo REGISTRO_LETTURA_MAX righe per richiesta: oltre, le altre pagine. Sui pesi il decadimento le spegne da
+        // solo, ma Mete e Risultati contano tutto: a circa 70 giri finiti i traguardi smettevano di crescere. Una pagina che fallisce non ferma la lettura.
+        const rows = [...res.data];
+        while (rows.length >= REGISTRO_LETTURA_MAX && rows.length % REGISTRO_LETTURA_MAX === 0 && rows.length < REGISTRO_PAGINE_MAX * REGISTRO_LETTURA_MAX) {
+            const pagina = await supabase.from('dna_events').select(COLONNE).order('created_at', { ascending: false })
+                .range(rows.length, rows.length + REGISTRO_LETTURA_MAX - 1);
+            if (!pagina || pagina.error || !Array.isArray(pagina.data) || pagina.data.length === 0) break;
+            rows.push(...pagina.data);
+        }
+        return { ok: true, rows };
     } catch {
         return { ok: false, rows: [] };
     }

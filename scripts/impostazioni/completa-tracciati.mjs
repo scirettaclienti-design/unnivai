@@ -2,9 +2,12 @@
 // T29 — completa i tracciati della guardia con le sole risposte di Google che mancano. Il proxy rifiuta le liste di un giorno piu' vecchio di ieri
 // (BAD_CITY_LIST), quindi `--registra` su un giorno passato girerebbe senza lista: si tengono le risposte registrate e si aggiungono solo le ricerche
 // nuove che il codice chiede. Una chiamata a places-proxy per ogni uscita (0,035 $ a listino, 0 $ dalla cache), account di prova; mai stampate le credenziali.
-//   node scripts/impostazioni/completa-tracciati.mjs   rigioca la guardia, completa, ripete (al massimo 4 volte)
+//   node scripts/impostazioni/completa-tracciati.mjs            rigioca la guardia, completa, ripete (al massimo 4 volte)
+//   node scripts/impostazioni/completa-tracciati.mjs --banco40  lo stesso sui 40 casi del banco
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
@@ -28,8 +31,14 @@ async function risposta(chiave) {
     return { status: res.status, corpo: await res.json() };
 }
 
+const BANCO40 = 'docs/prove/dati/banco-40-tracciati.json.gz';
+function replayBanco40() {
+    const out = path.join(mkdtempSync(path.join(os.tmpdir(), 'completa-')), 'replay.json');
+    const r = spawnSync('npx', ['vitest', 'run', '-c', 'scripts/banco/vitest.replay.config.js'], { stdio: 'ignore', env: { ...process.env, REPLAY_IN: BANCO40, REPLAY_OUT: out } });
+    return { status: r.status, stdout: `[guardia] replay di ${BANCO40} (banco) — risultato: ${out}\n` };
+}
 for (let giro = 1; giro <= 4; giro++) {
-    const r = spawnSync('node', ['scripts/banco/guardia.mjs'], { encoding: 'utf8', maxBuffer: 1 << 26 });
+    const r = process.argv.includes('--banco40') ? replayBanco40() : spawnSync('node', ['scripts/banco/guardia.mjs'], { encoding: 'utf8', maxBuffer: 1 << 26 });
     const righe = (r.stdout || '').split('\n').filter(l => l.startsWith('[guardia] replay di '));
     const mancanti = new Map();
     for (const l of righe) {

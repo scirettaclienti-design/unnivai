@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**15 su 22 fatte** · aggiornato il 06/11/2026 (T28 PROFILO-SEZIONI: Mete, Risultati e Rivivi con dati veri, Richieste nascosta, DNA leggibile; `docs/prove/2026-11-07-profilo-sezioni.md`) · fonte dello stato: `docs/prove/` e `git log` di `main` (`7db5d3e`)
+**15 su 22 fatte** · aggiornato il 07/11/2026 (T29 IMPOSTAZIONI-VERIFICA: ogni impostazione di Su misura e Al volo cambia il giro, audit del DNA; `docs/prove/2026-11-07-impostazioni-verifica.md`) · fonte dello stato: `docs/prove/` e `git log` di `main` (`7db5d3e`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.

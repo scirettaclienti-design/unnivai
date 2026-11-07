@@ -582,6 +582,7 @@ Report: `docs/prove/2026-11-07-impostazioni-verifica.md`. Nessuna funzione del s
 - **Al volo**: `buildQuickPrefs` non scrive più `Attivo` (`pace` vuoto se l'umore non lo dice); QuickPath manda `dnaGiro` come Crea: il Gruppo cambia pasti e passo, il ritmo del DNA vale anche qui. Con Natura la categoria è natura e i posti della lista che non sono verde, pasti o bar escono (se di verde ce n'è almeno 2). I posti della ricerca dell'umore hanno la spinta dei chip (`bonusUmore`).
 - **Categoria**: storia, arte e cultura sono una famiglia in `candidateConflictsWithCategoria` (prima «storia» lasciava 1 posto su 38 a Roma).
 - **Finestra**: più fasce nella stessa frase vanno dalla prima all'ultima (`fasceNelTesto`).
+- **Tracciati di un giorno passato**: il proxy rifiuta le liste di un giorno più vecchio di ieri (`giornoValido`, `BAD_CITY_LIST`), quindi un giro vero su un giorno simulato passato gira SENZA lista e `banco:guardia -- --registra` non vale più per il 15/10. Si usano `BANCO_LISTE_DA=<tracciati>` (lista dal tracciato, tutto il resto vero) e `node scripts/impostazioni/completa-tracciati.mjs [--banco40]` (aggiunge ai tracciati le sole risposte di Google che mancano).
 - **DNA**: una correzione del Profilo parte dal valore che vedi (`pesiDaEventi`: niente debito sotto 0%, un «−» a 100% si vede; ±0,15 e il dimezzamento non cambiano); `giriDalRegistro` divide lo stesso tour rifatto alle chiusure; `leggiRegistro` legge a pagine fino a 5000 righe.
 
 ### Regole di lavoro (decise da Ivano)

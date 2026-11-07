@@ -40,8 +40,10 @@ pannelli.forEach((p, n) => {
         if (i === 0 || p.v(e) !== prima) s += `<circle cx="${x(i)}" cy="${y(p.v(e))}" r="3" fill="${p.c}" stroke="${SURF}" stroke-width="1.5"/>`;
     });
     const ultimo = E.at(-1);
-    const fine = y(p.v(ultimo));
-    s += `<text x="${W - R - 4}" y="${fine < y0 + 14 ? fine + 14 : fine - 6}" font-size="11" fill="${INK}" text-anchor="end">${pct(p.v(ultimo))}</text>\n`;
+    // sopra la linea degli ultimi due eventi, cosi' il numero non la tocca; se la linea sta in cima, sotto
+    const fine = y(Math.max(p.v(ultimo), p.v(E.at(-2))));
+    const sotto = y(Math.min(p.v(ultimo), p.v(E.at(-2))));
+    s += `<text x="${W - R - 4}" y="${fine < y0 + 14 ? sotto + 14 : fine - 6}" font-size="11" fill="${INK}" text-anchor="end">${pct(p.v(ultimo))}</text>\n`;
 });
 // gli eventi: numero sull'asse, elenco sotto
 const yb = T + pannelli.length * (PH + GAP) - 4;

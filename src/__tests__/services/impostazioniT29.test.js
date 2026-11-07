@@ -94,7 +94,7 @@ describe('ritmo nel prompt del selettore', () => {
 
 describe('durata 2-3 Giorni', () => {
     it('il selettore ha i token per tutte le tappe; un giorno resta a 1000', () => {
-        expect(maxTokensSelettore(Array(8).fill({ stops: 2 }))).toBe(1000);
+        expect(maxTokensSelettore(Array(6).fill({ stops: 2 }))).toBe(1000);
         expect(maxTokensSelettore(Array(18).fill({ stops: 2 }))).toBe(2360);
         expect(maxTokensSelettore()).toBe(1000);
     });

@@ -1,0 +1,162 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-07T03:58:47.255Z",
+ "oraRoma": "07/11/2026, 04:58:47",
+ "parti": {
+  "movimento": {
+   "foto_movimento_1": "docs/prove/schermate/collaudo-finale/m-landing-movimento-1s.png",
+   "foto_movimento_6": "docs/prove/schermate/collaudo-finale/m-landing-movimento-6s.png",
+   "movimento": {
+    "fotoAnimazione": "camera-lenta",
+    "animazioniAttive": [
+     "camera-lenta",
+     "curve-deriva"
+    ],
+    "transformPrima": "matrix(1.040228, 0, 0, 1.040228, -4.64946, 5.14698)",
+    "transformDopo": "matrix(1.043913, 0, 0, 1.043913, -4.156826, 4.418253)",
+    "fotoCambia": true
+   },
+   "foto_ridotto_1": "docs/prove/schermate/collaudo-finale/m-landing-ridotto-1s.png",
+   "foto_ridotto_6": "docs/prove/schermate/collaudo-finale/m-landing-ridotto-6s.png",
+   "ridotto": {
+    "fotoAnimazione": "none",
+    "animazioniAttive": [],
+    "transformPrima": "none",
+    "transformDopo": "none",
+    "fotoCambia": false
+   },
+   "ok": true,
+   "secondi": 15
+  },
+  "home": {
+   "oraRoma": "04:59:13",
+   "data": "07/11/2026",
+   "secondi": 18,
+   "url": "/dashboard-user",
+   "schedeHome": [
+    {
+     "titolo": "Intorno al Giardino degli Aranci",
+     "badge": "Scelto per te",
+     "href": "/tour-details/home-insider-1794023936024"
+    },
+    {
+     "titolo": "Giardini di Roma",
+     "badge": "Per stamattina",
+     "href": "/tour-details/home-insider-1794023936025"
+    },
+    {
+     "titolo": "Tre forni a Roma",
+     "badge": "Per stamattina",
+     "href": "/tour-details/home-food-1794023936025"
+    },
+    {
+     "titolo": "Verde a Roma",
+     "badge": "Per stamattina",
+     "href": "/tour-details/home-nature-1794023936025"
+    },
+    {
+     "titolo": "Musei di Roma",
+     "badge": "Per stamattina",
+     "href": "/tour-details/home-cultura-1794023936025"
+    }
+   ],
+   "fotoHome": "docs/prove/schermate/collaudo-finale/h-home.png",
+   "testiNuovi": {
+    "suMisura": true,
+    "suMisuraSottotitolo": true,
+    "alVolo": true,
+    "alVoloSottotitolo": true,
+    "aiPowered": false,
+    "vecchi": [],
+    "emailVisibile": false
+   },
+   "fotoNomi": "docs/prove/schermate/collaudo-finale/h-nomi-su-misura-al-volo.png",
+   "fotoVediTutte": "docs/prove/schermate/collaudo-finale/h-vedi-tutte-link.png",
+   "urlElenco": "/per-te",
+   "schedeElenco": [
+    {
+     "titolo": "Intorno al Giardino degli Aranci",
+     "href": "/tour-details/home-insider-1794023936024"
+    },
+    {
+     "titolo": "Giardini di Roma",
+     "href": "/tour-details/home-insider-1794023936025"
+    },
+    {
+     "titolo": "Tre forni a Roma",
+     "href": "/tour-details/home-food-1794023936025"
+    },
+    {
+     "titolo": "Verde a Roma",
+     "href": "/tour-details/home-nature-1794023936025"
+    },
+    {
+     "titolo": "Musei di Roma",
+     "href": "/tour-details/home-cultura-1794023936025"
+    },
+    {
+     "titolo": "Panorami a Roma",
+     "href": "/tour-details/home-romance-1794023936025"
+    }
+   ],
+   "vuotoElenco": 0,
+   "fotoElenco": "docs/prove/schermate/collaudo-finale/h-per-te-elenco.png",
+   "stesseSchede": true,
+   "tornaConIndietro": "/dashboard-user",
+   "tastoTorna": 1,
+   "tornaConTasto": "/dashboard-user",
+   "aperturaScheda": {
+    "url": "/tour-details/home-insider-1794023936024",
+    "vuota": false
+   },
+   "fotoScheda": "docs/prove/schermate/collaudo-finale/h-scheda-aperta.png",
+   "errori": [],
+   "nSchede": 5,
+   "ok": {
+    "perTe3oPiu": true,
+    "vediTutte": true,
+    "indietro": true,
+    "nomi": true
+   }
+  },
+  "profilo": {
+   "ok": false,
+   "errore": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('rivivi-giro').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-testid=\"rivivi-giro\" aria-label=\"Rivivi Il tuo giro a Roma\" class=\"w-full flex items-center gap-3 text-left bg-obsidian-card border border-obsidian-border hover:border-brand-orange rounded-2xl p-3 transition-colors cursor-pointer\">…",
+   "secondi": 65
+  },
+  "giri": {
+   "suMisuraTitolo": "Ciao, ProvaAccesso! Roma 13°C Home Il Tuo Travel Designer AI Raccontami il tuo sogno, io lo trasformo in viaggio. 1 2 3 La tua visione Sii creativo... 💰 BUDGET Economico Medio Lusso ⏱️ DURATA Mezza G",
+   "fotoSuMisura1": "docs/prove/schermate/collaudo-finale/g-su-misura-1-compilato.png",
+   "suMisuraSecondi": 31,
+   "suMisuraTappe": [
+    "10:00 | Pasticceria Leonardo Roma | 4.6",
+    "10:21 | Piazza Navona | 4.7",
+    "12:30 | Antica Trattoria da Panzirone | 4.7",
+    "14:30 | Pantheon | 4.8",
+    "16:30 | Chiesa del Ss.mo Nome di Gesù all'Argentina | 4.8",
+    "18:00 | Da Vittorio Café Roma | 4.6",
+    "19:05 | Piazza Navona | 4.7",
+    "20:00 | Osteria Navona | 4.7"
+   ],
+   "suMisuraNota": null,
+   "fotoSuMisura2": "docs/prove/schermate/collaudo-finale/g-su-misura-2-giro.png",
+   "alVoloPasso1": "Ciao, ProvaAccesso! Roma 13°C Percorso Veloce Scopri qualcosa di speciale in pochi minuti Il tuo mood oggi? L'ambiente perfetto per iniziare Città Natura Storia Gusto Home Esplora Foto Profilo",
+   "fotoAlVolo1": "docs/prove/schermate/collaudo-finale/g-al-volo-1.png",
+   "alVoloPassi": [
+    [
+     "",
+     "Città",
+     "Natura",
+     "Storia",
+     "Gusto"
+    ],
+    []
+   ],
+   "alVoloSecondi": 173,
+   "alVoloTesto": "Ciao, ProvaAccesso! Roma 13°C Crea il tuo Tour Con una guida o a sorpresa GRATIS Su misura Scrivi cosa cerchi. Città, gusti, budget, ritmo: il giro lo costruiamo da qui. Al volo Tre scelte e sei in strada. ◇ IN COSTRUZIONE Guide Locali Persone del posto — non ancora disponibili Per Te VEDI TUTTE Adesso è aperto poco. Le altre sono per stamattina. Scelto per te Piazze, belvedere e giardini di Roma Piazza del Popolo · 4.7 Durata circa 2h 11min Basato sui tuoi gusti Musei, piazze e fontane di Roma ",
+   "fotoAlVolo2": "docs/prove/schermate/collaudo-finale/g-al-volo-2-esito.png",
+   "ok": true,
+   "secondi": 213
+  }
+ }
+}

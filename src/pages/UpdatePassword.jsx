@@ -47,7 +47,7 @@ export default function UpdatePassword() {
 
     return (
         <div className="min-h-svh bg-obsidian-bg text-obsidian-primary font-corpo relative overflow-x-hidden flex flex-col">
-            <FondoMarchio />
+            <FondoMarchio vivo />
             <header className="relative z-10 w-full max-w-md mx-auto px-6 pt-6"><LogoUnnivai className="h-8 w-auto" /></header>
             <main className="relative z-10 w-full max-w-md mx-auto px-6 pt-6 pb-8 flex-1">
                 <EtichettaPasso testo={T.ETICHETTA} />

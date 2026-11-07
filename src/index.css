@@ -299,3 +299,92 @@ body {
         transform: translateY(0);
     }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   ESTETICA-MOVIMENTO — il marchio si muove piano: solo transform e opacity (nessun ridisegno del layout), una sola
+   volta all'ingresso (logo, 1,1 s) o molto lento in loop (curve di sfondo, camera della home). Si ferma con
+   «riduci movimento» (prefers-reduced-motion) e quando la pagina è nascosta (html[data-pagina-nascosta],
+   src/lib/movimento.js). Niente intercetta i tocchi: lo sfondo è sempre pointer-events: none.
+   ─────────────────────────────────────────────────────────────────────────── */
+@keyframes logo-ingresso {
+    0% { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.94); }
+    60% { opacity: 1; }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes bussola-ingresso {
+    0% { opacity: 0; transform: rotate(-70deg) scale(0.8); }
+    70% { opacity: 1; }
+    100% { opacity: 1; transform: rotate(0deg) scale(1); }
+}
+
+@keyframes curve-deriva {
+    0% { transform: translate3d(-10px, 6px, 0) scale(1.06); }
+    100% { transform: translate3d(10px, -6px, 0) scale(1.06); }
+}
+
+@keyframes camera-lenta {
+    0% { transform: translate3d(-1.2%, 0.6%, 0) scale(1.04); }
+    100% { transform: translate3d(1.2%, -1%, 0) scale(1.11); }
+}
+
+@keyframes curve-controcamera {
+    0% { transform: translate3d(14px, 0, 0) scale(1.1); }
+    100% { transform: translate3d(-14px, -8px, 0) scale(1.1); }
+}
+
+@keyframes rotta-disegno {
+    to { stroke-dashoffset: 0; }
+}
+
+.logo-ingresso {
+    animation: logo-ingresso 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bussola-ingresso {
+    animation: bussola-ingresso 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transform-origin: 50% 50%;
+}
+
+.curve-deriva {
+    animation: curve-deriva 48s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+.curve-controcamera {
+    animation: curve-controcamera 36s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+.camera-lenta {
+    animation: camera-lenta 40s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+.rotta-disegno {
+    stroke-dasharray: var(--lunghezza, 1200);
+    stroke-dashoffset: var(--lunghezza, 1200);
+    animation: rotta-disegno 3.2s cubic-bezier(0.5, 0, 0.2, 1) 0.6s forwards;
+}
+
+html[data-pagina-nascosta] .curve-deriva,
+html[data-pagina-nascosta] .curve-controcamera,
+html[data-pagina-nascosta] .camera-lenta {
+    animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .logo-ingresso,
+    .bussola-ingresso,
+    .curve-deriva,
+    .curve-controcamera,
+    .camera-lenta {
+        animation: none;
+        will-change: auto;
+    }
+
+    .rotta-disegno {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+}

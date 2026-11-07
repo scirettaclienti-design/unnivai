@@ -148,9 +148,9 @@ export default function Onboarding() {
 
     return (
         <div className="min-h-svh w-full bg-obsidian-bg text-obsidian-primary font-corpo relative overflow-x-clip flex flex-col" data-testid="primo-ingresso" data-passo={passo}>
-            <FondoMarchio />
+            <FondoMarchio vivo />
             <header className="relative z-10 w-full max-w-md mx-auto px-6 pt-6 flex items-center justify-between gap-3">
-                <LogoUnnivai className="h-7 w-auto" />
+                <LogoUnnivai className="h-7 w-auto" animato />
                 <div className="flex items-center gap-1.5" aria-label={`Passo ${numero} di ${passi.length}`}>
                     {passi.map((p, i) => (
                         <span key={p} className={`h-1 rounded-full transition-all duration-300 ${i === indice ? 'w-7 bg-brand-orange' : i < indice ? 'w-2 bg-obsidian-secondary' : 'w-2 bg-obsidian-border-elevated'}`} />

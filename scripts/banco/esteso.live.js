@@ -11,7 +11,7 @@
 // toccato. Il pool di ogni momento si salva nel grezzo (come BANCO-POOL).
 import { it, vi, beforeAll, afterAll } from 'vitest';
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
-import { gzipSync } from 'node:zlib';
+import { gzipSync, gunzipSync } from 'node:zlib';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { supabase } from '@/lib/supabase';
@@ -28,7 +28,7 @@ import { CASI_NAV_SIM } from '../prova-nav/casi-nav-sim.js';
 import { CASI_PERTE_TRE } from '../prova-perte/casi-perte-tre.js';
 // T29 IMPOSTAZIONI-VERIFICA — i casi di Al volo e di Su misura che i tracciati non coprono, per nome
 import { CASI_IMPOSTAZIONI } from '../impostazioni/casi-impostazioni.js';
-import { FORMATO, creaRegistratore, fattiRegistrati } from './replay/rete.js';
+import { FORMATO, creaRegistratore, fattiRegistrati, chiaveLista, passaggioAI } from './replay/rete.js';
 
 // C10c-replay — i fatti aperti delle tappe si registrano (per place_id) per il replay: la funzione vera gira com'e'.
 vi.mock('@/services/factsService', async (importOriginal) => {
@@ -85,6 +85,10 @@ globalThis.__bancoFatti = (res) => { if (fattiCaso) Object.assign(fattiCaso, fat
 
 // ─── Il fetch che conta e annota (come banco.live.js) ────────────────────────
 const realFetch = globalThis.fetch;
+// T29 — BANCO_LISTE_DA=<tracciati.json.gz>: le liste della citta' dal tracciato di un giro precedente. Il proxy rifiuta un giorno piu' vecchio di ieri
+// (BAD_CITY_LIST): senza, un giro su un giorno simulato passato gira senza lista e non vale. Tutto il resto resta vero.
+const listeDa = process.env.BANCO_LISTE_DA ? Object.assign({}, ...JSON.parse(gunzipSync(readFileSync(process.env.BANCO_LISTE_DA)).toString('utf8')).casi
+    .flatMap(c => Object.entries(c.rete?.ai?.lista || {})).filter(([, r]) => r?.corpo?.cityKnowledge?.verificati?.length).map(([k, r]) => ({ [k]: r }))) : null;
 const cont = { ai: 0, tokenIn: 0, tokenOut: 0, google: {}, googleHit: {}, googleListaHit: 0, perModello: {}, ripieghi: [] };
 // C10b2 — i token di ogni modello (il prezzo cambia da un modello all'altro)
 const segnaToken = (modello, usage) => {
@@ -104,6 +108,11 @@ const MOTORE = process.env.BANCO_PLACES === 'new' ? 'new' : 'legacy';
 globalThis.fetch = vi.fn(async (url, init) => {
     let u = String(url);
     let nuova = false;
+    if (listeDa && u.includes('openai-proxy') && passaggioAI(init?.body) === 'lista' && listeDa[chiaveLista(init?.body)]) {
+        const r = listeDa[chiaveLista(init?.body)];
+        registratore?.annota(u, init, r.status, r.corpo);
+        return new Response(JSON.stringify(r.corpo), { status: r.status, headers: { 'content-type': 'application/json' } });
+    }
     if (MOTORE === 'new' && u.includes('places-proxy') && /[?&]path=place(%2F|\/)textsearch/.test(u)) {
         const { data } = await supabase.auth.getSession();
         u = `${u}&engine=new`;

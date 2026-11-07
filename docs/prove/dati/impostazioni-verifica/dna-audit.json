@@ -1,0 +1,757 @@
+{
+ "avvio": "2026-11-07T03:02:33.791Z",
+ "eventi": [
+  {
+   "i": 0,
+   "etichetta": "primo ingresso: cibo e natura",
+   "giorno": 0,
+   "pesi": {
+    "cultura": 0,
+    "food": 0.3,
+    "nightlife": 0,
+    "natura": 0.3,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0,
+    "arte": 0
+   },
+   "fiducia": 0.15,
+   "eventi": 0,
+   "fascia": "f1:food1+natura1"
+  },
+  {
+   "i": 1,
+   "etichetta": "Al volo: sceglie Natura",
+   "giorno": 0,
+   "pesi": {
+    "cultura": 0,
+    "food": 0.3,
+    "nightlife": 0,
+    "natura": 0.5,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0,
+    "arte": 0
+   },
+   "fiducia": 0.15,
+   "eventi": 0,
+   "fascia": "f1:natura2+food1"
+  },
+  {
+   "i": 2,
+   "etichetta": "giro 1 finito (5 tappe)",
+   "giorno": 1,
+   "pesi": {
+    "cultura": 0.45,
+    "food": 0.63,
+    "nightlife": 0,
+    "natura": 0.83,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0,
+    "arte": 0
+   },
+   "fiducia": 0.15,
+   "eventi": 1,
+   "fascia": "f1:food2+natura2"
+  },
+  {
+   "i": 3,
+   "etichetta": "salta una chiesa",
+   "giorno": 2,
+   "pesi": {
+    "cultura": 0.34,
+    "food": 0.61,
+    "nightlife": 0,
+    "natura": 0.8,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0,
+    "arte": 0
+   },
+   "fiducia": 0.15,
+   "eventi": 2,
+   "fascia": "f1:food2+natura2"
+  },
+  {
+   "i": 4,
+   "etichetta": "giro 2 finito (4 tappe)",
+   "giorno": 2,
+   "pesi": {
+    "cultura": 0.68,
+    "food": 1,
+    "nightlife": 0,
+    "natura": 1,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0,
+    "arte": 0
+   },
+   "fiducia": 0.15,
+   "eventi": 3,
+   "fascia": "f1:cultura2+food2"
+  },
+  {
+   "i": 5,
+   "etichetta": "salva un giro",
+   "giorno": 3,
+   "pesi": {
+    "cultura": 0.67,
+    "food": 1,
+    "nightlife": 0,
+    "natura": 1,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.2,
+    "arte": 0
+   },
+   "fiducia": 0.15,
+   "eventi": 4,
+   "fascia": "f1:cultura2+food2"
+  },
+  {
+   "i": 6,
+   "etichetta": "giro 3 finito (5 tappe)",
+   "giorno": 4,
+   "pesi": {
+    "cultura": 1,
+    "food": 1,
+    "nightlife": 0,
+    "natura": 1,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.54,
+    "arte": 0
+   },
+   "fiducia": 0.15,
+   "eventi": 5,
+   "fascia": "f1:cultura2+food2"
+  },
+  {
+   "i": 7,
+   "etichetta": "giro 4 finito (4 tappe)",
+   "giorno": 6,
+   "pesi": {
+    "cultura": 1,
+    "food": 1,
+    "nightlife": 0,
+    "natura": 1,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.52,
+    "arte": 0
+   },
+   "fiducia": 0.15,
+   "eventi": 6,
+   "fascia": "f1:cultura2+food2"
+  },
+  {
+   "i": 8,
+   "etichetta": "giro 5 finito (5 tappe)",
+   "giorno": 8,
+   "pesi": {
+    "cultura": 1,
+    "food": 1,
+    "nightlife": 0,
+    "natura": 1,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.49,
+    "arte": 0.35
+   },
+   "fiducia": 0.15,
+   "eventi": 7,
+   "fascia": "f1:cultura2+food2"
+  },
+  {
+   "i": 9,
+   "etichetta": "Profilo: «−» su Cibo",
+   "giorno": 9,
+   "pesi": {
+    "cultura": 1,
+    "food": 0.85,
+    "nightlife": 0,
+    "natura": 1,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.48,
+    "arte": 0.34
+   },
+   "fiducia": 0.15,
+   "eventi": 7,
+   "fascia": "f1:cultura2+food2"
+  },
+  {
+   "i": 10,
+   "etichetta": "Profilo: «+» su Arte",
+   "giorno": 9,
+   "pesi": {
+    "cultura": 1,
+    "food": 0.85,
+    "nightlife": 0,
+    "natura": 1,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.48,
+    "arte": 0.49
+   },
+   "fiducia": 0.15,
+   "eventi": 7,
+   "fascia": "f1:cultura2+food2"
+  },
+  {
+   "i": 11,
+   "etichetta": "Profilo: «+» su Arte",
+   "giorno": 9,
+   "pesi": {
+    "cultura": 1,
+    "food": 0.85,
+    "nightlife": 0,
+    "natura": 1,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.48,
+    "arte": 0.64
+   },
+   "fiducia": 0.15,
+   "eventi": 7,
+   "fascia": "f1:arte2+cultura2"
+  },
+  {
+   "i": 12,
+   "etichetta": "Profilo: azzera Natura",
+   "giorno": 9,
+   "pesi": {
+    "cultura": 1,
+    "food": 0.85,
+    "nightlife": 0,
+    "natura": 0,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.48,
+    "arte": 0.64
+   },
+   "fiducia": 0.15,
+   "eventi": 7,
+   "fascia": "f1:arte2+cultura2"
+  },
+  {
+   "i": 13,
+   "etichetta": "Profilo: «−» su Relax a 0%",
+   "giorno": 9,
+   "pesi": {
+    "cultura": 1,
+    "food": 0.85,
+    "nightlife": 0,
+    "natura": 0,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.33,
+    "arte": 0.64
+   },
+   "fiducia": 0.15,
+   "eventi": 7,
+   "fascia": "f1:arte2+cultura2"
+  },
+  {
+   "i": 14,
+   "etichetta": "Profilo: «−» su Relax a 0%",
+   "giorno": 9,
+   "pesi": {
+    "cultura": 1,
+    "food": 0.85,
+    "nightlife": 0,
+    "natura": 0,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.18,
+    "arte": 0.64
+   },
+   "fiducia": 0.15,
+   "eventi": 7,
+   "fascia": "f1:arte2+cultura2"
+  },
+  {
+   "i": 15,
+   "etichetta": "Profilo: «+» su Relax",
+   "giorno": 9,
+   "pesi": {
+    "cultura": 1,
+    "food": 0.85,
+    "nightlife": 0,
+    "natura": 0,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.33,
+    "arte": 0.64
+   },
+   "fiducia": 0.15,
+   "eventi": 7,
+   "fascia": "f1:arte2+cultura2"
+  },
+  {
+   "i": 16,
+   "etichetta": "30 giorni dopo",
+   "giorno": 39,
+   "pesi": {
+    "cultura": 0.8,
+    "food": 0.93,
+    "nightlife": 0,
+    "natura": 0,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.17,
+    "arte": 0.32
+   },
+   "fiducia": 0.15,
+   "eventi": 7,
+   "fascia": "f1:cultura2+food2"
+  },
+  {
+   "i": 17,
+   "etichetta": "60 giorni dopo",
+   "giorno": 69,
+   "pesi": {
+    "cultura": 0.4,
+    "food": 0.65,
+    "nightlife": 0,
+    "natura": 0,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0.08,
+    "arte": 0.16
+   },
+   "fiducia": 0.15,
+   "eventi": 7,
+   "fascia": "f1:food2+cultura1"
+  }
+ ],
+ "giri": [
+  {
+   "dopo": "primo ingresso: cibo e natura",
+   "i": 0,
+   "misure": {
+    "tappe": 13,
+    "giorni": 1,
+    "km": 6.58,
+    "trattoMax": 1.16,
+    "minuti": 705,
+    "pasti": 2,
+    "minutiPasti": 150,
+    "prezzoPasti": 2.5,
+    "prezzoTutti": 1.75,
+    "senzaPrezzoPasti": 0,
+    "sosta": 475,
+    "tempoLibero": 46
+   },
+   "tappe": [
+    "Basilica di Sant’Agostino in Campo Marzio",
+    "La Casa del Caffè Tazza d'Oro",
+    "Pantheon",
+    "Terrazza delle Quadrighe",
+    "Piazza d'Aracoeli",
+    "Grano Trattoria",
+    "Giardino degli Aranci",
+    "Colosseo",
+    "Via dei Fori Imperiali",
+    "Fontana di Trevi",
+    "Sant'Eustachio Caffè",
+    "Campo de' Fiori",
+    "Roscioli Salumeria con Cucina"
+   ],
+   "uscite": 0,
+   "rispettoAlPrecedente": null
+  },
+  {
+   "dopo": "giro 3 finito (5 tappe)",
+   "i": 6,
+   "misure": {
+    "tappe": 10,
+    "giorni": 1,
+    "km": 3.81,
+    "trattoMax": 1.04,
+    "minuti": 705,
+    "pasti": 2,
+    "minutiPasti": 150,
+    "prezzoPasti": 2.5,
+    "prezzoTutti": 1.75,
+    "senzaPrezzoPasti": 0,
+    "sosta": 480,
+    "tempoLibero": 78
+   },
+   "tappe": [
+    "Basilica di Sant’Agostino in Campo Marzio",
+    "La Casa del Caffè Tazza d'Oro",
+    "Pantheon",
+    "Roscioli Salumeria con Cucina",
+    "Foro Romano",
+    "Via dei Fori Imperiali",
+    "Terrazza delle Quadrighe",
+    "Sant'Eustachio Caffè",
+    "Piazza Colonna",
+    "Antica Osteria di Pietra"
+   ],
+   "uscite": 0,
+   "rispettoAlPrecedente": {
+    "identico": false,
+    "tolte": [
+     "Piazza d'Aracoeli",
+     "Grano Trattoria",
+     "Giardino degli Aranci",
+     "Colosseo",
+     "Fontana di Trevi",
+     "Campo de' Fiori"
+    ],
+    "aggiunte": [
+     "Foro Romano",
+     "Piazza Colonna",
+     "Antica Osteria di Pietra"
+    ],
+    "diverse": 56
+   }
+  },
+  {
+   "dopo": "giro 5 finito (5 tappe)",
+   "i": 8,
+   "misure": {
+    "tappe": 10,
+    "giorni": 1,
+    "km": 3.81,
+    "trattoMax": 1.04,
+    "minuti": 705,
+    "pasti": 2,
+    "minutiPasti": 150,
+    "prezzoPasti": 2.5,
+    "prezzoTutti": 1.75,
+    "senzaPrezzoPasti": 0,
+    "sosta": 480,
+    "tempoLibero": 78
+   },
+   "tappe": [
+    "Basilica di Sant’Agostino in Campo Marzio",
+    "La Casa del Caffè Tazza d'Oro",
+    "Pantheon",
+    "Roscioli Salumeria con Cucina",
+    "Foro Romano",
+    "Via dei Fori Imperiali",
+    "Terrazza delle Quadrighe",
+    "Sant'Eustachio Caffè",
+    "Piazza Colonna",
+    "Antica Osteria di Pietra"
+   ],
+   "uscite": 0,
+   "rispettoAlPrecedente": {
+    "identico": true,
+    "tolte": [],
+    "aggiunte": [],
+    "diverse": 0
+   }
+  },
+  {
+   "dopo": "Profilo: «−» su Cibo",
+   "i": 9,
+   "misure": {
+    "tappe": 10,
+    "giorni": 1,
+    "km": 3.81,
+    "trattoMax": 1.04,
+    "minuti": 705,
+    "pasti": 2,
+    "minutiPasti": 150,
+    "prezzoPasti": 2.5,
+    "prezzoTutti": 1.75,
+    "senzaPrezzoPasti": 0,
+    "sosta": 480,
+    "tempoLibero": 78
+   },
+   "tappe": [
+    "Basilica di Sant’Agostino in Campo Marzio",
+    "La Casa del Caffè Tazza d'Oro",
+    "Pantheon",
+    "Roscioli Salumeria con Cucina",
+    "Foro Romano",
+    "Via dei Fori Imperiali",
+    "Terrazza delle Quadrighe",
+    "Sant'Eustachio Caffè",
+    "Piazza Colonna",
+    "Antica Osteria di Pietra"
+   ],
+   "uscite": 0,
+   "rispettoAlPrecedente": {
+    "identico": true,
+    "tolte": [],
+    "aggiunte": [],
+    "diverse": 0
+   }
+  },
+  {
+   "dopo": "Profilo: azzera Natura",
+   "i": 12,
+   "misure": {
+    "tappe": 10,
+    "giorni": 1,
+    "km": 3.81,
+    "trattoMax": 1.04,
+    "minuti": 705,
+    "pasti": 2,
+    "minutiPasti": 150,
+    "prezzoPasti": 2.5,
+    "prezzoTutti": 1.75,
+    "senzaPrezzoPasti": 0,
+    "sosta": 480,
+    "tempoLibero": 78
+   },
+   "tappe": [
+    "Basilica di Sant’Agostino in Campo Marzio",
+    "La Casa del Caffè Tazza d'Oro",
+    "Pantheon",
+    "Roscioli Salumeria con Cucina",
+    "Foro Romano",
+    "Via dei Fori Imperiali",
+    "Terrazza delle Quadrighe",
+    "Sant'Eustachio Caffè",
+    "Piazza Colonna",
+    "Antica Osteria di Pietra"
+   ],
+   "uscite": 0,
+   "rispettoAlPrecedente": {
+    "identico": true,
+    "tolte": [],
+    "aggiunte": [],
+    "diverse": 0
+   }
+  },
+  {
+   "dopo": "30 giorni dopo",
+   "i": 16,
+   "misure": {
+    "tappe": 12,
+    "giorni": 1,
+    "km": 6.21,
+    "trattoMax": 1.19,
+    "minuti": 705,
+    "pasti": 2,
+    "minutiPasti": 150,
+    "prezzoPasti": 2.5,
+    "prezzoTutti": 2,
+    "senzaPrezzoPasti": 0,
+    "sosta": 570,
+    "tempoLibero": 0
+   },
+   "tappe": [
+    "Foro Romano",
+    "Via dei Fori Imperiali",
+    "La Casa del Caffè Tazza d'Oro",
+    "Pantheon",
+    "Osteria da Fortunata - Cancelleria",
+    "Campo de' Fiori",
+    "Terrazza delle Quadrighe",
+    "Fontana di Trevi",
+    "Mausoleo di Augusto",
+    "Il Goccetto",
+    "Piazza Farnese",
+    "Roscioli Salumeria con Cucina"
+   ],
+   "uscite": 0,
+   "rispettoAlPrecedente": {
+    "identico": false,
+    "tolte": [
+     "Basilica di Sant’Agostino in Campo Marzio",
+     "Sant'Eustachio Caffè",
+     "Piazza Colonna",
+     "Antica Osteria di Pietra"
+    ],
+    "aggiunte": [
+     "Osteria da Fortunata - Cancelleria",
+     "Campo de' Fiori",
+     "Fontana di Trevi",
+     "Mausoleo di Augusto",
+     "Il Goccetto",
+     "Piazza Farnese"
+    ],
+    "diverse": 63
+   }
+  }
+ ],
+ "sospetti": {
+  "saturazione": [
+   {
+    "giro": 1,
+    "cultura": 0.4,
+    "food": 0.4,
+    "natura": 0.35
+   },
+   {
+    "giro": 2,
+    "cultura": 0.78,
+    "food": 0.78,
+    "natura": 0.69
+   },
+   {
+    "giro": 3,
+    "cultura": 1,
+    "food": 1,
+    "natura": 1
+   },
+   {
+    "giro": 4,
+    "cultura": 1,
+    "food": 1,
+    "natura": 1
+   },
+   {
+    "giro": 5,
+    "cultura": 1,
+    "food": 1,
+    "natura": 1
+   },
+   {
+    "giro": 6,
+    "cultura": 1,
+    "food": 1,
+    "natura": 1
+   },
+   {
+    "giro": 7,
+    "cultura": 1,
+    "food": 1,
+    "natura": 1
+   },
+   {
+    "giro": 8,
+    "cultura": 1,
+    "food": 1,
+    "natura": 1
+   }
+  ],
+  "conti": {
+   "raggiunta": 0.05,
+   "saltata": -0.1,
+   "giroFinito": 0.3,
+   "salvato": 0.2,
+   "correzione": 0.15,
+   "tappeRaggiuntePerUnSalto": 2
+  },
+  "correzioneNelTempo": [
+   {
+    "giorno": 0,
+    "peso": 0.15
+   },
+   {
+    "giorno": 30,
+    "peso": 0.08
+   },
+   {
+    "giorno": 60,
+    "peso": 0.04
+   },
+   {
+    "giorno": 90,
+    "peso": 0.02
+   }
+  ],
+  "stessoTour": {
+   "mete": null,
+   "ritmo": 2
+  }
+ },
+ "fiduciaPiena": {
+  "base": {
+   "pesi": {
+    "cultura": 1,
+    "food": 1,
+    "nightlife": 0,
+    "natura": 1,
+    "avventura": 0,
+    "shopping": 0,
+    "relax": 0,
+    "arte": 0
+   },
+   "fiducia": 0.45,
+   "tappe": [
+    "Chiesa di Sant'Angelo in Pescheria",
+    "Pantheon",
+    "La Casa del Caffè Tazza d'Oro",
+    "Osteria del Grillo",
+    "Fontana di Trevi",
+    "Mausoleo di Augusto",
+    "Sant'Eustachio Caffè",
+    "Piazza Navona",
+    "Antica Osteria di Roma"
+   ]
+  },
+  "correzioni": [
+   {
+    "nome": "azzera Cultura",
+    "pesi": {
+     "cultura": 0.34,
+     "food": 1,
+     "nightlife": 0,
+     "natura": 1,
+     "avventura": 0,
+     "shopping": 0,
+     "relax": 0,
+     "arte": 0
+    },
+    "identico": false,
+    "diverse": 62,
+    "tolte": [
+     "Chiesa di Sant'Angelo in Pescheria",
+     "Osteria del Grillo",
+     "Fontana di Trevi",
+     "Mausoleo di Augusto"
+    ],
+    "aggiunte": [
+     "Campo de' Fiori",
+     "Roscioli Salumeria con Cucina",
+     "Foro Romano",
+     "Via dei Fori Imperiali"
+    ]
+   },
+   {
+    "nome": "azzera Natura",
+    "pesi": {
+     "cultura": 1,
+     "food": 1,
+     "nightlife": 0,
+     "natura": 0.34,
+     "avventura": 0,
+     "shopping": 0,
+     "relax": 0,
+     "arte": 0
+    },
+    "identico": true,
+    "diverse": 0,
+    "tolte": [],
+    "aggiunte": []
+   },
+   {
+    "nome": "«+» ×3 su Relax",
+    "pesi": {
+     "cultura": 1,
+     "food": 1,
+     "nightlife": 0,
+     "natura": 1,
+     "avventura": 0,
+     "shopping": 0,
+     "relax": 0.44,
+     "arte": 0
+    },
+    "identico": true,
+    "diverse": 0,
+    "tolte": [],
+    "aggiunte": []
+   }
+  ]
+ },
+ "categorie": [
+  "cultura",
+  "food",
+  "nightlife",
+  "natura",
+  "avventura",
+  "shopping",
+  "relax",
+  "arte"
+ ]
+}

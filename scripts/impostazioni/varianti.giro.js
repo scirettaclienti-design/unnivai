@@ -27,9 +27,11 @@ const tracciati = FILE.map(leggi);
 const tutti = tracciati.flatMap(t => t.casi.map(c => ({ ...c, _fuso: t.fusoOffset, _giorno: t.giornoSimulato })));
 
 // Le risposte di Google non dipendono dall'impostazione: le ricerche di tutti i casi della stessa citta' valgono per ogni variante.
-const placesDi = (luogo) => Object.assign({}, ...tutti.filter(c => c.caso?.luogo === luogo).map(c => c.rete?.places || {}));
-const listeDi = (luogo, tipo) => Object.assign({}, ...tutti.filter(c => c.caso?.luogo === luogo).map(c => c.rete?.ai?.[tipo] || {}));
-const fattiDi = (luogo) => Object.assign({}, ...tutti.filter(c => c.caso?.luogo === luogo).map(c => c.fatti || {}));
+const memo = new Map();
+const una = (k, f) => { if (!memo.has(k)) memo.set(k, f()); return memo.get(k); };
+const placesDi = (luogo) => una(`p:${luogo}`, () => Object.assign({}, ...tutti.filter(c => c.caso?.luogo === luogo).map(c => c.rete?.places || {})));
+const listeDi = (luogo, tipo) => una(`${tipo}:${luogo}`, () => Object.assign({}, ...tutti.filter(c => c.caso?.luogo === luogo).map(c => c.rete?.ai?.[tipo] || {})));
+const fattiDi = (luogo) => una(`f:${luogo}`, () => Object.assign({}, ...tutti.filter(c => c.caso?.luogo === luogo).map(c => c.fatti || {})));
 
 const SCELTE = (process.env.IMP_VARIANTI || '').split(',').map(s => s.trim()).filter(Boolean);
 const varianti = VARIANTI.filter(v => !SCELTE.length || SCELTE.includes(v.id));
